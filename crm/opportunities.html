@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Opportunities</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Opportunities: today's board and list, the record drawer and the Add / Edit form, in the Harbor theme.
+       Approved changes applied: sidebar (H1); each record has a URL, Back closes the drawer, names are real links (H3);
+       one date and money format, compact on cards, full in the list (H4, H5); Archive moves into the record's ⋯ menu
+       and gives Undo (H6).
+       The board uses the live stage names and numbers, and the live colours where they carry meaning: Renewal in amber
+       (badge and border), Overdue in red, Won and Lost in green and red. Amounts stay plain: in live every amount is green,
+       so the colour says nothing.
+       Not changed (waiting on Dan): the board as today, six columns, long stage names, Renewal with an amber border (M7);
+       the board has only Sort and the list keeps all its filters (M5).
+       Add and Edit have live's fields in live's order (Campaign, Recurrence, Notes, Additional owners); Edit adds outcome and
+       opportunity error, and changes the owner under Handoff ownership, as live (no originator field, as live). Account searches as you type, + New names a new one. Expected close stays a text date, as in every CRM form.
+       State 1 is live: switch Board / List, sort the board, open a card or row, Archive from the record's edit form. -->
+  <section class="state" aria-labelledby="state-board">
+    <h2 class="state__label" id="state-board">State 1 · Board: the six live stages, numbered, of fixed width with deal count and value; Closed adds Won and Lost; cards with amount and close date; the board scrolls sideways when they don't fit; live — open a card, then Back</h2>
+    <div class="app app--console app--crm" id="app-1" data-url>
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="opportunities"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Opportunities</h1>
+              <p class="console__subtitle" data-render="summary"></p>
+            </div>
+            <div class="console__actions">
+              <div class="segmented segmented--inline" role="group" aria-label="View" data-view-switch>
+                <button type="button" class="segment segment--icon is-active" aria-pressed="true" data-value="board" aria-label="Board" data-tip="Board"><span data-cicon="board" data-size="16"></span></button>
+                <button type="button" class="segment segment--icon" aria-pressed="false" data-value="list" aria-label="List" data-tip="List"><span data-cicon="list" data-size="16"></span></button>
+              </div>
+              <button type="button" class="btn btn--primary" data-sheet-open="sheet-form"><span data-icon="plus"></span>New opportunity</button>
+            </div>
+          </div>
+
+          <!-- board: Sort only, as today -->
+          <div class="board-bar" data-view-panel="board">
+            <div class="filter-btn filter-btn--field">
+              <button type="button" class="filter-btn__open" data-menu="board-sort" aria-haspopup="menu" aria-expanded="false" aria-label="Sort"><span class="filter-btn__label">Sort</span><span class="filter-btn__value" data-board-sort>Last updated</span><span data-icon="chevron"></span></button>
+            </div>
+          </div>
+          <div class="board" data-view-panel="board" data-render="board" aria-label="Pipeline board"></div>
+
+          <!-- list: today's filters and columns -->
+          <section class="records records--plain" aria-label="Opportunities" data-view-panel="list">
+            <form class="filters filters--bar" role="search" aria-label="Filter opportunities">
+              <div class="filter-search">
+                <label class="sr-only" for="f-opps">Search opportunities</label>
+                <span data-icon="search"></span>
+                <input class="input" id="f-opps" type="search" placeholder="Search opportunity or account" data-search>
+              </div>
+              <span data-render="filter-btns"></span>
+            </form>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr>
+                  <!-- tags, amount, close and outcome are as wide as their content; the wrapping columns share the rest as
+                       a share of the table, so a wider frame widens them all, and Stage, the longest, takes what is left -->
+                  <th scope="col" style="width: 17%">Opportunity</th>
+                  <th scope="col" style="width: 10%">Account</th>
+                  <th scope="col" style="width: 120px">Tags</th>
+                  <th scope="col">Stage</th>
+                  <th scope="col" class="cell--right" style="width: 112px">Amount</th>
+                  <th scope="col" style="width: 144px">Close</th>
+                  <th scope="col" style="width: 7.5%">Owner</th>
+                  <th scope="col" style="width: 8.2%">Originator</th>
+                  <th scope="col" style="width: 88px">Outcome</th>
+                </tr></thead>
+                <tbody data-filterable data-render="rows"></tbody>
+              </table>
+            </div>
+            <nav class="pager" aria-label="Pagination">
+              <span class="pager__text" data-render="pager"></span>
+              <span class="pager__pages">
+                <button type="button" class="pager__btn" aria-label="Previous page" disabled><span data-icon="chevron-left"></span></button>
+                <button type="button" class="pager__btn num is-current" aria-current="page" aria-label="Page 1">1</button>
+                <button type="button" class="pager__btn num" aria-label="Page 2">2</button>
+                <button type="button" class="pager__btn num" aria-label="Page 3">3</button>
+                <button type="button" class="pager__btn" aria-label="Next page"><span data-icon="chevron-right"></span></button>
+              </span>
+            </nav>
+          </section>
+        </div>
+      </div>
+
+      <!-- drawers -->
+      <div class="sheet-scrim" hidden></div>
+      <aside class="sheet sheet--record" id="sheet-record" role="dialog" aria-modal="true" aria-labelledby="sheet-record-title" data-record hidden>
+        <div class="sheet__bar">
+          <span></span>
+          <div class="sheet__tools">
+            <button type="button" class="btn btn--ghost btn--sm"><span data-cicon="phone"></span>Call</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-sheet-open="sheet-form" data-edit><span data-cicon="pencil"></span>Edit</button>
+          </div>
+          <button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button>
+        </div>
+        <div class="sheet__scroll" data-fill></div>
+      </aside>
+
+      <aside class="sheet" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-form-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <form class="sheet__scroll" data-fill aria-labelledby="sheet-form-title"></form>
+        <div class="sheet__foot">
+          <button type="button" class="btn btn--ghost btn--danger-text" data-form-archive hidden><span data-icon="archive"></span>Archive</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-submit>Create opportunity</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 2 · List: today's filters and columns, full amounts, overdue close dates marked; stage numbered as on the board, account and stage wrap to two lines, tags as live</h2>
+    <div data-clone="app-1" data-view="list"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-record">
+    <h2 class="state__label" id="state-record">State 3 · Record, a renewal: the Renewal notice, key fields, then stage history; the address is opportunities.html?record=o02</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-record" data-key="o02"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-record-tasks">
+    <h2 class="state__label" id="state-record-tasks">State 4 · Record past its close date, Tasks tab: the overdue close and the overdue task, in words and colour</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-record" data-key="o07" data-tab="tasks"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-archived">
+    <h2 class="state__label" id="state-archived">State 5 · Archived: the card leaves the board, the column count drops, and Undo puts it back for 5 seconds</h2>
+    <div data-clone="app-1" data-archived="o07"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-add">
+    <h2 class="state__label" id="state-add">State 6 · New opportunity: live's fields in live's order: account search with + New, numbered stages, campaign, renewal, recurrence, notes, tags, additional owners</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-edit">
+    <h2 class="state__label" id="state-edit">State 7 · Edit opportunity: as live — the same fields filled in, plus outcome (each explained) and opportunity error; the owner changes under Handoff ownership, at once, with Undo</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form" data-key="o02"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-none">
+    <h2 class="state__label" id="state-none">State 8 · List, nothing matches the search: one line and the way back</h2>
+    <div data-clone="app-1" data-view="list" data-query="Fairview"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-narrow">
+    <h2 class="state__label" id="state-narrow">State 9 · Board with the sidebar collapsed: the stages get the room: at 1440 wide four are in full and the fifth is cut by the window, the board scrolls sideways for the rest ([ or the toggle at the bottom of the sidebar)</h2>
+    <div data-clone="app-1" data-rail-collapsed></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-filters">
+    <h2 class="state__label" id="state-filters">State 10 · List, filters: Stage, Outcome, Tag, Account all in the bar, on a row under the search; Show (live's three checkboxes: closed, errors, archived) and Sort apart at the end. Outcome starts on Open; Show counts the switches on; Sort always has a value and names its direction; Stage, Tag and Account take several values</h2>
+    <div data-clone="app-1" data-view="list" data-filters="stage:proposal,negotiation show:closed sort:amount" data-show-filter="stage"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-drag">
+    <h2 class="state__label" id="state-drag">State 11 · Drag a card to another stage: the card dims, the stage under it lights up and a slot opens where the card will land (the column's Sort decides the place); on drop the deal and its value move columns, and Undo puts it back. The record's Edit form changes the stage without dragging</h2>
+    <div data-clone="app-1" data-drag="o14 negotiation"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var app = document.getElementById('app-1');
+  function put(name, html) { app.querySelectorAll('[data-render="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
+  function opp(id) { return C.by.opportunity[id]; }
+  function acct(id) { return C.by.account[id]; }
+  /* only an open deal can be overdue: a won or lost deal's close date is when it closed */
+  function late(o) { return o.outcome === 'open' && C.days(o.close) < 0; }
+  var OUTCOME = { open: 'Open', won: 'Won', lost: 'Lost' };
+  /* list cells that a move on the board rewrites too. The stage has its number, as live: its place in the pipeline */
+  function stageCell(o) {
+    var n = D.stages.map(function (s) { return s.id; }).indexOf(o.stage) + 1, name = esc(C.stage(o.stage));
+    return '<span class="stage-cell" title="' + name + '"><span class="stage-num" aria-hidden="true">' + n + '</span><span class="cell-clamp">' + name + '</span></span>';
+  }
+  /* Open stays plain on every row; only a closed deal's outcome gets its colour, as on the board */
+  function outcomeCell(o) {
+    return o.outcome === 'won' ? '<span class="badge badge--ok">Won</span>' : o.outcome === 'lost' ? '<span class="badge badge--danger">Lost</span>' : OUTCOME.open;
+  }
+  /* Renewal in amber, as live; a closed deal's outcome in green or red, the word carrying the meaning */
+  function badges(o) {
+    var b = (o.renewal ? '<span class="badge badge--warn">Renewal</span>' : '') +
+      (o.outcome === 'open' ? '' : outcomeCell(o));
+    return b ? '<span class="deal__badges">' + b + '</span>' : '';
+  }
+  /* close date; past it, the word "Overdue" carries the meaning and the red dot backs it up */
+  function closeLabel(o) { return late(o) ? '<span class="state-dot state-dot--danger">Overdue · ' + C.date(o.close) + '</span>' : C.date(o.close); }
+  var tagCell = C.tagCell;
+  function fullDate(iso) { var s = C.date(iso); return s.indexOf(',') < 0 ? s + ', ' + iso.slice(0, 4) : s; }
+
+  /* ---------- board: columns from the stage totals, cards from the sample deals; re-drawn on sort and archive.
+     A column's count and value are its cards': "3 opps · $1.4M", an empty one "0 opps", as live; so are Closed's Won and Lost,
+     and the page line above sums the open columns ---------- */
+  var SORT = {
+    updated: function (a, b) { return b.updated.localeCompare(a.updated); },
+    close: function (a, b) { return a.close < b.close ? -1 : 1; },
+    amount: function (a, b) { return b.amount - a.amount; }
+  };
+  function card(o, sheetId) {
+    var a = acct(o.account);
+    return '<li class="deal' + (o.renewal ? ' deal--renewal' : '') + '" draggable="true" data-open="' + sheetId + '" data-key="' + o.id + '">' +
+      badges(o) +
+      '<a class="link link--quiet deal__title" draggable="false" data-record-link href="opportunities.html?record=' + o.id + '">' + esc(o.title) + '</a>' +
+      '<span class="deal__account" title="' + esc(a.name) + '">' + esc(a.name) + '</span>' + C.person(o.owner) +
+      '<span class="deal__foot"><span class="deal__amount">' + C.moneyShort(o.amount) + (o.recurrence !== 'One-time' ? '<span class="deal__recurrence">' + o.recurrence + '</span>' : '') + '</span>' +
+        '<span>' + closeLabel(o) + '</span></span></li>';
+  }
+  function board(frame) {
+    var sheetId = frame.querySelector('.sheet[data-record]').id, gone = frame._archived || {};
+    var sort = SORT[frame._boardSort] || SORT.updated, openN = 0, openV = 0;
+    frame.querySelector('[data-render="board"]').innerHTML = D.stages.map(function (s) {
+      var all = D.opps.filter(function (o) { return o.stage === s.id; });
+      var shown = all.filter(function (o) { return !gone[o.id]; }).sort(sort);
+      var sum = function (k) { return shown.reduce(function (t, o) { return !k || o.outcome === k ? t + o.amount : t; }, 0); };
+      var n = shown.length, v = sum();
+      /* Closed: how much of it was won and lost */
+      var split = '';
+      if (s.closed) split = '<span class="board__split"><span class="board__won">Won ' + C.moneyShort(sum('won')) + '</span><span class="board__lost">Lost ' + C.moneyShort(sum('lost')) + '</span></span>';
+      if (!s.closed) { openN += n; openV += v; }
+      var num = D.stages.indexOf(s) + 1;
+      return '<section class="board__col" data-stage="' + s.id + '" aria-label="' + num + ', ' + esc(C.stage(s.id)) + ', ' + n + (n === 1 ? ' opportunity' : ' opportunities') + '">' +
+        '<header class="board__head"><h2 class="board__name" title="' + esc(C.stage(s.id)) + '"><span class="stage-num" aria-hidden="true">' + num + '</span>' +
+          '<span class="board__label">' + esc(C.stage(s.id)) + '</span></h2><span class="board__meta"><span>' + n + (n === 1 ? ' opp' : ' opps') +
+          (n ? '<span class="board__dot" aria-hidden="true">·</span><span class="board__value">' + C.moneyShort(v) + '</span>' : '') + '</span>' + split + '</span></header>' +
+        (shown.length ? '<ul class="board__cards">' + shown.map(function (o) { return card(o, sheetId); }).join('') + '</ul>' : '<p class="board__empty">No opps</p>') +
+        '</section>';
+    }).join('');
+    /* the page line sums the open columns, so it follows Archive and drag (Closed is not open pipeline) */
+    frame.querySelector('[data-render="summary"]').innerHTML = '<span class="console__figure">' + C.count(openN) + '</span> open opportunities · ' +
+      '<span class="console__figure">' + C.moneyShort(openV) + '</span> pipeline';
+  }
+  board(app);
+
+  /* ---------- list ---------- */
+  /* filters (C.filterBar): the four sit on their own row under the search.
+     Outcome starts on Open, as
+     today. Show holds live's three checkboxes as switches, all off as live: closed deals (won/lost; picking Won or Lost
+     in Outcome shows them anyway), deals with errors (in the warning colour, as live) and archived deals. Show and Sort sit
+     apart at the end; Sort always has a value and names its direction. Stage, Tag and Account take several values. */
+  var byOpp = {}; D.opps.forEach(function (o) { byOpp[o.id] = o; });
+  C.filterBar(app, 'opp', { record: function (id) { return byOpp[id]; }, filters: {
+    stage: { label: 'Stage', multi: true, opts: D.stages.map(function (s) { return [s.id, s.name]; }), test: function (o, v) { return v.indexOf(o.stage) >= 0; } },
+    outcome: { label: 'Outcome', def: 'open', opts: [['open', 'Open'], ['won', 'Won'], ['lost', 'Lost']], test: function (o, v) { return o.outcome === v; } },
+    tag: { label: 'Tag', multi: true, opts: D.tagList.map(function (t) { return [t.name, t.name]; }), test: function (o, v) { return o.tags.some(function (x) { return v.indexOf(x) >= 0; }); } },
+    account: { label: 'Account', multi: true, search: 'Search accounts', opts: D.accounts.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (a) { return [a.id, a.name]; }), test: function (o, v) { return v.indexOf(o.account) >= 0; } },
+    show: { label: 'Show', toggles: true, opts: [['closed', 'Include closed (won/lost)'], ['errors', 'Opportunity errors', 'warn'], ['archived', 'Archived']],
+      test: function (o, v, all) {
+        return (o.outcome === 'open' || v.indexOf('closed') >= 0 || all.outcome !== 'any') &&
+          (!o.error || v.indexOf('errors') >= 0) && (!o.archived || v.indexOf('archived') >= 0);
+      } },
+    sort: { label: 'Sort', noAny: true, def: 'close', opts: [['close', 'Close date'], ['updated', 'Last updated'], ['amount', 'Amount']], sort: SORT }   /* live's three, as the board: Close date soonest, Last updated newest, Amount largest */
+  } });
+  put('pager', 'Showing <span class="num" data-shown>' + D.opps.length + '</span> of <span class="num">' + C.count(D.opps.length) + '</span> opportunities');
+  put('rows', D.opps.slice().sort(SORT.close).map(function (o) {
+    return '<tr data-seg="all" data-open="sheet-record" data-key="' + o.id + '" tabindex="0" aria-label="' + esc(o.title) + ', open the record">' +
+      '<td><span class="cell-clamp"><a class="link link--quiet" data-record-link href="opportunities.html?record=' + o.id + '" title="' + esc(o.title) + '">' + esc(o.title) + '</a></span></td>' +
+      /* name, account and stage wrap to two lines, as live; the rest is in the tooltip */
+      '<td><span class="cell-clamp" title="' + esc(acct(o.account).name) + '">' + C.recordLink(['account', o.account]) + '</span></td>' +
+      '<td class="cell--nowrap">' + tagCell(o.tags) + '</td>' +
+      '<td>' + stageCell(o) + '</td>' +
+      '<td class="cell--right num">' + C.money(o.amount) + '</td><td class="cell--nowrap">' + closeLabel(o) + '</td>' +
+      /* nine columns: names without avatars and wrapping, as live, so the opportunity name keeps its width; the originator is secondary */
+      '<td><span class="cell-clamp">' + esc(C.rep(o.owner).name) + '</span></td><td class="cell--muted"><span class="cell-clamp">' + esc(C.rep(o.originator).name) + '</span></td>' +
+      '<td>' + outcomeCell(o) + '</td></tr>';
+  }).join(''));
+
+
+  /* ---------- record drawer ---------- */
+  function empty(text) { return '<p class="tabpanel__empty">' + text + '</p>'; }
+  function list(items) { return items.length ? '<ul class="rows rows--plain">' + items.join('') + '</ul>' : ''; }
+  function row(main, meta, side) { return '<li class="rows__item"><span class="rows__main"><span class="rows__title">' + main + '</span>' + (meta ? '<span class="rows__meta">' + meta + '</span>' : '') + '</span>' + (side ? '<span class="rows__side">' + side + '</span>' : '') + '</li>'; }
+  function due(iso) {
+    if (!iso) return '<span class="muted">No due date</span>';
+    return C.days(iso) < 0 ? '<span class="state-dot state-dot--danger">' + C.day(iso) + ' · overdue</span>' : C.day(iso);
+  }
+  function shift(iso, n) { var p = iso.split('-'), d = new Date(+p[0], p[1] - 1, +p[2] + n); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  /* stage history, newest first: invented but consistent with the activity feed where it has a stage move */
+  function stageHistory(o) {
+    var at = D.stages.map(function (s) { return s.id; }).indexOf(o.stage);
+    var moved = D.activity.filter(function (v) { return v.type === 'stage' && v.rel[1] === o.id; })[0];
+    /* a won or lost deal moved to Closed on the day it closed */
+    var last = moved ? moved.at.slice(0, 10) : o.outcome !== 'open' ? o.close : shift(D.today, -(5 + at * 2 + +o.id.slice(1) % 5)), out = [];
+    for (var i = at; i >= 0; i--) {
+      var when = shift(last, -(at - i) * 13), by = i === 0 ? o.originator : i === at && moved ? moved.who : o.owner;
+      out.push(i === 0
+        ? row('Created in ' + esc(C.stage(D.stages[0].id)), esc(C.rep(by).name), C.date(when))
+        : row('Moved to ' + esc(C.stage(D.stages[i].id)), 'From ' + esc(C.stage(D.stages[i - 1].id)) + ' · ' + esc(C.rep(by).name), C.date(when)));
+    }
+    return out;
+  }
+  function people(ids) { return ids.length ? ids.map(C.person).join('') : '<span class="dash">—</span>'; }
+
+  var seq = 0;
+  C.fill['sheet-record'] = function (sheet, key) {
+    var o = opp(key); if (!o) return;
+    var a = acct(o.account), id = 'r' + (++seq);
+    var near = [o.id, a.id].concat(D.contacts.filter(function (c) { return c.account === a.id; }).map(function (c) { return c.id; }));
+    var acts = D.activity.filter(function (v) { return near.indexOf(v.rel[1]) >= 0; });
+    var tasks = D.tasks.filter(function (t) { return t.rel[1] === o.id; });
+    var hist = stageHistory(o);
+    var docs = D.documents.filter(function (d) { return d.rel && d.rel[0] === 'opportunity' && d.rel[1] === o.id; });
+    var tabs = [
+      ['history', 'Stage History', hist.length, list(hist)],
+      ['activity', 'Activities', acts.length, list(acts.map(function (v) { return row(esc(v.text), C.recordLink(v.rel) + ' · ' + esc(C.rep(v.who).name), C.stamp(v.at)); })) || empty('No activity yet.')],
+      ['tasks', 'Tasks', tasks.length, list(tasks.map(function (t) { return row(esc(t.title), esc(C.rep(t.owner).name), due(t.due)); })) || empty('No open tasks.')],
+      ['docs', 'Documents', docs.length, list(docs.map(function (d) { return row('<a class="link link--quiet" href="documents.html">' + esc(d.file) + '</a>', C.fileExt(d.file).toUpperCase() + ' · ' + esc(C.rep(d.by).name), C.date(d.date)); })) || empty('No documents yet.')],
+      ['fields', 'Custom Fields', 2, '<dl class="dl"><dt>Contract term</dt><dd>' + TERM[o.recurrence] + '</dd><dt>Competitor</dt><dd>None known</dd></dl>']
+    ];
+    var pick = sheet.closest('.app').dataset.tab || 'history';
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">' + esc(o.title) + '</h2>' +
+        '<p class="sheet__sub">' + esc(a.name) + '</p><div class="sheet__tags">' + C.tags(o.tags) + '</div></header>' +
+      (o.renewal ? '<div class="notice notice--warn notice--compact">' + C.icon('alert', 16) + '<div class="notice__body"><span class="notice__title">Renewal</span>' +
+        '<span class="notice__text">Renews an existing agreement with ' + esc(a.name) + '.</span></div></div>' : '') +
+      '<dl class="dl"><dt>Account</dt><dd>' + C.recordLink(['account', a.id]) + '</dd>' +
+        '<dt>Owner</dt><dd>' + C.person(o.owner) + '</dd><dt>Co-owners</dt><dd>' + people(o.coowners) + '</dd>' +
+        '<dt>Originator</dt><dd>' + C.person(o.originator) + '</dd><dt>Stage</dt><dd>' + esc(C.stage(o.stage)) + '</dd>' +
+        '<dt>Amount</dt><dd class="num">' + C.money(o.amount) + (o.recurrence !== 'One-time' ? ' <span class="muted">· ' + o.recurrence + '</span>' : '') + '</dd>' +
+        '<dt>Outcome</dt><dd>' + OUTCOME[o.outcome] + '</dd><dt>' + (o.outcome === 'open' ? 'Expected close' : 'Closed') + '</dt><dd>' + closeLabel(o) + '</dd>' +
+        (o.notes ? '<dt>Notes</dt><dd>' + esc(o.notes) + '</dd>' : '') + '</dl>' +
+      '<div class="tabs" role="tablist" aria-label="About ' + esc(o.title) + '">' + tabs.map(function (t) {
+        var on = t[0] === pick;
+        return '<button type="button" class="tab' + (on ? ' is-active' : '') + '" role="tab" id="' + id + '-t-' + t[0] + '" aria-controls="' + id + '-p-' + t[0] + '" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) + '">' +
+          t[1] + (t[2] ? '<span class="tab__n">' + t[2] + '</span>' : '') + '</button>';
+      }).join('') + '</div>' +
+      tabs.map(function (t) { return '<div class="tabpanel" role="tabpanel" id="' + id + '-p-' + t[0] + '" aria-labelledby="' + id + '-t-' + t[0] + '"' + (t[0] === pick ? '' : ' hidden') + '>' + t[3] + '</div>'; }).join('');
+    sheet.querySelector('[data-edit]').dataset.key = o.id;
+  };
+
+  /* ---------- add / edit form: the record's fields, in a drawer ---------- */
+  function field(id, label, control, req) { return '<div class="field"><label class="field__label" for="' + id + '">' + label + (req ? '<span class="field__req" aria-hidden="true">*</span>' : '') + '</label>' + control + '</div>'; }
+  function input(id, value, req, extra) { return '<input class="input" id="' + id + '" value="' + esc(value || '') + '"' + (req ? ' aria-required="true"' : '') + (extra || '') + '>'; }
+  /* a checkbox with its explanation under the label (Renewal, Opportunity error) */
+  function checkHint(id, label, on, hint) {
+    return '<div class="field"><label class="check"><input type="checkbox" class="checkbox" id="' + id + '"' + (on ? ' checked' : '') + ' aria-describedby="' + id + '-hint"> ' + label + '</label>' +
+      '<span class="field__hint" id="' + id + '-hint">' + hint + '</span></div>';
+  }
+  /* outcome in Edit, each one explained, as live */
+  var OUTCOME_OPTS = [['open', 'Open \u2014 still in pipeline'], ['won', 'Won \u2014 closed, signed'], ['lost', 'Lost \u2014 closed, didn\u2019t sign']];
+  /* recurrence, as live: One-time, or a repeating amount the card and record name */
+  var RECURRENCE = ['One-time', 'Monthly', 'Annual', 'Multi-year'];
+  var TERM = { 'One-time': 'One-time', Monthly: 'Month to month', Annual: '12 months', 'Multi-year': '36 months' };
+  var ACCOUNTS = D.accounts.map(function (a) { return a.name; }).sort();
+  /* numbered, as live; live also ticks stages 3 to 6 (meaning not confirmed yet, a question for Dan) */
+  var STAGE_OPTS = D.stages.map(function (s, i) { return [s.id, (i + 1) + '. ' + C.stage(s.id) + (i >= 2 ? ' \u2713' : '')]; });
+  var CAMPAIGNS = [['', 'No campaign']].concat(D.campaigns.map(function (m) { return [m.id, m.name]; }));
+  /* Add and Edit have live's fields, in live's order; Edit adds outcome, opportunity error and Handoff ownership.
+     Account: type to search (the browser's list), or + New to name a new one; Additional owners: every other active rep, picked like tags (chips and a list) */
+  C.fill['sheet-form'] = function (sheet, key) {
+    var o = key ? opp(key) : null, id = 'f' + (++seq), v = o || {}, owner = o ? o.owner : C.me().id;
+    var co = D.reps.filter(function (r) { return r.status === 'active' && r.id !== owner; });
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">' + (o ? 'Edit opportunity' : 'New opportunity') + '</h2>' +
+        (o ? '<p class="sheet__sub">' + esc(o.title) + '</p>' : '') + '</header>' +
+      '<div class="fgroup">' +
+        field(id + '-name', 'Name', input(id + '-name', v.title, true, o ? '' : ' data-autofocus'), true) +
+        '<div class="field" data-acct><label class="field__label" for="' + id + '-acct">Account<span class="field__req" aria-hidden="true">*</span></label>' +
+          '<span class="input-row"><span class="input-wrap">' + input(id + '-acct', o ? acct(o.account).name : '', true, ' list="' + id + '-accts" placeholder="Search accounts" autocomplete="off" aria-describedby="' + id + '-acct-hint"') + C.icon('chevron', 16) + '</span>' +
+          '<button type="button" class="btn btn--secondary" data-acct-new>' + C.icon('plus', 16) + 'New</button></span>' +
+          '<datalist id="' + id + '-accts">' + ACCOUNTS.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
+          '<span class="field__hint" id="' + id + '-acct-hint" hidden>A new account is created with this name; add its details on the account.</span></div>' +
+        '<div class="frow">' + field(id + '-stage', 'Stage', C.select(id + '-stage', STAGE_OPTS, v.stage || D.stages[0].id)) +
+          field(id + '-amount', 'Amount', '<span class="input-prefix"><span>$</span>' + input(id + '-amount', o ? C.count(o.amount) : '', false, ' inputmode="decimal" placeholder="0.00"') + '</span>') + '</div>' +
+        field(id + '-close', 'Expected close', input(id + '-close', o ? fullDate(o.close) : '')) +
+        field(id + '-camp', 'Campaign', C.select(id + '-camp', CAMPAIGNS, v.campaign || '')) +
+        (o ? field(id + '-outcome', 'Outcome', C.select(id + '-outcome', OUTCOME_OPTS, o.outcome)) +
+          checkHint(id + '-err', 'Mark as opportunity error', o.error, 'Flags this as a data entry mistake. Hides it from reports and pipeline views.') : '') +
+        checkHint(id + '-renew', 'Renewal', v.renewal, 'Marks this as a renewal of existing business. Renewals are marked in amber on the board.') +
+        field(id + '-rec', 'Recurrence', C.select(id + '-rec', RECURRENCE, v.recurrence || 'One-time')) +
+        field(id + '-notes', 'Notes', '<textarea class="input textarea" id="' + id + '-notes" rows="3">' + esc(v.notes || '') + '</textarea>') +
+        field(id + '-tags', 'Tags', C.tagField(id + '-tags', o ? o.tags : [])) +
+        '<div class="field"><label class="field__label" for="' + id + '-co">Additional owners</label>' +
+          C.peopleField(id + '-co', o ? o.coowners : [], co.map(function (r) { return r.id; })) +
+          '<span class="field__hint" id="' + id + '-co-hint">Co-owners get full access to this opportunity. The primary owner stays ' + (o ? esc(C.rep(o.owner).name) : 'you') + '.</span></div>' +
+      '</div>' +
+      /* Edit: the owner changes here, as its own action, not with Save (live's Handoff ownership) */
+      (o ? '<div class="fgroup fgroup--handoff" role="group" aria-labelledby="' + id + '-ho-l"><h3 class="fgroup__title" id="' + id + '-ho-l">Handoff ownership</h3>' +
+        '<p class="field__hint" id="' + id + '-ho-hint">Reassign this opportunity to another user. Typically used when a biz dev rep qualifies the opportunity (stage 3 and later) and hands it to a sales rep.</p>' +
+        '<span class="input-row">' + C.select(id + '-ho', [['', 'Choose the new owner']].concat(D.reps.filter(function (r) { return r.status === 'active'; }).map(function (r) {
+          return [r.id, r.name + ' (' + D.roles[r.role] + ')' + (r.id === o.owner ? ' \u2014 current' : '')];
+        })), '', ' aria-describedby="' + id + '-ho-hint"') +
+        '<button type="button" class="btn btn--secondary" data-handoff="' + o.id + '">Handoff</button></span></div>' : '');
+    sheet.querySelector('[data-submit]').textContent = o ? 'Save changes' : 'Create opportunity';
+    var fa = sheet.querySelector('[data-form-archive]'); fa.hidden = !o; if (o) fa.dataset.key = o.id;   /* Archive sits in the edit form, not behind a one-item menu */
+  };
+
+  /* Handoff: the deal moves to its new owner at once (board card, list row, record), with Undo */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-handoff]'); if (!b) return;
+    var sel = b.closest('.input-row').querySelector('select'), o = opp(b.dataset.handoff), to = sel.value, from = o.owner;
+    if (!to || to === from) { sel.focus(); return; }
+    var frame = b.closest('.app');
+    function apply(who) {
+      o.owner = who; board(frame);
+      var tr = frame.querySelector('tbody tr[data-key="' + o.id + '"]'); if (tr) tr.cells[6].innerHTML = '<span class="cell-clamp">' + esc(C.rep(who).name) + '</span>';
+      var rec = frame.querySelector('.sheet[data-record]:not([hidden])'); if (rec) C.fill['sheet-record'](rec, o.id);   /* the record under the form, too */
+    }
+    C.close(b.closest('.sheet')); apply(to);
+    C.toast(frame, o.title + ' handed off to ' + C.rep(to).name, function () { apply(from); });
+  });
+
+  /* + New beside Account: the field now names a new account (the list of existing ones goes), as live's + New */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-acct-new]'); if (!b) return;
+    var f = b.closest('[data-acct]'), inp = f.querySelector('input');
+    inp.removeAttribute('list'); inp.value = ''; inp.placeholder = 'New account name';
+    f.querySelector('.field__hint').hidden = false; b.hidden = true; inp.focus();
+  });
+
+  /* ---------- archive with Undo (H6): the card and the row leave together ---------- */
+  function archive(frame, key, opts) {
+    var o = opp(key), rec = frame.querySelector('.sheet[data-record]'), tr = frame.querySelector('tbody tr[data-key="' + key + '"]');
+    if (rec && !rec.hidden) C.close(rec);
+    function apply(on) {
+      frame._archived = frame._archived || {};
+      if (on) frame._archived[key] = true; else delete frame._archived[key];
+      board(frame); tr.classList.toggle('is-archived', on); C.filter(tr.closest('.state'));
+    }
+    apply(true);
+    C.toast(frame, o.title + ' archived', function () { apply(false); }, opts);
+  }
+  document.addEventListener('crm:menu', function (e) { if (e.detail.action === 'archive') archive(e.target.closest('.app'), e.detail.key); });
+  document.addEventListener('click', function (e) {   /* Archive in the edit form: close the form, then archive with Undo */
+    var b = e.target.closest('[data-form-archive]'); if (!b) return;
+    C.close(b.closest('.sheet')); archive(b.closest('.app'), b.dataset.key);
+  });
+  /* ---------- drag a card to another stage, with Undo. The board is redrawn, so the card and its value leave one column's totals for the other's;
+     out of Closed, a won or lost deal is open again. The record's Edit form is the way to do it without dragging. ---------- */
+  var moves = 0;
+  function move(frame, key, to) {
+    var o = opp(key), from = o.stage, was = o.outcome, wasUpdated = o.updated;
+    function apply(stage, outcome) {
+      o.stage = stage; o.outcome = outcome;
+      board(frame);
+      var tr = frame.querySelector('tbody tr[data-key="' + key + '"]');   /* the list row says the same */
+      if (tr) { tr.cells[3].innerHTML = stageCell(o); tr.cells[8].innerHTML = outcomeCell(o); }
+    }
+    o.updated = D.today + 'T23:59:' + String(++moves).padStart(2, '0');   /* a move updates the deal: under Last updated it leads its new column */
+    apply(to, C.by.stage[to].closed ? was : 'open');
+    C.toast(frame, o.title + ' moved to ' + C.by.stage[to].name, function () { o.updated = wasUpdated; apply(from, was); });
+  }
+  var drag = null;   /* { key, from, frame, h } while a card is held */
+  function dropCol(e) { var col = drag && e.target.closest && e.target.closest('.board__col'); return col && drag.frame.contains(col) && col.dataset.stage !== drag.from ? col : null; }
+  function clearDrop(frame) {
+    frame.querySelectorAll('.board__col.is-drop').forEach(function (c) { c.classList.remove('is-drop'); });
+    frame.querySelectorAll('.deal-slot, .board__cards--slot').forEach(function (s) { s.remove(); });
+  }
+  /* the slot the card will land in: the column is sorted, so the place follows the board's Sort, not the pointer */
+  function showDrop(frame, col, key, h) {
+    clearDrop(frame); col.classList.add('is-drop');
+    /* the card as it will be once moved: a move updates it, so under Last updated it leads the column (move() above) */
+    var o = Object.create(opp(key)); o.updated = D.today + 'T23:59:99';
+    var sort = SORT[frame._boardSort] || SORT.updated, ul = col.querySelector('.board__cards');
+    var lis = ul ? Array.prototype.slice.call(ul.children) : [];
+    var after = lis.filter(function (li) { return sort(o, opp(li.dataset.key)) > 0; }).length;   /* cards that sort before it */
+    var slot = document.createElement('li'); slot.className = 'deal-slot'; slot.setAttribute('aria-hidden', 'true'); slot.style.height = h + 'px';
+    if (!ul) { ul = document.createElement('ul'); ul.className = 'board__cards board__cards--slot'; col.appendChild(ul); }
+    ul.insertBefore(slot, lis[after] || null);
+  }
+  document.addEventListener('dragstart', function (e) {
+    var li = e.target.closest && e.target.closest('[data-render="board"] .deal'); if (!li) return;
+    drag = { key: li.dataset.key, from: li.closest('.board__col').dataset.stage, frame: li.closest('.app'), h: li.offsetHeight };
+    e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', li.dataset.key);
+    setTimeout(function () { li.classList.add('is-dragging'); });   /* after the browser takes the drag image, so the image is not dimmed */
+  });
+  document.addEventListener('dragover', function (e) {
+    var col = dropCol(e); if (!col) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+    if (!col.classList.contains('is-drop')) showDrop(drag.frame, col, drag.key, drag.h);
+  });
+  document.addEventListener('dragleave', function (e) {
+    var col = e.target.closest && e.target.closest('.board__col.is-drop');
+    if (col && !col.contains(e.relatedTarget)) clearDrop(drag.frame);
+  });
+  document.addEventListener('drop', function (e) {
+    var col = dropCol(e); if (!col) return;
+    e.preventDefault(); clearDrop(drag.frame); move(drag.frame, drag.key, col.dataset.stage);
+  });
+  document.addEventListener('dragend', function () {
+    if (!drag) return;
+    clearDrop(drag.frame); var li = drag.frame.querySelector('.deal.is-dragging'); if (li) li.classList.remove('is-dragging');
+    drag = null;
+  });
+
+  /* Board / List and Sort */
+  document.addEventListener('crm:segment', function (e) { if (e.target.hasAttribute('data-view-switch')) e.target.closest('.app').dataset.view = e.detail.value; });
+  /* the board's Sort, as live: Last updated (newest first) is the default; Close date soonest first; Amount largest first */
+  var BOARD_SORT = [['close', 'Close date'], ['updated', 'Last updated'], ['amount', 'Amount']];   /* the list's order */
+  C.menus['board-sort'] = function (btn) { var cur = btn.closest('.app')._boardSort || 'updated';
+    return BOARD_SORT.map(function (s) { return { id: 'board-sort:' + s[0], label: s[1], checked: s[0] === cur }; }); };
+  document.addEventListener('crm:menu', function (e) {
+    var p = e.detail.action.split(':'); if (p[0] !== 'board-sort') return;
+    var frame = e.target.closest('.app'), s = BOARD_SORT.filter(function (x) { return x[0] === p[1]; })[0];
+    frame._boardSort = s[0]; frame.querySelector('[data-board-sort]').textContent = s[1]; board(frame);
+  });
+
+  C.boot();
+
+  /* drawn states */
+  document.querySelectorAll('.app[data-view]').forEach(function (f) {
+    f.querySelectorAll('[data-view-switch] .segment').forEach(function (b) { var on = b.dataset.value === f.dataset.view; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', on); });
+  });
+  document.querySelectorAll('[data-archived]').forEach(function (f) { archive(f, f.dataset.archived, { sticky: true }); });
+  document.querySelectorAll('[data-drag]').forEach(function (f) {   /* a card held over another stage */
+    var p = f.dataset.drag.split(' '), li = f.querySelector('.deal[data-key="' + p[0] + '"]');
+    li.classList.add('is-dragging');
+    showDrop(f, f.querySelector('.board__col[data-stage="' + p[1] + '"]'), p[0], li.offsetHeight || 120);
+  });
+  document.querySelectorAll('[data-query]').forEach(function (f) { var s = f.querySelector('input[data-search]'); s.value = f.dataset.query; C.filter(f.closest('.state')); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Reports</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Reports: closed deals for a period, the open pipeline by stage, and a by-rep table, in the Harbor theme.
+       Approved changes applied: sidebar (H1), one money and date format (H4, H5). Sentence-case headings (M2 comes with
+       the theme).
+       As today: This week / This month / This quarter; Show opportunity errors; Won, Lost, Win rate and Avg deal won;
+       open pipeline by stage with a share bar (the same table as the Dashboard); by rep: open deals and value, won,
+       won value and lost.
+       Show opportunity errors works as live: off, deals with errors are left out of the open pipeline and By rep; on,
+       they count. Live doesn't say which deals they are, so here they're also listed above the figures, each linked to
+       its record. What makes an error on live isn't visible; assumed here: an open deal whose close date has passed.
+       By rep lists every active rep, as live, with a dash for no value and no losses.
+       Assumed: the default period (This month, as seen), that the open pipeline is as of today whatever the period,
+       and the Total rows.
+       State 1 is live: switch period, show or hide opportunity errors. -->
+  <section class="state" aria-labelledby="state-month">
+    <h2 class="state__label" id="state-month">State 1 · This month: deals closed since Nov 1, the open pipeline by stage and by rep, without the opportunity errors; live — switch period, show opportunity errors</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="reports"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Reports</h1>
+              <p class="console__subtitle">Deals closed in a period, and the open pipeline as of today.</p>
+            </div>
+          </div>
+
+          <div class="view-bar">
+            <div class="segmented segmented--inline" role="group" aria-label="Period" data-period-switch>
+              <button type="button" class="segment" aria-pressed="false" data-value="week">This week</button>
+              <button type="button" class="segment" aria-pressed="false" data-value="month">This month</button>
+              <button type="button" class="segment" aria-pressed="false" data-value="quarter">This quarter</button>
+            </div>
+            <label class="check"><input type="checkbox" class="checkbox" data-errors-toggle aria-controls="errors"> Show opportunity errors</label>
+          </div>
+
+          <section class="records" id="errors" aria-labelledby="errors-title" hidden>
+            <div class="card-head">
+              <div>
+                <h2 class="card-head__title" id="errors-title" data-render="errors-title"></h2>
+                <p class="card-head__desc">Open deals with a close date in the past. While shown, they count in the open pipeline and By rep. Change the date or close the deal.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table data-table--fit">
+                <thead><tr>
+                  <th scope="col">Opportunity</th>
+                  <th scope="col" style="width: 160px">Owner</th>
+                  <th scope="col" style="width: 140px">Stage</th>
+                  <th scope="col" class="cell--right" style="width: 120px">Amount</th>
+                  <th scope="col" style="width: 120px">Close</th>
+                  <th scope="col" style="width: 280px">Problem</th>
+                </tr></thead>
+                <tbody data-render="errors"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <div class="section-title">
+            <h2 data-render="closed-title"></h2>
+            <p data-render="closed-range"></p>
+          </div>
+          <div class="stats" style="--cols: 4" data-render="stats" aria-live="polite"></div>
+
+          <section class="records" aria-labelledby="pipe-title">
+            <div class="card-head">
+              <div>
+                <h2 class="card-head__title" id="pipe-title">Open pipeline</h2>
+                <p class="card-head__desc" data-render="pipe-desc"></p>
+              </div>
+              <span class="card-head__aside"><a class="link" href="opportunities.html">Open the board</a></span>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table data-table--fit data-table--pipe">
+                <thead><tr><th scope="col">Stage</th><th scope="col" class="cell--right" style="width: 88px">Deals</th><th scope="col" class="cell--right" style="width: 112px">Value</th><th scope="col" style="width: 360px">Share of value</th></tr></thead>
+                <tbody data-render="stages"></tbody>
+                <tfoot data-render="stages-total"></tfoot>
+              </table>
+            </div>
+          </section>
+
+          <section class="records" aria-labelledby="rep-title">
+            <div class="card-head">
+              <div>
+                <h2 class="card-head__title" id="rep-title">By rep</h2>
+                <p class="card-head__desc" data-render="rep-desc"></p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table data-table--fit">
+                <thead><tr>
+                  <th scope="col">Rep</th>
+                  <th scope="col" class="cell--right" style="width: 120px">Open deals</th>
+                  <th scope="col" class="cell--right" style="width: 128px">Open value</th>
+                  <th scope="col" class="cell--right" style="width: 96px">Won</th>
+                  <th scope="col" class="cell--right" style="width: 128px">Won value</th>
+                  <th scope="col" class="cell--right" style="width: 96px">Lost</th>
+                </tr></thead>
+                <tbody data-render="reps"></tbody>
+                <tfoot data-render="reps-total"></tfoot>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="sheet-scrim" hidden></div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-week">
+    <h2 class="state__label" id="state-week">State 2 · This week: it's Monday morning, so nothing has closed yet; the rates show a dash, not 0%</h2>
+    <div data-clone="app-1" data-period="week"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-quarter">
+    <h2 class="state__label" id="state-quarter">State 3 · This quarter: deals closed since Oct 1; the open pipeline doesn't change with the period</h2>
+    <div data-clone="app-1" data-period="quarter"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-errors">
+    <h2 class="state__label" id="state-errors">State 4 · Opportunity errors shown: they now count in the open pipeline and By rep, and are listed, each linked to its record</h2>
+    <div data-clone="app-1" data-errors></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, T = D.totals, esc = C.esc;
+  var NAME = { week: 'This week', month: 'This month', quarter: 'This quarter' };
+  var LOWER = { week: 'this week', month: 'this month', quarter: 'this quarter' };
+  var YEAR = D.today.slice(0, 4);
+  /* first and last day of each period; the week starts on Monday, the quarter is Q4 */
+  var RANGE = (function () {
+    var d = new Date(D.today + 'T12:00'), dow = (d.getDay() + 6) % 7;
+    function iso(x) { return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); }
+    function shift(n) { var x = new Date(d); x.setDate(x.getDate() + n); return iso(x); }
+    var m = d.getMonth(), q = m - m % 3;
+    return {
+      week: [shift(-dow), shift(6 - dow)],
+      month: [iso(new Date(d.getFullYear(), m, 1)), iso(new Date(d.getFullYear(), m + 1, 0))],
+      quarter: [iso(new Date(d.getFullYear(), q, 1)), iso(new Date(d.getFullYear(), q + 3, 0))]
+    };
+  })();
+  var ACTIVE = D.reps.filter(function (r) { return r.status === 'active'; }).map(function (r) { return r.id; });
+  function none() { return '<span class="dash">—</span>'; }
+  function put(frame, name, html) { frame.querySelector('[data-render="' + name + '"]').innerHTML = html; }
+
+  /* ---------- closed deals: four figures for the period ---------- */
+  function stat(label, value, meta) { return '<div class="stat"><span class="stat__label">' + label + '</span><span class="stat__value">' + value + '</span><span class="stat__meta">' + meta + '</span></div>'; }
+  function sums(p) {
+    var n = { won: 0, value: 0, lost: 0 };
+    ACTIVE.forEach(function (r) { var c = closedOf(p, r); n.won += c[0]; n.value += c[1]; n.lost += c[2]; });
+    return n;
+  }
+  function closedOf(p, r) { return D.closed[p][r] || [0, 0, 0]; }
+  function figures(p) {
+    var n = sums(p), closed = n.won + n.lost;
+    return stat('Won', n.won, n.won ? C.moneyShort(n.value) + ' in value' : 'None yet ' + LOWER[p]) +
+      stat('Lost', n.lost, 'Closed without a sale') +
+      stat('Win rate', closed ? Math.round(n.won / closed * 100) + '%' : none(), closed ? 'Of closed opps' : 'No closed deals') +
+      stat('Avg deal won', n.won ? C.moneyShort(n.value / n.won) : none(), 'Value per won deal');
+  }
+
+  /* ---------- opportunity errors: open deals whose close date has passed ---------- */
+  var ERRORS = D.opps.filter(function (o) { return o.outcome === 'open' && C.days(o.close) < 0; })
+    .sort(function (a, b) { return a.close < b.close ? -1 : 1; });
+  /* the open pipeline with or without them: the book's totals count every open deal, so hiding errors subtracts them */
+  function totals(withErrors) {
+    if (withErrors) return T;
+    var t = { openOpps: T.openOpps, pipeline: T.pipeline, byStage: {}, byOwner: {} };
+    Object.keys(T.byStage).forEach(function (k) { t.byStage[k] = T.byStage[k].slice(); });
+    Object.keys(T.byOwner).forEach(function (k) { t.byOwner[k] = T.byOwner[k].slice(); });
+    ERRORS.forEach(function (o) {
+      t.openOpps--; t.pipeline -= o.amount;
+      t.byStage[o.stage][0]--; t.byStage[o.stage][1] -= o.amount;
+      t.byOwner[o.owner][0]--; t.byOwner[o.owner][1] -= o.amount;
+    });
+    return t;
+  }
+
+  /* ---------- by rep: every active rep, most open deals first; open pipeline as of today, then what closed in the period ---------- */
+  function repRows(p, t) {
+    function open(r) { return t.byOwner[r] || [0, 0]; }
+    return ACTIVE.slice().sort(function (a, b) { return open(b)[0] - open(a)[0]; }).map(function (r) {
+      var o = open(r), c = closedOf(p, r);
+      return '<tr><td>' + esc(C.rep(r).name) + '</td>' +
+        '<td class="cell--right num">' + o[0] + '</td><td class="cell--right num">' + (o[0] ? C.moneyShort(o[1]) : none()) + '</td>' +
+        '<td class="cell--right num">' + c[0] + '</td><td class="cell--right num">' + (c[0] ? C.moneyShort(c[1]) : none()) + '</td>' +
+        '<td class="cell--right num">' + (c[2] || none()) + '</td></tr>';
+    }).join('');
+  }
+  function repTotal(p, t) {
+    var n = sums(p);
+    return '<tr><th scope="row">Total</th><td class="cell--right num">' + t.openOpps + '</td><td class="cell--right num">' + C.moneyShort(t.pipeline) + '</td>' +
+      '<td class="cell--right num">' + n.won + '</td><td class="cell--right num">' + (n.won ? C.moneyShort(n.value) : none()) + '</td>' +
+      '<td class="cell--right num">' + (n.lost || none()) + '</td></tr>';
+  }
+
+  function errorRows() {
+    return ERRORS.map(function (o) {
+      var a = C.by.account[o.account], s = C.by.stage[o.stage], late = -C.days(o.close);
+      return '<tr><td><span class="name-cell">' + C.recordLink(['opportunity', o.id]) + '<span class="who__dept">' + esc(a.name) + '</span></span></td>' +
+        '<td>' + esc(C.rep(o.owner).name) + '</td>' +
+        '<td><span class="cell-clip" title="' + esc(s.full) + '">' + esc(s.name) + '</span></td>' +
+        '<td class="cell--right num">' + C.money(o.amount) + '</td>' +
+        '<td class="cell--nowrap"><time datetime="' + o.close + '">' + C.date(o.close) + '</time></td>' +
+        '<td><span class="state-dot state-dot--danger">Close date passed · ' + late + (late === 1 ? ' day' : ' days') + ' ago</span></td></tr>';
+    }).join('');
+  }
+
+  function draw(frame) {
+    var p = frame._period, on = frame._errors, t = totals(on), pipe = C.pipeRows(t), n = ERRORS.length;
+    put(frame, 'closed-title', 'Closed deals · ' + NAME[p]);
+    put(frame, 'closed-range', C.date(RANGE[p][0]) + ' to ' + C.date(RANGE[p][1]) + ', ' + YEAR);
+    put(frame, 'stats', figures(p));
+    put(frame, 'pipe-desc', C.count(t.openOpps) + ' deals · ' + C.moneyShort(t.pipeline) + ' · as of today, all owners' +
+      (n ? ' · ' + (on ? 'with ' : 'without ') + n + ' opportunity ' + (n === 1 ? 'error' : 'errors') : ''));
+    put(frame, 'stages', pipe.rows);
+    put(frame, 'stages-total', pipe.total);
+    put(frame, 'rep-desc', 'Open pipeline as of today, and deals closed ' + LOWER[p]);
+    put(frame, 'reps', repRows(p, t));
+    put(frame, 'reps-total', repTotal(p, t));
+    frame.querySelectorAll('[data-period-switch] .segment').forEach(function (b) { var on = b.dataset.value === p; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', on); });
+  }
+  /* live's toggle: errors count in the figures only while shown */
+  function showErrors(frame, on) {
+    frame._errors = on;
+    frame.querySelector('[data-errors-toggle]').checked = on;
+    frame.querySelector('.records[id^="errors"]').hidden = !on;
+    draw(frame);
+  }
+
+  document.addEventListener('crm:segment', function (e) {
+    if (!e.target.hasAttribute('data-period-switch')) return;
+    var frame = e.target.closest('.app'); frame._period = e.detail.value; draw(frame);
+  });
+  document.addEventListener('change', function (e) {
+    if (!e.target.matches('[data-errors-toggle]')) return;
+    showErrors(e.target.closest('.app'), e.target.checked);
+  });
+
+  C.boot();
+
+  /* every frame: the same errors; its own period, and errors shown or not */
+  document.querySelectorAll('.app').forEach(function (f) {
+    put(f, 'errors-title', 'Opportunity errors · ' + ERRORS.length);
+    put(f, 'errors', errorRows());
+    f._period = f.dataset.period || 'month';
+    showErrors(f, f.hasAttribute('data-errors'));
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Calls &amp; Activity</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Calls & Activity: today's two tabs (Calls, Activity Log), filters and Log Activity, in the Harbor theme; checked
+       against today's /calls/ page.
+       Approved changes applied: sidebar (H1), one date format (H4) — the From / To filters and the form's date show the
+       app's format, not the browser's language — and related records as links with their own address (H3).
+       As today: the page title "Calls & Activities" with the open tab's count under it ("6,418 calls", "15,904
+       activities"). Calls: search (contact, phone, disposition), From, To and "Connected only (call was answered)"; the
+       columns PhoneBurner fills — phone, talk time (m:ss), disposition, connected, who answered — and the rep. Activity
+       Log: Entity type, Activity type (Call, Email, Meeting, Note, Conversation, Task completed, plus Created and Updated),
+       From, To; a list with a type tag, who did it, the record and the time. Log Activity: entity type, activity type,
+       the record, the date and time, and a description.
+       Changed from today: When leads the Calls table, and the contact shows their title and account; today's Voicemail
+       column is left out, as the "Live voicemail" disposition says the same. A call's note shows in the Activity Log,
+       after its disposition and talk time, as today's log shows it. Type tags use
+       human labels, as on the Dashboard ("Updated", not record_updated); a stage move is an update. Dispositions in
+       sentence case. Log activity keeps today's order (record, description, then when) with three changes: the record is
+       a search, not a list of every contact; the date and time read in the app's format and default to now, so nothing is
+       "optional"; a call also asks for its disposition, so it fills the Calls row. Assumed: who answered and talk time
+       come from PhoneBurner, so a call logged by hand leaves them empty (today's form has neither).
+       State 1 is live: search and filter calls, switch tabs, filter the log, log an activity (leave the record empty to
+       see the error). -->
+  <section class="state" aria-labelledby="state-calls">
+    <h2 class="state__label" id="state-calls">State 1 · Calls: every call with the contact's phone, talk time, disposition, whether it connected and who answered; live — search, filter, log an activity</h2>
+    <div class="app app--console app--crm" id="app-1" data-url>
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="calls"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Calls &amp; Activities</h1>
+              <p class="console__subtitle" data-tab-count></p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" data-sheet-open="sheet-form"><span data-icon="plus"></span>Log activity</button>
+            </div>
+          </div>
+
+          <div class="tabs" role="tablist" aria-label="Calls and activity">
+            <button type="button" class="tab is-active" role="tab" id="tab-calls" aria-controls="panel-calls" aria-selected="true" tabindex="0" data-tab-name="calls">Calls</button>
+            <button type="button" class="tab" role="tab" id="tab-log" aria-controls="panel-log" aria-selected="false" tabindex="-1" data-tab-name="log">Activity Log</button>
+          </div>
+
+          <!-- Calls -->
+          <div class="tabpanel" role="tabpanel" id="panel-calls" aria-labelledby="tab-calls">
+            <section class="records records--plain" aria-label="Calls">
+              <div class="filters filters--bar" role="search" aria-label="Filter calls">
+                <div class="filter-search">
+                  <label class="sr-only" for="f-calls">Search calls</label>
+                  <span data-icon="search"></span>
+                  <input class="input" id="f-calls" type="search" placeholder="Search contact, phone or disposition" data-call-search>
+                </div>
+                <span data-render="date-btns"></span>
+                <span class="filters__end"><label class="check"><input type="checkbox" class="checkbox" data-connected> Connected only <span class="check__note">(call was answered)</span></label></span>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead><tr>
+                    <th scope="col" style="width: 136px">When</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col" style="width: 128px">Phone</th>
+                    <th scope="col" class="cell--right" style="width: 88px">Talk time</th>
+                    <th scope="col" style="width: 136px">Disposition</th>
+                    <th scope="col" style="width: 100px">Connected</th>
+                    <th scope="col" style="width: 128px">Who answered</th>
+                    <th scope="col" style="width: 116px">Rep</th>
+                  </tr></thead>
+                  <tbody data-render="calls"></tbody>
+                </table>
+              </div>
+              <nav class="pager" aria-label="Pagination">
+                <span class="pager__text" data-calls-pager></span>
+                <span class="pager__pages">
+                  <button type="button" class="pager__btn" aria-label="Previous page" disabled><span data-icon="chevron-left"></span></button>
+                  <button type="button" class="pager__btn" aria-label="Next page"><span data-icon="chevron-right"></span></button>
+                </span>
+              </nav>
+            </section>
+          </div>
+
+          <!-- Activity Log -->
+          <div class="tabpanel" role="tabpanel" id="panel-log" aria-labelledby="tab-log" hidden>
+            <section class="records records--plain" aria-label="Activity log">
+              <div class="filters filters--bar" role="group" aria-label="Filter activity">
+                <button type="button" class="filter-btn" data-menu="entity" data-filter="entity" aria-haspopup="menu" aria-label="Entity type"><span class="filter-btn__label">Entity type</span><span class="filter-btn__value">Any</span><span data-icon="chevron"></span></button>
+                <button type="button" class="filter-btn" data-menu="atype" data-filter="atype" aria-haspopup="menu" aria-label="Activity type"><span class="filter-btn__label">Activity type</span><span class="filter-btn__value">Any</span><span data-icon="chevron"></span></button>
+                <span data-render="date-btns"></span>
+              </div>
+              <ul class="rows rows--log" data-render="log" aria-live="polite"></ul>
+              <nav class="pager" aria-label="Pagination">
+                <span class="pager__text" data-log-pager></span>
+                <span class="pager__pages">
+                  <button type="button" class="pager__btn" aria-label="Previous page" disabled><span data-icon="chevron-left"></span></button>
+                  <button type="button" class="pager__btn" aria-label="Next page"><span data-icon="chevron-right"></span></button>
+                </span>
+              </nav>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet-scrim" hidden></div>
+      <aside class="sheet" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-form-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <form class="sheet__scroll" data-fill aria-labelledby="sheet-form-title" novalidate></form>
+        <div class="sheet__foot">
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-log-submit>Log activity</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-log">
+    <h2 class="state__label" id="state-log">State 2 · Activity Log: every change, newest first, with a type tag, who did it, the record and the time</h2>
+    <div data-clone="app-1" data-tab="log"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-log-none">
+    <h2 class="state__label" id="state-log-none">State 3 · Activity Log, filtered to nothing: no meeting is logged on a contact, so nothing matches; Clear filters brings the log back</h2>
+    <div data-clone="app-1" data-tab="log" data-entity="contact" data-atype="meeting"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-form">
+    <h2 class="state__label" id="state-form">State 4 · Log activity: on a contact, a call by default, with its disposition (other types hide it); the contact is a search; date and time default to now</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-form-error">
+    <h2 class="state__label" id="state-form-error">State 5 · Log activity, the contact left empty: the form stays open and says what is missing</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form" data-invalid></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-logged">
+    <h2 class="state__label" id="state-logged">State 6 · Call logged: it heads the Calls list, marked as new, and the log gets it too</h2>
+    <div data-clone="app-1" data-logged></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, T = D.totals, esc = C.esc;
+  var app = document.getElementById('app-1');
+  function put(name, html) { app.querySelectorAll('[data-render="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
+  function contact(id) { return C.by.contact[id]; }
+
+  /* a stage move is logged as an update, as today (record_updated) */
+  var TYPE = { call: ['phone', 'Call'], email: ['mail', 'Email'], meeting: ['calendar', 'Meeting'], note: ['document', 'Note'], conversation: ['chat', 'Conversation'],
+    task: ['task', 'Task completed'], created: ['plus', 'Created'], updated: ['pencil', 'Updated'] };
+  function kind(v) { return v.type === 'stage' ? 'updated' : v.type; }
+  var ENTITY = { contact: 'Contact', account: 'Account', opportunity: 'Opportunity' };
+  var DISP = D.dispositions;
+
+  /* ---------- Calls ---------- */
+  function mss(secs) { return Math.floor(secs / 60) + ':' + ('0' + secs % 60).slice(-2); }
+  function dash() { return '<span class="dash">—</span>'; }
+  function callRow(k, isNew) {
+    var c = contact(k.contact), a = C.by.account[c.account], d = DISP[k.disp];
+    var q = [c.name, c.title, a.name, c.phone, c.phone.replace(/\D/g, ''), d[0]].join(' ').toLowerCase();
+    return '<tr data-call="' + k.id + '" data-q="' + esc(q) + '"' + (d[1] ? ' data-connected' : '') + (isNew ? ' class="is-new"' : '') + '>' +
+      '<td class="cell--nowrap"><time datetime="' + k.at + '">' + C.stamp(k.at) + '</time></td>' +
+      '<td><span class="name-cell">' + C.recordLink(['contact', c.id]) + '<span class="who__dept">' + esc(c.title) + ' · ' + esc(a.name) + '</span></span></td>' +
+      '<td class="cell--nowrap num">' + esc(c.phone) + '</td>' +
+      '<td class="cell--right num">' + (k.secs ? mss(k.secs) : dash()) + '</td>' +
+      '<td><span class="badge badge--' + d[2] + '">' + d[0] + '</span></td>' +
+      '<td' + (d[1] ? '' : ' class="cell--muted"') + '>' + (d[1] ? 'Yes' : 'No') + '</td>' +
+      '<td>' + (k.answered ? D.outcomes[k.answered] : dash()) + '</td>' +
+      '<td>' + esc(C.rep(k.rep).name) + '</td></tr>';
+  }
+  put('calls', D.calls.map(function (k) { return callRow(k); }).join(''));
+  /* From / To: the browser's date picker, the day in the app's format (H4); "Any date" as today's empty inputs */
+  put('date-btns', C.dateFilters(['From', 'To']));
+  function groupOf(frame, render) { return frame.querySelector('[data-render="' + render + '"]').closest('.records'); }
+
+  /* ---------- Activity Log: newest first ---------- */
+  /* a call's note follows its text in the log, as today's log shows a call's description */
+  function noteOf(v) {
+    if (v.note !== undefined) return v.note;
+    var k = v.type === 'call' && D.calls.filter(function (x) { return x.contact === v.rel[1] && x.at === v.at; })[0];
+    return k ? k.note : '';
+  }
+  function logRow(v, isNew) {
+    var k = kind(v), ty = TYPE[k], note = noteOf(v);
+    return '<li class="rows__item' + (isNew ? ' is-new' : '') + '" data-type="' + k + '" data-entity="' + v.rel[0] + '">' +
+      '<span class="tile tile--sm" aria-hidden="true">' + C.icon(ty[0], 16) + '</span>' +
+      '<span class="rows__main"><span class="rows__title">' + C.recordLink(v.rel) + ' <span class="rows__kind">· ' + ENTITY[v.rel[0]] + '</span></span>' +
+        '<span class="rows__meta">' + esc(v.text) + (note ? ' · ' + esc(note) : '') + ' · ' + esc(C.rep(v.who).name) + '</span></span>' +
+      '<span class="rows__type"><span class="badge badge--outline">' + ty[1] + '</span></span>' +
+      '<time class="rows__time" datetime="' + v.at + '">' + C.stamp(v.at) + '</time></li>';
+  }
+  put('log', D.activity.slice().sort(function (a, b) { return a.at < b.at ? 1 : -1; }).map(function (v) { return logRow(v); }).join(''));
+
+  /* the two type filters open the shared menu; choosing an item filters the log */
+  function anyFirst(map) { return [{ id: 'any', label: 'Any' }].concat(Object.keys(map).map(function (k) { return { id: k, label: Array.isArray(map[k]) ? map[k][1] : map[k] }; })); }
+  C.menus.entity = anyFirst(ENTITY).map(function (x) { return { id: 'entity:' + x.id, label: x.label }; });
+  C.menus.atype = anyFirst(TYPE).map(function (x) { return { id: 'atype:' + x.id, label: x.label }; });
+  function label(k, v) { return v === 'any' ? 'Any' : k === 'entity' ? ENTITY[v] : TYPE[v][1]; }
+
+  function filterLog(frame) {
+    var list = frame.querySelector('[data-render="log"]'), f = frame._f, r = C.dateRange(groupOf(frame, 'log')), shown = 0;
+    list.querySelectorAll('.rows__item').forEach(function (li) {
+      var ok = (f.entity === 'any' || li.dataset.entity === f.entity) && (f.atype === 'any' || li.dataset.type === f.atype) &&
+        C.inRange(li.querySelector('time').getAttribute('datetime'), r);
+      li.hidden = !ok; if (ok) shown++;
+    });
+    ['entity', 'atype'].forEach(function (k) { frame.querySelector('[data-filter="' + k + '"] .filter-btn__value').textContent = label(k, f[k]); });
+    var old = list.querySelector('.rows__empty'); if (old) old.remove();
+    if (!shown) list.insertAdjacentHTML('beforeend', '<li class="rows__empty">Nothing matches these filters. <button type="button" class="link-btn" data-clear-log>Clear filters</button></li>');
+    var on = f.entity !== 'any' || f.atype !== 'any' || r.from || r.to;
+    frame.querySelector('[data-log-pager]').closest('.pager').hidden = !shown;
+    frame.querySelector('[data-log-pager]').innerHTML = !shown ? '' : on ? 'Showing <span class="num">' + shown + '</span> matching' : 'Showing <span class="num">' + shown + '</span> of <span class="num">' + C.count(frame._logTotal) + '</span>';
+  }
+  /* Calls: the search (contact, title, account, phone, disposition), From / To and Connected only */
+  function filterCalls(frame) {
+    var g = groupOf(frame, 'calls'), body = g.querySelector('[data-render="calls"]'), r = C.dateRange(g), shown = 0;
+    var q = g.querySelector('[data-call-search]').value.trim().toLowerCase(), conn = g.querySelector('[data-connected]').checked;
+    body.querySelectorAll('tr[data-call]').forEach(function (tr) {
+      var ok = C.inRange(tr.querySelector('time').getAttribute('datetime'), r) && (!conn || tr.hasAttribute('data-connected')) &&
+        (!q || tr.dataset.q.indexOf(q) >= 0 || (q.replace(/\D/g, '').length > 2 && tr.dataset.q.indexOf(q.replace(/\D/g, '')) >= 0));
+      tr.hidden = !ok; if (ok) shown++;
+    });
+    var old = body.querySelector('.is-empty-row'); if (old) old.remove();
+    if (!shown) body.insertAdjacentHTML('beforeend', '<tr class="is-empty-row"><td colspan="8" class="cell--muted">No calls match. <button type="button" class="link-btn" data-clear-calls>Clear the search and filters</button></td></tr>');
+    var pager = g.querySelector('[data-calls-pager]');
+    pager.closest('.pager').hidden = !shown;
+    pager.innerHTML = q || conn || r.from || r.to ? 'Showing <span class="num">' + shown + '</span> matching' : 'Showing <span class="num">' + shown + '</span> of <span class="num">' + C.count(frame._callsTotal) + '</span> calls';
+  }
+  function clearDates(group) { group.querySelectorAll('[data-date-filter]').forEach(function (d) { C.setDate(d, '', true); }); }
+  document.addEventListener('crm:dates', function (e) {
+    var frame = e.target.closest('.app'); if (!frame || !frame._f) return;
+    if (e.target.closest('.records').querySelector('[data-render="calls"]')) filterCalls(frame); else filterLog(frame);
+  });
+  document.addEventListener('input', function (e) { if (e.target.matches('[data-call-search]')) filterCalls(e.target.closest('.app')); });
+  document.addEventListener('change', function (e) { if (e.target.matches('[data-connected]')) filterCalls(e.target.closest('.app')); });
+
+  /* the title's count follows the open tab, as today */
+  function count(frame) {
+    var log = frame.querySelector('[data-tab-name="log"]').getAttribute('aria-selected') === 'true';
+    frame.querySelector('[data-tab-count]').textContent = log ? C.count(frame._logTotal) + ' activities' : C.count(frame._callsTotal) + ' calls';
+  }
+  function setTab(frame, name) { var t = frame.querySelector('[data-tab-name="' + name + '"]'); if (t) C.selectTab(t); count(frame); }
+
+  document.addEventListener('crm:menu', function (e) {
+    var frame = e.target.closest('.app'), p = e.detail.action.split(':');
+    if (!frame || !frame._f || !(p[0] in frame._f)) return;
+    frame._f[p[0]] = p[1]; filterLog(frame);
+  });
+
+  /* ---------- Log activity ---------- */
+  function field(id, lbl, control, opts) {
+    opts = opts || {};
+    return '<div class="field"' + (opts.attr || '') + '><label class="field__label" for="' + id + '"><span' + (opts.lblAttr || '') + '>' + lbl + '</span>' + (opts.req ? '<span class="field__req" aria-hidden="true">*</span>' : '') + '</label>' + control +
+      (opts.error ? '<p class="field__error" id="' + id + '-err">' + C.icon('alert', 14) + '<span data-log-error>' + opts.error + '</span></p>' : '') + '</div>';
+  }
+  function select(id, pairs, value, extra) {
+    return '<span class="input-wrap"><select class="select" id="' + id + '"' + (extra || '') + '>' + options(pairs, value) + '</select>' + C.icon('chevron', 16) + '</span>';
+  }
+  function options(pairs, value) { return pairs.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === value ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join(''); }
+  function pairs(map) { return Object.keys(map).map(function (k) { return [k, Array.isArray(map[k]) ? map[k][1] : map[k]]; }); }
+  /* the record follows the entity type: a select, so it opens the app's Dropdown with a search box on top (as Log meeting's
+     Contact); its prompt is a hidden option, so the list holds only records */
+  var RECORDS = {
+    contact: D.contacts.map(function (c) { return [c.id, c.name + ' · ' + C.by.account[c.account].name]; }),
+    account: D.accounts.map(function (a) { return [a.id, a.name]; }),
+    opportunity: D.opps.map(function (o) { return [o.id, o.title + ' · ' + C.by.account[o.account].name]; })
+  };
+  var SEARCH = { contact: 'Search contacts', account: 'Search accounts', opportunity: 'Search opportunities' };
+  var MISSING = { contact: 'Choose a contact.', account: 'Choose an account.', opportunity: 'Choose an opportunity.' };
+  function known(ent) { return '<option value="" hidden data-placeholder selected>' + SEARCH[ent] + '</option>' + options(RECORDS[ent], ''); }
+  var LOG_TYPES = pairs(TYPE).filter(function (t) { return t[0] !== 'created' && t[0] !== 'updated'; });
+  var DISPS = Object.keys(DISP).map(function (k) { return [k, DISP[k][0]]; });
+  var seq = 0;
+  /* live's order: what, on which record, what happened, then when (now unless changed) */
+  C.fill['sheet-form'] = function (sheet) {
+    var id = 'f' + (++seq);
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">Log activity</h2></header>' +
+      '<div class="fgroup">' +
+        '<div class="frow">' + field(id + '-ent', 'Entity type', select(id + '-ent', pairs(ENTITY), 'contact', ' data-log="entity"')) +
+          field(id + '-type', 'Activity type', select(id + '-type', LOG_TYPES, 'call', ' data-log="type"')) + '</div>' +
+        field(id + '-rec', 'Contact', '<span class="input-wrap"><select class="select" id="' + id + '-rec" data-log="rec" data-search="' + SEARCH.contact + '" aria-required="true" aria-describedby="' + id + '-rec-err" data-autofocus>' +
+          known('contact') + '</select>' + C.icon('chevron', 16) + '</span>', { req: true, error: MISSING.contact, lblAttr: ' data-log-label' }) +
+        '<div data-call-only>' + field(id + '-disp', 'Disposition', select(id + '-disp', DISPS, 'interested', ' data-log="disp"')) + '</div>' +
+        field(id + '-desc', 'Description', '<textarea class="input textarea" id="' + id + '-desc" rows="3" data-log="note"></textarea>') +
+        '<div class="frow">' + field(id + '-date', 'Date', C.dateField(id + '-date', D.today, 'Date')) +
+          field(id + '-time', 'Time', C.timeField(id + '-time', '10:15', 'Time')) + '</div>' +
+      '</div>';
+  };
+  function val(sheet, k) { return sheet.querySelector('[data-log="' + k + '"]').value.trim(); }
+  /* the record is the one required field: say so under it, and keep the form open */
+  function check(sheet, focus) {
+    var inp = sheet.querySelector('[data-log="rec"]'), bad = !inp.value, f = inp.closest('.field');
+    f.classList.toggle('is-invalid', bad); inp.setAttribute('aria-invalid', bad ? 'true' : 'false');
+    if (bad && focus) inp.focus();
+    return !bad;
+  }
+  var DONE = { email: 'Email sent', meeting: 'Meeting logged', note: 'Note added', conversation: 'Conversation', task: 'Task completed' };
+  /* a call logged by hand has its disposition; who answered and talk time come from the dialer, so they stay empty */
+  function logged(frame, v, opts) {
+    frame.querySelectorAll('.is-new').forEach(function (x) { x.classList.remove('is-new'); });
+    var rec = C.by[v.entity][v.rec], at = v.date + 'T' + v.time, entry = { type: v.type, who: C.me().id, rel: [v.entity, v.rec], at: at };
+    if (v.type === 'call') {
+      var k = { id: 'k' + Date.now(), contact: v.rec, rep: C.me().id, at: at, disp: v.disp, answered: '', secs: 0, note: v.note };
+      entry.text = 'Call · ' + DISP[k.disp][0].toLowerCase(); entry.note = v.note;
+      /* a call on a contact is a Calls row; one on an account or an opportunity is only in the log */
+      if (v.entity === 'contact') {
+        frame.querySelector('[data-render="calls"]').insertAdjacentHTML('afterbegin', callRow(k, true));
+        frame._callsTotal++; filterCalls(frame);
+      }
+    } else entry.text = DONE[v.type] + (v.note ? ' · ' + v.note : '');
+    frame.querySelector('[data-render="log"]').insertAdjacentHTML('afterbegin', logRow(entry, true));
+    frame._logTotal++; filterLog(frame);
+    setTab(frame, v.type === 'call' && v.entity === 'contact' ? 'calls' : 'log');
+    C.toast(frame, TYPE[v.type][1] + ' logged · ' + (rec.name || rec.title), null, opts);
+  }
+
+  document.addEventListener('change', function (e) {
+    var s = e.target.closest('.sheet'); if (!s || !s.querySelector('[data-log]')) return;
+    var t = e.target;
+    if (t.matches('[data-log="type"]')) s.querySelectorAll('[data-call-only]').forEach(function (r) { r.hidden = t.value !== 'call'; });
+    if (t.matches('[data-log="entity"]')) {
+      var rec = s.querySelector('[data-log="rec"]'), f = rec.closest('.field');
+      rec.innerHTML = known(t.value); rec.dataset.search = SEARCH[t.value];
+      s.querySelector('[data-log-label]').textContent = ENTITY[t.value];
+      s.querySelector('[data-log-error]').textContent = MISSING[t.value];
+      f.classList.remove('is-invalid'); rec.setAttribute('aria-invalid', 'false');
+    }
+    if (t.matches('[data-log="rec"]') && t.value) check(s);
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target, frame = t.closest('.app'); if (!frame) return;
+    if (t.closest('[data-clear-log]')) { frame._f = { entity: 'any', atype: 'any' }; clearDates(groupOf(frame, 'log')); filterLog(frame); frame.querySelector('[data-filter="entity"]').focus(); return; }
+    if (t.closest('[data-clear-calls]')) {
+      var g = groupOf(frame, 'calls'); g.querySelector('[data-call-search]').value = ''; g.querySelector('[data-connected]').checked = false;
+      clearDates(g); filterCalls(frame); g.querySelector('[data-call-search]').focus(); return;
+    }
+    var sub = t.closest('[data-log-submit]');
+    if (sub) {
+      var sheet = sub.closest('.sheet'); if (!check(sheet, true)) return;
+      var ent = val(sheet, 'entity'), when = sheet.querySelectorAll('.date-field__input');
+      var v = { entity: ent, type: val(sheet, 'type'), rec: val(sheet, 'rec'), date: when[0].value || D.today, time: when[1].value || '10:15',
+        disp: val(sheet, 'disp'), note: val(sheet, 'note') };
+      C.close(sheet); logged(frame, v);
+    }
+  });
+
+  C.boot();
+  /* after boot, so the tab has switched by the time the count reads it */
+  ['click', 'keydown'].forEach(function (ev) {
+    document.addEventListener(ev, function (e) { var frame = e.target.closest('[role="tablist"]') && e.target.closest('.app'); if (frame && frame._f) count(frame); });
+  });
+
+  /* every frame: its own totals, filters and tab */
+  document.querySelectorAll('.app').forEach(function (f) {
+    f._callsTotal = T.calls; f._logTotal = T.activityLog;
+    f._f = { entity: f.dataset.entity || 'any', atype: f.dataset.atype || 'any' };
+    filterCalls(f); filterLog(f); setTab(f, f.dataset.tab || 'calls');
+  });
+  /* drawn states */
+  document.querySelectorAll('.app[data-invalid]').forEach(function (f) { check(f.querySelector('.sheet:not([hidden])'), false); });
+  document.querySelectorAll('.app[data-logged]').forEach(function (f) {
+    logged(f, { entity: 'contact', type: 'call', rec: 'c01', date: D.today, time: '10:15', disp: 'interested', note: 'Network survey booked for Nov 17.' }, { sticky: true });
+  });
+})();
+</script>
+</body>
+</html>

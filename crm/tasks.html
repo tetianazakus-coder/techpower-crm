@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Tasks</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Tasks: My tasks, opening on Today, in the Harbor theme.
+       Approved changes applied (audit H7): Today opens with overdue on top, expanded; the last 7 days are listed, the
+       older backlog is one row that opens a triage view (select all, reschedule, complete, reassign); the sidebar badge
+       counts due today plus overdue from the last 7 days; one-click complete stays, with a strikethrough, a 40px target
+       and 5 seconds to Undo; the Dashboard's overdue figure opens the triage view (tasks.html?view=overdue).
+       Also: sidebar (H1), one date format (H4), related records as links (H3).
+       As today: Edit and ✕ on each row (H6 does not list Tasks), "Show N completed" at the end.
+       New Task and Edit were not opened during discovery; the form holds the fields a task shows.
+       State 1 is live: complete a task, Undo, switch Today / Upcoming / No due date, open the backlog and act on it. -->
+  <section class="state" aria-labelledby="state-today">
+    <h2 class="state__label" id="state-today">State 1 · Today: overdue from the last 7 days on top, the older backlog as one row, then due today; live — complete a task, then Undo</h2>
+    <div class="app app--console app--crm" id="app-1" data-url>
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="tasks"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Tasks</h1>
+              <p class="console__subtitle" data-render="subtitle"></p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" data-sheet-open="sheet-form"><span data-icon="plus"></span>New task</button>
+            </div>
+          </div>
+
+          <div class="tasks-bar">
+            <div class="segmented segmented--inline" role="group" aria-label="When" data-view-switch data-render="segments"></div>
+            <button type="button" class="filter-btn" aria-haspopup="listbox"><span class="filter-btn__label">Owner</span><span class="filter-btn__value">Me</span><span data-icon="chevron"></span></button>
+          </div>
+
+          <!-- Today -->
+          <div data-panel="today">
+            <section class="records" aria-labelledby="g-overdue">
+              <div class="card-head"><div>
+                <h2 class="card-head__title" id="g-overdue">Overdue</h2>
+                <p class="card-head__desc" data-render="overdue-desc"></p>
+              </div></div>
+              <ul class="tasklist" data-render="overdue"></ul>
+            </section>
+            <section class="records" aria-labelledby="g-today">
+              <div class="card-head"><div>
+                <h2 class="card-head__title" id="g-today">Due today</h2>
+                <p class="card-head__desc" data-render="today-desc"></p>
+              </div></div>
+              <ul class="tasklist" data-render="today"></ul>
+            </section>
+            <button type="button" class="link-btn tasks-more" data-render="done"></button>
+          </div>
+
+          <!-- Upcoming -->
+          <div data-panel="upcoming" hidden>
+            <section class="records" aria-labelledby="g-upcoming">
+              <div class="card-head"><div>
+                <h2 class="card-head__title" id="g-upcoming">Upcoming</h2>
+                <p class="card-head__desc" data-render="upcoming-desc"></p>
+              </div></div>
+              <ul class="tasklist" data-render="upcoming"></ul>
+            </section>
+          </div>
+
+          <!-- No due date -->
+          <div data-panel="nodate" hidden>
+            <section class="records" aria-labelledby="g-nodate">
+              <div class="card-head"><div>
+                <h2 class="card-head__title" id="g-nodate">No due date</h2>
+                <p class="card-head__desc" data-render="nodate-desc"></p>
+              </div></div>
+              <ul class="tasklist" data-render="nodate"></ul>
+            </section>
+          </div>
+
+          <!-- Overdue triage: the backlog older than 7 days, acted on together -->
+          <div data-panel="overdue" hidden>
+            <a class="link back-link" href="tasks.html" data-view-link="today"><span data-icon="chevron-left"></span>Today</a>
+            <section class="records records--plain" aria-labelledby="g-triage">
+              <div class="card-head"><div>
+                <h2 class="card-head__title" id="g-triage">Overdue, older than 7 days</h2>
+                <p class="card-head__desc"><span class="num" data-older></span> tasks past their due date. Reschedule, complete or reassign them together.</p>
+              </div></div>
+              <div class="bulkbar">
+                <span class="bulkbar__text" data-selection aria-live="polite"></span>
+                <button type="button" class="btn btn--secondary btn--sm" data-bulk data-menu="reschedule" aria-haspopup="menu" aria-label="Reschedule selected tasks">Reschedule</button>
+                <button type="button" class="btn btn--secondary btn--sm" data-bulk data-bulk-complete>Mark complete</button>
+                <button type="button" class="btn btn--secondary btn--sm" data-bulk data-menu="reassign" aria-haspopup="menu" aria-label="Reassign selected tasks">Reassign</button>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead><tr>
+                    <th scope="col" class="col-check"><input type="checkbox" class="checkbox" data-select-page aria-label="Select all tasks on this page"></th>
+                    <th scope="col">Task</th>
+                    <th scope="col" style="width: 240px">Related to</th>
+                    <th scope="col" style="width: 112px">Priority</th>
+                    <th scope="col" style="width: 240px">Due</th>
+                  </tr></thead>
+                  <tbody data-render="older"></tbody>
+                </table>
+              </div>
+              <nav class="pager" aria-label="Pagination">
+                <span class="pager__text">Showing <span class="num" data-older-shown></span> of <span class="num" data-older></span></span>
+                <span class="pager__pages">
+                  <button type="button" class="pager__btn" aria-label="Previous page" disabled><span data-icon="chevron-left"></span></button>
+                  <button type="button" class="pager__btn" aria-label="Next page"><span data-icon="chevron-right"></span></button>
+                </span>
+              </nav>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet-scrim" hidden></div>
+      <aside class="sheet" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-form-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <form class="sheet__scroll" data-fill aria-labelledby="sheet-form-title"></form>
+        <div class="sheet__foot">
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-submit>Create task</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-done">
+    <h2 class="state__label" id="state-done">State 2 · Completed: one click strikes the task through and offers Undo for 5 seconds; then it leaves the list</h2>
+    <div data-clone="app-1" data-completed="t01"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-triage">
+    <h2 class="state__label" id="state-triage">State 3 · Overdue triage: the backlog older than 7 days, opened from Today or the Dashboard (tasks.html?view=overdue)</h2>
+    <div data-clone="app-1" data-view="overdue"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-triage-all">
+    <h2 class="state__label" id="state-triage-all">State 4 · Triage, everything selected: the actions apply to all 1,287, not only the rows on this page</h2>
+    <div data-clone="app-1" data-view="overdue" data-picked-all></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-triage-done">
+    <h2 class="state__label" id="state-triage-done">State 5 · Triage, after Mark complete: the backlog is clear, and Undo brings it back for 5 seconds</h2>
+    <div data-clone="app-1" data-view="overdue" data-picked-all data-bulk-done></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-upcoming">
+    <h2 class="state__label" id="state-upcoming">State 6 · Upcoming: the next tasks by due date</h2>
+    <div data-clone="app-1" data-view="upcoming"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-nodate">
+    <h2 class="state__label" id="state-nodate">State 7 · No due date: tasks without a date, kept out of Today</h2>
+    <div data-clone="app-1" data-view="nodate"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-add">
+    <h2 class="state__label" id="state-add">State 8 · New task: live's fields and order (title, description, due date and priority, who it's assigned to, then the record it relates to, picked by type and searched)</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-edit">
+    <h2 class="state__label" id="state-edit">State 9 · Edit task: the same form, filled in, opened from a row's Edit; it adds Status, as live does</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form" data-key="t07"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, T = D.totals.tasks, esc = C.esc;
+  var app = document.getElementById('app-1');
+  function put(name, html) { app.querySelectorAll('[data-render="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
+  function task(id) { return D.tasks.filter(function (t) { return t.id === id; })[0]; }
+  function relName(rel) { var x = C.by[rel[0]][rel[1]]; return x ? x.name || x.title : ''; }
+  /* live's priorities; only the two that need attention carry a badge in the list */
+  var PRIORITY = { low: ['Low'], medium: ['Medium'], high: ['High', 'warn'], urgent: ['Urgent', 'danger'] };
+  var STATUS = { pending: 'Pending', progress: 'In progress', done: 'Completed', cancelled: 'Cancelled' };
+  function flag(t) { var p = PRIORITY[t.priority]; return p[1] ? '<span class="badge badge--' + p[1] + '">' + p[0] + '</span>' : ''; }
+
+  /* ---------- groups: by due date against the prototype's today ---------- */
+  function when(t) { if (!t.due) return 'nodate'; var n = C.days(t.due); return n === 0 ? 'today' : n > 0 ? 'upcoming' : n >= -7 ? 'recent' : 'older'; }
+  function group(g) { return D.tasks.filter(function (t) { return when(t) === g; }).sort(function (a, b) { return a.due < b.due ? -1 : 1; }); }
+  var BASE = { today: T.today + T.overdueRecent, upcoming: T.upcoming, nodate: T.noDate };   /* the segment counts */
+
+  function dueLabel(t) {
+    if (!t.due) return '<span class="muted">No due date</span>';
+    var n = C.days(t.due);
+    return n < 0 ? '<span class="state-dot state-dot--danger">Overdue · ' + C.date(t.due) + '</span>' : C.day(t.due);
+  }
+  function row(t) {
+    var f = flag(t);
+    return '<li class="task" data-task="' + t.id + '">' +
+      '<button type="button" class="task__check" role="checkbox" aria-checked="false" aria-label="Complete: ' + esc(t.title) + '"><span class="task__ring">' + C.icon('check', 14) + '</span></button>' +
+      '<span class="task__main"><span class="task__title">' + esc(t.title) + '</span>' +
+        '<span class="task__meta">' + (f ? f + '<span aria-hidden="true">·</span>' : '') + C.recordLink(t.rel) + '</span></span>' +
+      '<span class="task__due">' + dueLabel(t) + '</span>' +
+      '<span class="task__tools">' +
+        '<button type="button" class="btn btn--ghost btn--icon btn--sm" data-sheet-open="sheet-form" data-key="' + t.id + '" aria-label="Edit: ' + esc(t.title) + '">' + C.icon('pencil', 16) + '</button>' +
+        '<button type="button" class="btn btn--ghost btn--icon btn--sm" aria-label="Delete: ' + esc(t.title) + '">' + C.icon('close', 16) + '</button>' +
+      '</span></li>';
+  }
+  /* the backlog as one row: the way into the triage view (H7) */
+  var triage = '<li data-triage><a class="task task--triage" href="tasks.html?view=overdue" data-view-link="overdue">' +
+    '<span class="task__check" aria-hidden="true">' + C.icon('alert', 18) + '</span>' +
+    '<span class="task__main"><span class="task__title"><span class="num" data-older></span> older than 7 days</span>' +
+      '<span class="task__meta">Reschedule, complete or reassign them together</span></span>' +
+    '<span class="task__go">Review' + C.icon('chevron-right', 16) + '</span></a></li>';
+
+  var overdue = T.overdueRecent + T.overdueOlder, open = T.today + overdue + T.upcoming + T.noDate;
+  put('subtitle', 'My tasks · ' + C.count(open) + ' open, ' + C.count(overdue) + ' overdue');
+  put('segments', [['today', 'Today'], ['upcoming', 'Upcoming'], ['nodate', 'No due date']].map(function (s, i) {
+    return '<button type="button" class="segment' + (i ? '' : ' is-active') + '" aria-pressed="' + !i + '" data-value="' + s[0] + '"><span>' + s[1] + '<span class="segment__n" data-count="' + s[0] + '"></span></span></button>';
+  }).join(''));
+  put('overdue', group('recent').map(row).join('') + triage);
+  put('overdue-desc', '<span class="state-dot state-dot--danger">' + T.overdueRecent + ' from the last 7 days</span>');
+  put('today', group('today').map(row).join(''));
+  put('today-desc', 'Monday, ' + C.date(D.today) + ' · ' + T.today + ' tasks');
+  put('done', 'Show ' + T.done + ' completed');
+  put('upcoming', group('upcoming').map(row).join(''));
+  put('upcoming-desc', 'By due date · showing ' + group('upcoming').length + ' of ' + T.upcoming);
+  put('nodate', group('nodate').map(row).join(''));
+  put('nodate-desc', 'Showing ' + group('nodate').length + ' of ' + T.noDate);
+  put('older', group('older').map(function (t) {
+    var late = -C.days(t.due);
+    return '<tr data-task="' + t.id + '"><td class="col-check"><input type="checkbox" class="checkbox" data-select aria-label="Select: ' + esc(t.title) + '"></td>' +
+      '<td>' + esc(t.title) + '</td><td><span class="name-cell" title="' + esc(relName(t.rel)) + '">' + C.recordLink(t.rel) + '</span></td>' +
+      '<td>' + (flag(t) || PRIORITY[t.priority][0]) + '</td>' +
+      '<td class="cell--nowrap"><span class="state-dot state-dot--danger">' + C.date(t.due) + ' · ' + late + ' days overdue</span></td></tr>';
+  }).join(''));
+
+  /* ---------- per frame: counts, the backlog size and the selection ---------- */
+  function counts(frame) {
+    ['today', 'upcoming', 'nodate'].forEach(function (k) {
+      var gone = frame.querySelectorAll('[data-panel="' + k + '"] li.task.is-done, [data-panel="' + k + '"] li.task[hidden]').length;
+      frame.querySelector('[data-count="' + k + '"]').textContent = BASE[k] - gone;
+      if (k === 'today') { var rc = frame.querySelector('.rail__item[href="tasks.html"] .rail__count'); if (rc) rc.textContent = BASE[k] - gone; }
+    });
+  }
+  function rows(frame) { return [].slice.call(frame.querySelectorAll('[data-panel="overdue"] tbody tr[data-task]')).filter(function (tr) { return !tr.hidden; }); }
+  function refresh(frame) {
+    var p = frame.querySelector('[data-panel="overdue"]'), shown = rows(frame);
+    frame.querySelectorAll('[data-older]').forEach(function (el) { el.textContent = C.count(frame._older); });
+    var cleared = T.overdueOlder - frame._older;
+    frame.querySelector('[data-render="subtitle"]').textContent = 'My tasks · ' + C.count(open - cleared) + ' open, ' + C.count(overdue - cleared) + ' overdue';
+    frame.querySelector('[data-older-shown]').textContent = shown.length;
+    frame.querySelector('[data-triage]').hidden = !frame._older;
+    var tb = p.querySelector('tbody'), old = tb.querySelector('.is-empty-row'); if (old) old.remove();
+    if (!shown.length) tb.insertAdjacentHTML('beforeend', '<tr class="is-empty-row"><td colspan="5" class="cell--muted">Nothing overdue for more than 7 days.</td></tr>');
+    /* selection: rows on this page, or the whole backlog */
+    var boxes = shown.map(function (tr) { return tr.querySelector('[data-select]'); }), n = boxes.filter(function (b) { return b.checked; }).length;
+    var page = p.querySelector('[data-select-page]');
+    page.checked = !!boxes.length && n === boxes.length; page.indeterminate = n > 0 && n < boxes.length;
+    p.querySelector('[data-selection]').innerHTML = frame._all
+      ? '<strong>All ' + C.count(frame._older) + ' selected</strong> · <button type="button" class="link-btn" data-select-none>Clear</button>'
+      : n ? '<strong>' + n + ' selected</strong>' + (n === boxes.length && frame._older > n ? ' · <button type="button" class="link-btn" data-select-all>Select all ' + C.count(frame._older) + '</button>' : '')
+      : 'Select tasks to reschedule, complete or reassign them.';
+    p.querySelectorAll('[data-bulk]').forEach(function (b) { b.disabled = !(frame._all || n); });
+  }
+  function selectAll(frame, on) {
+    frame._all = on;
+    rows(frame).forEach(function (tr) { tr.querySelector('[data-select]').checked = on; });
+    refresh(frame);
+  }
+
+  /* ---------- views: Today, Upcoming, No due date, and the triage view with its own address ---------- */
+  function setView(frame, v) {
+    frame.dataset.view = v;
+    frame.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.dataset.panel !== v; });
+    frame.querySelector('.tasks-bar').hidden = v === 'overdue';
+    frame.querySelectorAll('[data-view-switch] .segment').forEach(function (b) { var on = b.dataset.value === v; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', on); });
+  }
+  function viewParam() { return new URLSearchParams(location.search).get('view') === 'overdue' ? 'overdue' : 'today'; }
+  document.addEventListener('crm:segment', function (e) { if (e.target.hasAttribute('data-view-switch')) setView(e.target.closest('.app'), e.detail.value); });
+  window.addEventListener('popstate', function () { setView(app, viewParam()); });
+
+  /* ---------- one-click complete with Undo (H7) ---------- */
+  function complete(frame, li, opts) {
+    var b = li.querySelector('.task__check');
+    li.classList.add('is-done'); b.setAttribute('aria-checked', 'true'); counts(frame);
+    var timer = opts && opts.sticky ? 0 : setTimeout(function () { li.hidden = true; }, 5000);
+    li._undo = function () { clearTimeout(timer); li.hidden = false; li.classList.remove('is-done'); b.setAttribute('aria-checked', 'false'); counts(frame); var t = frame.querySelector('.toast'); if (t) t.remove(); };
+    C.toast(frame, 'Task completed', li._undo, opts);
+  }
+  /* ---------- bulk actions on the backlog ---------- */
+  function bulk(frame, done, opts) {
+    var all = frame._all, picked = all ? rows(frame) : rows(frame).filter(function (tr) { return tr.querySelector('[data-select]').checked; });
+    var n = all ? frame._older : picked.length;
+    picked.forEach(function (tr) { tr.hidden = true; tr.querySelector('[data-select]').checked = false; });
+    frame._older -= n; frame._all = false; refresh(frame);
+    C.toast(frame, (n === 1 ? '1 task ' : C.count(n) + ' tasks ') + done, function () {
+      picked.forEach(function (tr) { tr.hidden = false; }); frame._older += n; refresh(frame);
+    }, opts);
+  }
+  C.menus.reschedule = [{ id: 'r-tomorrow', label: 'Tomorrow, ' + C.date('2026-11-10'), icon: 'calendar' }, { id: 'r-monday', label: 'Next Monday, ' + C.date('2026-11-16'), icon: 'calendar' }];
+  C.menus.reassign = D.reps.filter(function (r) { return r.status === 'active' && !r.you; }).map(function (r) { return { id: 'to-' + r.id, label: r.name }; });
+
+  document.addEventListener('click', function (e) {
+    var t = e.target, frame = t.closest('.app'); if (!frame) return;
+    var ck = t.closest('.task__check[role="checkbox"]');
+    if (ck) { var li = ck.closest('.task'); if (li.classList.contains('is-done')) li._undo(); else complete(frame, li); return; }
+    var vl = t.closest('[data-view-link]');
+    if (vl && !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) {
+      e.preventDefault(); setView(frame, vl.dataset.viewLink);
+      if (frame.hasAttribute('data-url')) { var u = new URL(location.href); if (vl.dataset.viewLink === 'overdue') u.searchParams.set('view', 'overdue'); else u.searchParams.delete('view'); history.pushState({ crmView: vl.dataset.viewLink }, '', u); }
+      return;
+    }
+    if (t.closest('[data-select-all]')) { selectAll(frame, true); return; }
+    if (t.closest('[data-select-none]')) { selectAll(frame, false); return; }
+    if (t.closest('[data-bulk-complete]')) { bulk(frame, 'completed'); return; }
+  });
+  document.addEventListener('change', function (e) {
+    var frame = e.target.closest('.app'); if (!frame) return;
+    if (e.target.matches('[data-select-page]')) { var on = e.target.checked; frame._all = false; rows(frame).forEach(function (tr) { tr.querySelector('[data-select]').checked = on; }); refresh(frame); }
+    else if (e.target.matches('[data-select]')) { frame._all = false; refresh(frame); }
+  });
+  document.addEventListener('crm:menu', function (e) {
+    var frame = e.target.closest('.app'), a = e.detail.action;
+    if (a.indexOf('r-') === 0) bulk(frame, a === 'r-tomorrow' ? 'moved to tomorrow' : 'moved to Monday, ' + C.date('2026-11-16'));
+    if (a.indexOf('to-') === 0) bulk(frame, 'reassigned to ' + C.rep(a.slice(3)).name);
+  });
+
+  /* ---------- add / edit form: live's fields and order ---------- */
+  function field(id, label, control, req, lblAttr) { return '<div class="field"><label class="field__label" for="' + id + '"><span' + (lblAttr || '') + '>' + label + '</span>' + (req ? '<span class="field__req" aria-hidden="true">*</span>' : '') + '</label>' + control + '</div>'; }
+  function input(id, value, req, extra) { return '<input class="input" id="' + id + '" value="' + esc(value || '') + '"' + (req ? ' aria-required="true"' : '') + (extra || '') + '>'; }
+  function options(pairs, value) { return pairs.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === value ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join(''); }
+  function select(id, pairs, value, extra) { return '<span class="input-wrap"><select class="select" id="' + id + '"' + (extra || '') + '>' + options(pairs, value) + '</select>' + C.icon('chevron', 16) + '</span>'; }
+  function pairs(map) { return Object.keys(map).map(function (k) { return [k, Array.isArray(map[k]) ? map[k][0] : map[k]]; }); }
+  /* assignees: you first, marked, as live lists them */
+  var REPS = D.reps.filter(function (r) { return r.status === 'active'; }).sort(function (a, b) { return b.you - a.you; })
+    .map(function (r) { return [r.id, r.name + (r.you ? ' (you)' : '')]; });
+  var seq = 0;
+  C.fill['sheet-form'] = function (sheet, key) {
+    var t = key ? task(key) : null, id = 'f' + (++seq), ent = t ? t.rel[0] : '', rec = t ? t.rel[1] : '';
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">' + (t ? 'Edit task' : 'New task') + '</h2>' +
+        (t ? '<p class="sheet__sub">' + esc(t.title) + '</p>' : '') + '</header>' +
+      '<div class="fgroup">' +
+        field(id + '-title', 'Title', input(id + '-title', t && t.title, true, t ? '' : ' data-autofocus'), true) +
+        field(id + '-desc', 'Description', '<textarea class="input textarea" id="' + id + '-desc" rows="3"></textarea>') +
+        '<div class="frow">' + field(id + '-due', 'Due date', C.dateField(id + '-due', t && t.due || '', 'Due date')) +
+          field(id + '-pri', 'Priority', select(id + '-pri', pairs(PRIORITY), t ? t.priority : 'medium')) + '</div>' +
+        /* status only once a task exists: a new one is always pending */
+        (t ? field(id + '-status', 'Status', select(id + '-status', pairs(STATUS), t.status || 'pending')) : '') +
+        field(id + '-owner', 'Assigned to', select(id + '-owner', REPS, t ? t.owner : C.me().id)) +
+        /* the related record follows its type (C.relFields, shared with Upload document) */
+        C.relFields(id, ent, rec) +
+      '</div>';
+    sheet.querySelector('[data-submit]').textContent = t ? 'Save changes' : 'Create task';
+  };
+
+  setView(app, 'today');
+  C.boot();
+
+  /* every frame: its own backlog size and view; the live frame follows the address (the Dashboard links to ?view=overdue) */
+  document.querySelectorAll('.app').forEach(function (f) {
+    f._older = T.overdueOlder;
+    setView(f, f === app ? viewParam() : f.dataset.view || 'today');
+    counts(f); refresh(f);
+  });
+  if (viewParam() === 'overdue') history.replaceState({ crmView: 'overdue' }, '', location.href);
+
+  /* drawn states */
+  document.querySelectorAll('[data-completed]').forEach(function (f) { complete(f, f.querySelector('li[data-task="' + f.dataset.completed + '"]'), { sticky: true }); });
+  document.querySelectorAll('.app[data-picked-all]').forEach(function (f) { selectAll(f, true); });
+  document.querySelectorAll('[data-bulk-done]').forEach(function (f) { bulk(f, 'completed', { sticky: true }); });
+})();
+</script>
+</body>
+</html>

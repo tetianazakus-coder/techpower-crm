@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Shell</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- The app shell every flow page starts from: the grouped sidebar with the lockup at its top, the header over the content (search with ⌘K, account)
+       (audit H1/H2) and an empty page column. Copy this frame into a new <flow>.html and render into .console__inner. -->
+  <section class="state" aria-labelledby="state-shell">
+    <h2 class="state__label" id="state-shell">State 1 · App shell: grouped sidebar, header search with its shortcut, empty page column</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="dashboard"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Dashboard</h1>
+              <p class="console__subtitle" data-today></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sheet-scrim" hidden></div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-tasks">
+    <h2 class="state__label" id="state-tasks">State 2 · A section in the Outreach group selected; the Tasks badge counts today plus the last 7 days overdue</h2>
+    <div data-clone="app-1" data-active="tasks" data-title="Tasks"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM;
+  C.boot();
+  /* State 2 is a copy of the shell with another section selected */
+  document.querySelectorAll('.app[data-active]').forEach(function (app) {   /* frames only: the rail's More button carries data-active too */
+    app.querySelector('[data-rail]').innerHTML = C.rail(app.dataset.active);
+    app.querySelector('.console__title').textContent = app.dataset.title;
+  });
+  document.querySelectorAll('[data-today]').forEach(function (el) { el.textContent = 'Monday, ' + C.date(C.data.today); });
+})();
+</script>
+</body>
+</html>

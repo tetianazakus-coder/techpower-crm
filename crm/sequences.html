@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Sequences</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Sequences: today's explainer, sequence cards and performance table, in the Harbor theme.
+       Approved changes applied: Delete leaves the card for a ⋯ menu and asks first in a dialog that names the sequence
+       (H6; Edit stays a button). Delete can't be undone, so it has no Undo. Also: sidebar (H1).
+       As today: the count under the title and the explainer; cards with the Default badge, description, touches and active
+       count; the performance table with Sequence, Active, Completed, Exited, ↳ Meeting, ↳ Deal, ↳ Manual (Exited by reason),
+       Total (active + completed + exited) and Completion (completed ÷ (completed + exited)); New sequence; the Edit / New
+       sequence form: name, description, Default sequence, Active, and touches by working day, type (Call, Voicemail,
+       Email), task title and notes, with a summary by day. New starts with no touches.
+       Kept as Harbor: a side sheet, not a centred dialog; sentence-case buttons. Assumed: an inactive sequence shows an
+       Inactive badge on its card.
+       State 1 is live: edit a sequence (add or remove touches), new sequence, delete (Cancel or confirm). -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · Sequences: cards with touches and active contacts, and how each sequence performs; live — edit, add touches, delete</h2>
+    <div class="app app--console app--crm" id="app-1" data-url>
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="sequences"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title" tabindex="-1">Sequences</h1>
+              <p class="console__subtitle" data-seq-count></p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" data-sheet-open="sheet-seq"><span data-icon="plus"></span>New sequence</button>
+            </div>
+          </div>
+          <p class="seq-intro">A sequence is a follow-up cadence: calls, voicemails and emails spread over working days. When a rep first calls a contact, the contact is enrolled in the default sequence, and each day's touches appear as tasks on the rep's Tasks page.</p>
+          <div class="seq-grid" data-render="cards" aria-live="polite"></div>
+
+          <section class="records records--plain" aria-labelledby="perf-title">
+            <div class="card-head"><div>
+              <h2 class="card-head__title" id="perf-title">Performance</h2>
+              <p class="card-head__desc">How contacts are moving through each sequence. Completion = completed ÷ (completed + exited).</p>
+            </div></div>
+            <div class="table-wrap"><table class="data-table"><thead><tr>
+              <th scope="col">Sequence</th>
+              <th scope="col" class="cell--right" style="width: 88px">Active</th>
+              <th scope="col" class="cell--right" style="width: 104px">Completed</th>
+              <th scope="col" class="cell--right" style="width: 88px">Exited</th>
+              <th scope="col" class="cell--right" style="width: 104px"><span aria-hidden="true">↳ </span><span class="sr-only">Exited, </span>Meeting</th>
+              <th scope="col" class="cell--right" style="width: 88px"><span aria-hidden="true">↳ </span><span class="sr-only">Exited, </span>Deal</th>
+              <th scope="col" class="cell--right" style="width: 96px"><span aria-hidden="true">↳ </span><span class="sr-only">Exited, </span>Manual</th>
+              <th scope="col" class="cell--right" style="width: 88px">Total</th>
+              <th scope="col" style="width: 180px">Completion</th>
+            </tr></thead><tbody data-render="perf"></tbody></table></div>
+            <p class="records__foot seq-foot">Exited means a contact left the sequence early. ↳ Meeting, ↳ Deal and ↳ Manual split it by reason: a meeting booked, a deal won or lost, or removed by a rep.</p>
+          </section>
+        </div>
+      </div>
+
+      <div class="sheet-scrim" hidden></div>
+      <aside class="sheet sheet--editor" id="sheet-seq" role="dialog" aria-modal="true" aria-labelledby="sheet-seq-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <form class="sheet__scroll" data-fill aria-labelledby="sheet-seq-title"></form>
+        <div class="sheet__foot">
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-submit>Create sequence</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-menu">
+    <h2 class="state__label" id="state-menu">State 2 · More actions: Edit stays a button on the card; Delete moves into the ⋯ menu</h2>
+    <div data-clone="app-1" data-menu-open="q2"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-confirm">
+    <h2 class="state__label" id="state-confirm">State 3 · Delete asks first: it names the sequence, how many contacts are in it, and says it can't be undone</h2>
+    <div data-clone="app-1" data-confirm="q2"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-deleted">
+    <h2 class="state__label" id="state-deleted">State 4 · Deleted: its card and its row are gone, and a message says what was deleted</h2>
+    <div data-clone="app-1" data-deleted="q2"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-edit">
+    <h2 class="state__label" id="state-edit">State 5 · Edit sequence: name, description, default and active, the touches by day, type, task title and notes, and a summary by day</h2>
+    <div data-clone="app-1" data-key="q1" data-show-sheet="sheet-seq"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-added">
+    <h2 class="state__label" id="state-added">State 6 · A touch added: a new row after the last one, three days later; the count goes up</h2>
+    <div data-clone="app-1" data-key="q1" data-show-sheet="sheet-seq" data-added></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-new">
+    <h2 class="state__label" id="state-new">State 7 · New sequence: name and description to fill in, active, and no touches yet</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-seq"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var app = document.getElementById('app-1');
+  function put(name, html) { app.querySelectorAll('[data-render="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
+  function seq(id) { return D.sequences.filter(function (q) { return q.id === id; })[0]; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many || one + 's'); }
+  var DEFAULT = '<span class="badge badge--info">Default</span>';
+  var INACTIVE = '<span class="badge badge--neutral">Inactive</span>';
+
+  /* ---------- cards and the performance table ---------- */
+  function card(q) {
+    return '<article class="seq-card" data-seq="' + q.id + '">' +
+      '<div class="seq-card__head"><h2 class="seq-card__name">' + esc(q.name) + '</h2>' + (q.isDefault ? DEFAULT : '') + (q.isActive ? '' : INACTIVE) + '</div>' +
+      (q.desc ? '<p class="seq-card__desc">' + esc(q.desc) + '</p>' : '') +
+      '<p class="seq-card__meta">' + plural(q.steps.length, 'touch', 'touches') + ' · ' + C.count(q.active) + ' active</p>' +
+      '<div class="seq-card__foot">' +
+        '<button type="button" class="btn btn--secondary btn--sm" data-sheet-open="sheet-seq" data-key="' + q.id + '" aria-label="Edit ' + esc(q.name) + '">' + C.icon('pencil', 16) + 'Edit</button>' +
+        '<button type="button" class="btn btn--ghost btn--sm btn--icon" data-menu="sequence" data-key="' + q.id + '" aria-haspopup="menu" aria-expanded="false" aria-label="More actions for ' + esc(q.name) + '">' + C.icon('more', 16) + '</button>' +
+      '</div></article>';
+  }
+  /* meeting, deal and manual are part of exited, so they don't add to the total */
+  function row(q) {
+    var t = q.active + q.completed + q.exited;
+    return '<tr data-seq="' + q.id + '"><td><span class="item">' + esc(q.name) + (q.isDefault ? DEFAULT : '') + '</span></td>' +
+      [q.active, q.completed, q.exited, q.meeting, q.deal, q.manual, t].map(function (v) { return '<td class="cell--right num">' + C.count(v) + '</td>'; }).join('') +
+      '<td>' + C.meterCell(C.pct(q.completed, q.completed + q.exited)) + '</td></tr>';
+  }
+  put('cards', D.sequences.map(card).join(''));
+  put('perf', D.sequences.map(row).join(''));
+
+  /* deleted sequences leave the cards, the table and the count */
+  function draw(frame) {
+    var grid = frame.querySelector('[data-render="cards"]'), shown = 0;
+    frame.querySelectorAll('[data-seq]').forEach(function (el) { el.hidden = !!frame._deleted[el.dataset.seq]; if (!el.hidden && el.matches('.seq-card')) shown++; });
+    frame.querySelector('[data-seq-count]').innerHTML = '<span class="console__figure">' + shown + '</span> ' + (shown === 1 ? 'sequence' : 'sequences');
+    var old = grid.querySelector('.camp-empty'); if (old) old.remove();
+    if (!shown) grid.insertAdjacentHTML('beforeend', '<p class="camp-empty">No sequences yet.</p>');
+  }
+
+  /* ---------- Delete: ⋯ menu, then a confirm dialog that names the sequence (H6) ---------- */
+  C.menus.sequence = [{ id: 'delete', label: 'Delete sequence', icon: 'trash', danger: true }];
+  function askDelete(frame, id, opts) {
+    var q = seq(id);
+    return C.confirm(frame, {
+      title: 'Delete this sequence?',
+      body: '<strong>' + esc(q.name) + '</strong> will be deleted for everyone, with its ' + plural(q.steps.length, 'touch', 'touches') + ' and its performance.' +
+        (q.active ? ' ' + plural(q.active, 'contact is', 'contacts are') + ' in it now.' : '') + ' This can\'t be undone.',
+      action: 'Delete sequence',
+      onConfirm: function () { remove(frame, id); }
+    }, opts);
+  }
+  /* its card is gone, so focus goes to the page title */
+  function remove(frame, id) {
+    frame._deleted[id] = true; draw(frame);
+    frame.querySelector('.console__title').focus();
+    C.toast(frame, 'Sequence deleted · ' + seq(id).name);
+  }
+  document.addEventListener('crm:menu', function (e) {
+    if (e.detail.action === 'delete' && e.target.dataset.menu === 'sequence') askDelete(e.target.closest('.app'), e.detail.key);
+  });
+
+  /* ---------- New / Edit sequence: name, description, default, active, and the touches ---------- */
+  var fid = 0;
+  var TONE = { call: 'info', voicemail: 'warn', email: 'neutral' };
+  function typeSelect(id, n, value) {
+    return '<span class="input-wrap"><select class="select" id="' + id + '" aria-label="Touch ' + n + ' type" data-touch-type>' + Object.keys(D.touchTypes).map(function (k) {
+      return '<option value="' + k + '"' + (k === value ? ' selected' : '') + '>' + D.touchTypes[k] + '</option>';
+    }).join('') + '</select>' + C.icon('chevron', 16) + '</span>';
+  }
+  /* a touch: working day, type, the title of the task it creates, and notes or email copy shown on that task */
+  function touch(id, n, s) {
+    return '<li class="touch">' +
+      '<span class="touch__n" aria-hidden="true">' + n + '</span>' +
+      C.stepper('<input class="input" type="number" min="1" inputmode="numeric" id="' + id + '-d" value="' + s[0] + '" aria-label="Touch ' + n + ' day" data-touch-day>') +
+      typeSelect(id + '-t', n, s[1]) +
+      '<input class="input" id="' + id + '-w" value="' + esc(s[2]) + '" placeholder="Task title" aria-label="Touch ' + n + ' task title" data-touch-title>' +
+      '<button type="button" class="btn btn--ghost btn--sm btn--icon" aria-label="Remove touch ' + n + '" data-touch-remove>' + C.icon('trash', 16) + '</button>' +
+      '<textarea class="input textarea touch__notes" id="' + id + '-x" rows="2" placeholder="Optional notes or email copy shown on the task" aria-label="Touch ' + n + ' notes" data-touch-notes>' + esc(s[3] || '') + '</textarea>' +
+    '</li>';
+  }
+  /* the touches by day, in day order: "Day 1: Call Voicemail · Day 3: Email" */
+  function summarize(sheet) {
+    var by = {};
+    sheet.querySelectorAll('.touch-list > .touch').forEach(function (li) {
+      var d = +li.querySelector('[data-touch-day]').value || 1;
+      (by[d] = by[d] || []).push(li.querySelector('[data-touch-type]').value);
+    });
+    var days = Object.keys(by).map(Number).sort(function (a, b) { return a - b; });
+    var sum = sheet.querySelector('[data-touch-sum]');
+    sum.hidden = !days.length;
+    sum.innerHTML = days.map(function (d) {
+      return '<span class="touch-sum__day">Day ' + d + ':' + by[d].map(function (t) { return '<span class="badge badge--' + TONE[t] + '">' + D.touchTypes[t] + '</span>'; }).join('') + '</span>';
+    }).join('');
+  }
+  /* numbers, labels, the count, the empty message and the summary follow the rows */
+  function renumber(sheet) {
+    var rows = [].slice.call(sheet.querySelectorAll('.touch-list > .touch'));
+    rows.forEach(function (li, i) {
+      var n = i + 1;
+      li.querySelector('.touch__n').textContent = n;
+      li.querySelector('[data-touch-day]').setAttribute('aria-label', 'Touch ' + n + ' day');
+      li.querySelector('[data-touch-type]').setAttribute('aria-label', 'Touch ' + n + ' type');
+      li.querySelector('[data-touch-title]').setAttribute('aria-label', 'Touch ' + n + ' task title');
+      li.querySelector('[data-touch-notes]').setAttribute('aria-label', 'Touch ' + n + ' notes');
+      li.querySelector('[data-touch-remove]').setAttribute('aria-label', 'Remove touch ' + n);
+    });
+    sheet.querySelector('[data-touch-count]').textContent = '(' + rows.length + ')';
+    sheet.querySelector('.touch--head').hidden = !rows.length;
+    sheet.querySelector('[data-touch-empty]').hidden = !!rows.length;
+    summarize(sheet);
+    return rows;
+  }
+  /* a new touch goes after the last one, three days later, and takes focus */
+  function addTouch(sheet, focus) {
+    var list = sheet.querySelector('.touch-list'), last = list.lastElementChild;
+    var day = last ? (+last.querySelector('[data-touch-day]').value || 1) + 3 : 1;
+    list.insertAdjacentHTML('beforeend', touch(sheet.id + '-n' + (++fid), list.children.length + 1, [day, 'call', 'Day ' + day + ': Call', '']));
+    renumber(sheet);
+    if (focus !== false) list.lastElementChild.querySelector('[data-touch-day]').focus();
+  }
+  /* focus moves to the next row's Remove, or the previous one's, or Add touch */
+  function removeTouch(li) {
+    var sheet = li.closest('.sheet'), next = li.nextElementSibling || li.previousElementSibling;
+    li.remove(); renumber(sheet);
+    var f = next && next.querySelector('[data-touch-remove]');
+    (f || sheet.querySelector('[data-touch-add]')).focus();
+  }
+
+  C.fill['sheet-seq'] = function (sheet, key) {
+    var q = key ? seq(key) : null, id = sheet.id + '-f' + (++fid), steps = q ? q.steps : [];
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">' + (q ? 'Edit sequence' : 'New sequence') + '</h2>' +
+        (q ? '<p class="sheet__sub">' + esc(q.name) + '</p>' : '') + '</header>' +
+      '<div class="fgroup">' +
+        '<div class="field"><label class="field__label" for="' + id + '-name">Name<span class="field__req" aria-hidden="true">*</span></label>' +
+          '<input class="input" id="' + id + '-name" value="' + esc(q ? q.name : '') + '" placeholder="Standard cold outreach" aria-required="true"' + (q ? '' : ' data-autofocus') + '></div>' +
+        '<div class="field"><label class="field__label" for="' + id + '-desc">Description</label>' +
+          '<textarea class="input textarea" id="' + id + '-desc" rows="3" placeholder="When to use this sequence and what it\'s for.">' + esc(q ? q.desc || '' : '') + '</textarea></div>' +
+        '<div class="field"><label class="check"><input type="checkbox" class="checkbox" aria-describedby="' + id + '-dh"' + (q && q.isDefault ? ' checked' : '') + '> Default sequence</label>' +
+          '<p class="field__hint" id="' + id + '-dh">Contacts are enrolled in it on their first call.</p></div>' +
+        '<div class="field"><label class="check"><input type="checkbox" class="checkbox"' + (!q || q.isActive ? ' checked' : '') + '> Active</label></div>' +
+        '<fieldset class="field"><legend class="field__label">Touches <span data-touch-count aria-live="polite"></span></legend>' +
+          '<div class="touch touch--head" aria-hidden="true"><span></span><span>Day</span><span>Type</span><span>Task title</span><span></span></div>' +
+          '<ol class="touch-list">' + steps.map(function (s, i) { return touch(id + '-' + i, i + 1, s); }).join('') + '</ol>' +
+          '<p class="touch-empty" data-touch-empty>No touches yet. Add the first one, for example a day 1 call.</p>' +
+          '<div class="touch-foot"><button type="button" class="btn btn--secondary btn--sm" data-touch-add>' + C.icon('plus', 16) + 'Add touch</button></div>' +
+          '<p class="touch-sum" data-touch-sum></p>' +
+        '</fieldset>' +
+      '</div>';
+    renumber(sheet);
+    sheet.querySelector('[data-submit]').textContent = q ? 'Save changes' : 'Create sequence';
+  };
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    var ad = t.closest('[data-touch-add]'); if (ad) { addTouch(ad.closest('.sheet')); return; }
+    var rm = t.closest('[data-touch-remove]'); if (rm) removeTouch(rm.closest('.touch'));
+  });
+  /* the summary follows a changed day or type */
+  document.addEventListener('input', function (e) {
+    if (e.target.matches('[data-touch-day], [data-touch-type]')) summarize(e.target.closest('.sheet'));
+  });
+
+  C.boot();
+
+  /* every frame keeps its own deletions */
+  document.querySelectorAll('.app').forEach(function (f) {
+    f._deleted = {};
+    if (f.dataset.deleted) f._deleted[f.dataset.deleted] = true;
+    draw(f);
+  });
+
+  /* drawn states */
+  document.querySelectorAll('.app[data-menu-open]').forEach(function (f) { C.openMenu(f.querySelector('[data-menu="sequence"][data-key="' + f.dataset.menuOpen + '"]'), { focus: false }); });
+  document.querySelectorAll('.app[data-confirm]').forEach(function (f) { askDelete(f, f.dataset.confirm, { focus: false }); });
+  document.querySelectorAll('.app[data-deleted]').forEach(function (f) { C.toast(f, 'Sequence deleted · ' + seq(f.dataset.deleted).name, null, { sticky: true }); });
+  document.querySelectorAll('.app[data-added]').forEach(function (f) { addTouch(f.querySelector('.sheet:not([hidden])'), false); });
+})();
+</script>
+</body>
+</html>

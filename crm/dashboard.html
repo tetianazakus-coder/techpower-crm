@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Dashboard</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Dashboard: the same four figures, pipeline by stage and recent activity as today, in the Harbor theme.
+       Approved changes applied: sidebar (H1), one money and date format (H4, H5), record names as links (H3),
+       the overdue figure leads to the Tasks triage view instead of a collapsed group (H7).
+       Pipeline by stage is a table with a single-hue share bar, so the figures and the bars are the same view.
+       Shown as the app itself (data-app on <html>): the frame fills the window, with no concept toolbar and no drawn
+       states. The sidebar and account menu are live: collapse with the edge handle or [, open the menu from the avatar. -->
+  <section class="state" aria-label="Dashboard">
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="dashboard"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title" data-render="greeting"></h1>
+              <p class="console__subtitle" data-render="today"></p>
+            </div>
+          </div>
+
+          <div class="stats" style="--cols: 4" data-render="stats"></div>
+
+          <div class="split split--dash">
+            <section class="records" aria-labelledby="pipe-title">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-head__title" id="pipe-title">Pipeline by stage</h2>
+                  <p class="card-head__desc">All owners</p>
+                </div>
+                <span class="card-head__aside"><a class="link" href="opportunities.html">Open the board</a></span>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table data-table--fit data-table--pipe">
+                  <thead><tr><th scope="col">Stage</th><th scope="col" class="cell--right" style="width: 88px">Deals</th><th scope="col" class="cell--right" style="width: 112px">Value</th><th scope="col" style="width: 260px">Share of value</th></tr></thead>
+                  <tbody data-render="stages"></tbody>
+                  <tfoot data-render="stages-total"></tfoot>
+                </table>
+              </div>
+            </section>
+
+            <section class="records" aria-labelledby="act-title">
+              <div class="card-head">
+                <div>
+                  <h2 class="card-head__title" id="act-title">Recent activity</h2>
+                  <p class="card-head__desc">All reps</p>
+                </div>
+                <span class="card-head__aside"><a class="link" href="calls.html">View all</a></span>
+              </div>
+              <ul class="rows rows--activity" data-render="activity"></ul>
+            </section>
+          </div>
+        </div>
+      </div>
+      <div class="sheet-scrim" hidden></div>
+    </div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, T = D.totals, esc = C.esc;
+  function put(name, html) { document.querySelectorAll('[data-render="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
+
+  put('greeting', 'Good morning, ' + esc(C.me().name.split(' ')[0]));
+  put('today', 'Monday, ' + C.date(D.today));
+
+  /* four figures, as today; due today carries the overdue count with an icon and a way in (H7) */
+  var overdue = T.tasks.overdueRecent + T.tasks.overdueOlder;
+  function stat(label, value, meta) { return '<div class="stat"><span class="stat__label">' + label + '</span><span class="stat__value">' + value + '</span><span class="stat__meta">' + meta + '</span></div>'; }
+  put('stats',
+    stat('Open opportunities', C.count(T.openOpps), 'Across ' + D.stages.filter(function (s) { return !s.closed; }).length + ' open stages') +
+    stat('Pipeline value', C.moneyShort(T.pipeline), 'Open deals, all owners') +
+    stat('Due today', T.tasks.today, '<a class="stat__alert" href="tasks.html?view=overdue">' + C.icon('alert', 14) + '<span>' + C.count(overdue) + ' overdue</span><span class="stat__alert-go">Review</span></a>') +
+    stat('Activities this week', T.activitiesThisWeek, 'Since Monday, all reps'));
+
+  /* pipeline by stage, shared with Reports */
+  var pipe = C.pipeRows();
+  put('stages', pipe.rows);
+  put('stages-total', pipe.total);
+
+  /* recent activity: who, what, on which record (a link), when; human labels, not system keys */
+  var ICON = { call: 'phone', email: 'mail', meeting: 'calendar', stage: 'board', updated: 'pencil', note: 'document' };
+  put('activity', D.activity.slice(0, 8).map(function (a) {
+    var r = C.rep(a.who), when = C.days(a.at) === 0 ? C.stamp(a.at).split(', ').pop() : C.date(a.at);
+    return '<li class="rows__item"><span class="tile tile--sm" aria-hidden="true">' + C.icon(ICON[a.type], 16) + '</span>' +
+      '<span class="rows__main"><span class="rows__title">' + C.recordLink(a.rel) + '</span>' +
+      '<span class="rows__meta">' + esc(a.text) + ' · ' + esc(r.name) + '</span></span>' +
+      '<time class="rows__time" datetime="' + a.at + '" title="' + C.stamp(a.at) + '">' + when + '</time></li>';
+  }).join(''));
+
+  C.boot();
+})();
+</script>
+</body>
+</html>

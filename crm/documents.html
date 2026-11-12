@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Documents</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Documents: files attached to contacts, accounts and opportunities, in the Harbor theme.
+       Approved changes applied: the page sits in the sidebar's General group, no longer footer-only (H1, H2); Delete moves
+       into a ⋯ row menu and asks first, naming the file (H6); "Linked to" is a link to the record's address (H3); one date
+       format (H4).
+       As today: columns File, Linked to, Uploaded by, Tags, Size, Date; Upload Document.
+       Aligned with live's Documents (discovery, Nov 2026): a document has no type, so the list filters by tag (live's
+       "All tags"), the file's extension shows as a badge before its name, and a file links to a contact, an account or an
+       opportunity, or to nothing. Upload asks for live's fields: the file (up to 25 MB; PDF, Word, Excel, images, ZIP;
+       executables blocked), what it relates to (a type, then the record) and tags. Only the file is required.
+       Kept from Harbor, not live: the ⋯ row menu and the delete check (live has Download and Delete as links), the record
+       as a link, the uploader's avatar, the pager, the drop zone, and the Tag filter taking several tags.
+       State 1 is live: filter by tag, open the ⋯ menu, delete (Cancel or confirm), upload a file. -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · Documents: newest first, each linked to its account or opportunity; live — filter, upload, delete</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="documents"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Documents</h1>
+              <p class="console__subtitle">Files attached to contacts, accounts and opportunities.</p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" data-sheet-open="sheet-upload"><span data-icon="plus"></span>Upload document</button>
+            </div>
+          </div>
+
+          <section class="records records--plain" aria-label="Documents">
+            <div class="filters filters--bar" role="group" aria-label="Filter documents">
+              <span data-render="filter-btns"></span>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr>
+                  <th scope="col">File</th>
+                  <th scope="col" style="width: 240px">Linked to</th>
+                  <th scope="col" style="width: 160px">Uploaded by</th>
+                  <th scope="col" style="width: 140px">Tags</th>
+                  <th scope="col" class="cell--right" style="width: 88px">Size</th>
+                  <th scope="col" style="width: 104px">Date</th>
+                  <th scope="col" class="col-menu"><span class="sr-only">Actions</span></th>
+                </tr></thead>
+                <tbody data-filterable data-render="rows" aria-live="polite"></tbody>
+              </table>
+            </div>
+            <nav class="pager" aria-label="Pagination">
+              <span class="pager__text" data-pager></span>
+              <span class="pager__pages">
+                <button type="button" class="pager__btn" aria-label="Previous page" disabled><span data-icon="chevron-left"></span></button>
+                <button type="button" class="pager__btn" aria-label="Next page"><span data-icon="chevron-right"></span></button>
+              </span>
+            </nav>
+          </section>
+        </div>
+      </div>
+
+      <div class="sheet-scrim" hidden></div>
+      <aside class="sheet" id="sheet-upload" role="dialog" aria-modal="true" aria-labelledby="sheet-upload-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <form class="sheet__scroll" data-fill aria-labelledby="sheet-upload-title"></form>
+        <div class="sheet__foot">
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-upload>Upload</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-tag">
+    <h2 class="state__label" id="state-tag">State 2 · Filtered by tag: Gov only, and the pager counts what matches</h2>
+    <div data-clone="app-1" data-filters="tag:Gov"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-menu">
+    <h2 class="state__label" id="state-menu">State 3 · Row menu: Download, and Delete set apart in red</h2>
+    <div data-clone="app-1" data-show-menu="d02"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-confirm">
+    <h2 class="state__label" id="state-confirm">State 4 · Delete asks first: it names the file and the record it leaves; focus starts on Cancel</h2>
+    <div data-clone="app-1" data-confirm="d02"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-upload">
+    <h2 class="state__label" id="state-upload">State 5 · Upload, as live asks: a file, what it relates to (a type, then the record) and tags; only the file is required</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-upload" data-chosen="Halvorsen network survey.pdf" data-rel="account:a01" data-tags="Mid-Market"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-upload-error">
+    <h2 class="state__label" id="state-upload-error">State 6 · Upload with no file: the form stays open and says what is missing</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-upload" data-invalid></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-uploaded">
+    <h2 class="state__label" id="state-uploaded">State 7 · Uploaded: the file tops the list, marked new, and a message says where it went</h2>
+    <div data-clone="app-1" data-uploaded></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var app = document.getElementById('app-1');
+  var MAX_KB = 25 * 1024, BLOCKED = ['exe', 'msi', 'bat', 'cmd', 'com', 'scr', 'ps1', 'sh', 'app', 'dmg', 'jar', 'vbs'];
+  function doc(frame, id) { return frame._docs.filter(function (d) { return d.id === id; })[0]; }
+  /* as live writes it: bytes under 1 KB, then KB and MB with one decimal */
+  function size(kb) { return kb < 1 ? Math.round(kb * 1024) + ' B' : kb < 1024 ? kb.toFixed(1) + ' KB' : (kb / 1024).toFixed(1) + ' MB'; }
+  function relName(rel) { var x = C.by[rel[0]][rel[1]]; return x.name || x.title; }
+  var REL = { contact: 'Contact', account: 'Account', opportunity: 'Opportunity' };
+
+  function rowHtml(d, isNew) {
+    return '<tr data-seg="all" data-key="' + d.id + '"' + (isNew ? ' class="is-new"' : '') + '>' +
+      '<td><span class="item">' + C.fileBadge(d.file) + '<span class="cell-clip" title="' + esc(d.file) + '">' + esc(d.file) + '</span></span></td>' +
+      '<td>' + (d.rel ? '<span class="name-cell">' + C.recordLink(d.rel) + '<span class="who__dept">' + REL[d.rel[0]] + '</span></span>' : '<span class="dash">—</span>') + '</td>' +
+      '<td>' + C.person(d.by) + '</td>' +
+      '<td>' + (d.tags.length ? C.tags(d.tags) : '<span class="dash">—</span>') + '</td>' +
+      '<td class="cell--right num">' + size(d.kb) + '</td>' +
+      '<td class="cell--nowrap">' + C.date(d.date) + '</td>' +
+      '<td class="col-menu">' + C.rowMenu('doc', d.id, d.file) + '</td></tr>';
+  }
+
+  /* each frame keeps its own list, so a delete or an upload in one state leaves the others as drawn; the Tag filter
+     (C.filterBar) then hides what doesn't match and counts what shows */
+  function draw(frame) {
+    frame.querySelector('[data-render="rows"]').innerHTML = frame._docs.map(function (d) { return rowHtml(d, d.id === frame._new); }).join('');
+    frame.querySelector('[data-pager]').innerHTML = 'Showing <span class="num" data-shown>' + frame._docs.length + '</span> of <span class="num">' + C.count(frame._total) + '</span> documents';
+    C.filter(frame.closest('.state'));
+  }
+
+  /* live filters by one tag ("All tags"); here, as on Contacts, by several: a document matches any of them */
+  var byDoc = {}; D.documents.forEach(function (d) { byDoc[d.id] = d; });
+  C.filterBar(app, 'doc', { record: function (id) { return byDoc[id]; }, filters: {
+    tag: { label: 'Tag', multi: true, opts: D.tagList.map(function (t) { return [t.name, t.name]; }), test: function (d, v) { return d.tags.some(function (x) { return v.indexOf(x) >= 0; }); } }
+  } });
+  C.menus.doc = [{ id: 'download', label: 'Download', icon: 'download' }, { id: 'delete', label: 'Delete', icon: 'trash', danger: true }];
+
+  /* ---------- delete: asks first, names the file and its record; can't be undone, so no Undo ---------- */
+  function askDelete(frame, key, opts) {
+    var d = doc(frame, key);
+    return C.confirm(frame, {
+      title: 'Delete “' + d.file + '”?',
+      body: (d.rel ? 'It’s removed from ' + esc(relName(d.rel)) + ' for everyone.' : 'It’s removed for everyone.') + ' This can’t be undone.',
+      action: 'Delete document',
+      onConfirm: function () {
+        frame._docs = frame._docs.filter(function (x) { return x.id !== key; }); frame._total--; draw(frame);
+        C.toast(frame, 'Document deleted · ' + d.file);
+        frame.querySelector('.filter-btn__open').focus();
+      }
+    }, opts);
+  }
+  document.addEventListener('crm:menu', function (e) {
+    var frame = e.target.closest('.app'), a = e.detail.action;
+    if (a === 'delete') askDelete(frame, e.detail.key);
+    if (a === 'download') C.toast(frame, 'Downloading ' + doc(frame, e.detail.key).file);
+  });
+
+  /* ---------- upload: live's fields. The file is checked as it's chosen: over 25 MB or a program, it's refused and the
+     error says why; with none, Upload says to choose one ---------- */
+  var NO_FILE = 'Choose the file to upload.';
+  var seq = 0;
+  C.fill['sheet-upload'] = function (sheet) {
+    var id = 'u' + (++seq), fr = sheet.closest('.app'), chosen = fr.dataset.chosen || '', rel = (fr.dataset.rel || '').split(':');
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">Upload document</h2></header>' +
+      '<div class="fgroup">' +
+        '<div class="field"><span class="field__label" id="' + id + '-file-l">File<span class="field__req" aria-hidden="true">*</span></span>' +
+          '<label class="dropzone">' + C.icon('upload', 18) + '<span data-file-text>' + (chosen ? '<strong>' + esc(chosen) + '</strong> · 1.2 MB · Choose another' : '<strong>Choose a file</strong> or drop it here') + '</span>' +
+            '<input type="file" class="sr-only" id="' + id + '-file" aria-labelledby="' + id + '-file-l" aria-required="true" aria-describedby="' + id + '-file-hint ' + id + '-file-err" data-up="file"' + (chosen ? ' data-chosen="' + esc(chosen) + '"' : '') + '></label>' +
+          '<span class="field__hint" id="' + id + '-file-hint">PDF, Word, Excel, images or ZIP, up to 25 MB. Executables are blocked.</span>' +
+          '<p class="field__error" id="' + id + '-file-err">' + C.icon('alert', 14) + '<span data-file-err>' + NO_FILE + '</span></p></div>' +
+        C.relFields(id, rel[0], rel[1]) +
+        C.field(id + '-tags', 'Tags', C.tagField(id + '-tags', fr.dataset.tags ? fr.dataset.tags.split(',') : [])) +
+      '</div>';
+  };
+  function uploaded(frame, v, opts) {
+    var d = { id: 'd' + (++seq) + 'n', file: v.file, rel: v.ent && v.rec ? [v.ent, v.rec] : null, by: C.me().id, tags: v.tags, kb: v.kb, date: D.today };
+    frame._docs.unshift(d); frame._total++; frame._new = d.id; byDoc[d.id] = d;   /* the Tag filter finds it */
+    var sc = frame.closest('.state'); if (sc._f) sc._clearFilters();   /* the new file shows whatever the filter was */
+    draw(frame);
+    C.toast(frame, (d.rel ? 'Uploaded to ' + relName(d.rel) : 'Uploaded') + ' · ' + d.file, null, opts);
+  }
+  document.addEventListener('change', function (e) {
+    var t = e.target, sheet = t.closest('.sheet'); if (!sheet || !t.matches('[data-up="file"]') || !t.files.length) return;
+    var f = t.files[0], kb = f.size / 1024, fld = t.closest('.field');
+    var why = BLOCKED.indexOf(C.fileExt(f.name)) >= 0 ? 'Executable files can’t be uploaded. Choose a document, an image or a ZIP.' :
+      kb > MAX_KB ? f.name + ' is ' + size(kb) + '. Choose a file up to 25 MB.' : '';
+    sheet.querySelector('[data-file-err]').textContent = why || NO_FILE;
+    if (why) { t.value = ''; delete t.dataset.chosen; fld.classList.add('is-invalid'); t.setAttribute('aria-invalid', 'true'); return; }
+    t.dataset.chosen = f.name; t.dataset.kb = kb;
+    sheet.querySelector('[data-file-text]').innerHTML = '<strong>' + esc(f.name) + '</strong> · ' + size(kb) + ' · Choose another';
+    C.validate(sheet);
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target, frame = t.closest('.app'); if (!frame || !t.closest('[data-upload]')) return;
+    var sheet = t.closest('.sheet');
+    sheet.querySelector('[data-file-err]').textContent = NO_FILE;
+    if (!C.validate(sheet, true)) return;
+    function v(k) { return sheet.querySelector(k); }
+    var data = { file: v('[data-up="file"]').dataset.chosen, kb: +v('[data-up="file"]').dataset.kb || 1240, ent: v('[data-rel="type"]').value, rec: v('[data-rel="rec"]').value, tags: C.tagsOf(v('.tagfield')) };
+    C.close(sheet); uploaded(frame, data);
+  });
+
+  C.boot();
+
+  document.querySelectorAll('.app').forEach(function (f) { f._docs = D.documents.slice(); f._total = D.totals.documents; draw(f); });
+  /* drawn states */
+  document.querySelectorAll('[data-show-menu]').forEach(function (f) { C.openMenu(f.querySelector('tr[data-key="' + f.dataset.showMenu + '"] .row-menu'), { focus: false }); });
+  document.querySelectorAll('[data-confirm]').forEach(function (f) { askDelete(f, f.dataset.confirm, { focus: false }); });
+  document.querySelectorAll('[data-invalid]').forEach(function (f) { C.validate(f.querySelector('.sheet:not([hidden])'), false); });
+  document.querySelectorAll('[data-uploaded]').forEach(function (f) {
+    uploaded(f, { file: 'Halvorsen network survey.pdf', kb: 1240, ent: 'account', rec: 'a01', tags: [] }, { sticky: true });
+  });
+})();
+</script>
+</body>
+</html>

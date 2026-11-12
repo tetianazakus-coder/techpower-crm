@@ -1,0 +1,52 @@
+/* TechPower Harbor concepts — reviewer annotation layer (not product UI).
+   Linked by 06 and 07 only. Set in the system font with a violet accent no concept uses,
+   so a reviewer never mistakes an annotation for Harbor interface.
+   .confirm-tag  "To confirm · Qn": a recommended default the client still has to confirm. Hidden by the hub's
+                 Review notes toggle (html[data-notes="hidden"], ?notes=hidden).
+   .placeholder  a decision the report leaves open. Hidden with the tags; an inline placeholder that stands in for a value
+                 is replaced by its .placeholder-slot ("[date]") so the sentence still reads. [data-note] marks a wrapper
+                 that only holds a note, so it hides too.
+   Q numbers refer to section 6 of reports/final-recommendations.md. */
+:root {
+  --note-fg: #5B21B6;
+  --note-bg: #F5F3FF;
+  --note-line: #8B5CF6;
+  --note-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+[data-theme="dark"] {
+  --note-fg: #DDD6FE;
+  --note-bg: rgba(139, 92, 246, 0.14);
+  --note-line: #8B5CF6;
+}
+
+.confirm-tag {
+  display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 6px; margin: 0 4px; vertical-align: middle;
+  border: 1px dashed var(--note-line); border-radius: 3px; background: var(--note-bg); color: var(--note-fg);
+  font: 500 11px/1 var(--note-font); letter-spacing: 0; text-transform: none; white-space: nowrap;
+}
+.confirm-tag::before { content: "?"; font-weight: 700; }
+/* inside a line of text: negative block margins keep the 20px chip from setting the line height,
+   so showing or hiding tags never moves the content around it */
+.confirm-tag--inline { margin-block: -4px; }
+html[data-notes="hidden"] .confirm-tag,
+html[data-notes="hidden"] .placeholder,
+html[data-notes="hidden"] [data-note] { display: none; }
+.placeholder-slot { display: none; }
+html[data-notes="hidden"] .placeholder-slot { display: inline; }
+
+.placeholder {
+  display: block; padding: 10px 12px; border: 1px dashed var(--note-line); border-radius: 3px;
+  background: var(--note-bg); color: var(--note-fg); font: 400 12px/1.45 var(--note-font); text-align: left;
+  letter-spacing: 0; text-transform: none;
+}
+.placeholder__title { display: block; font-weight: 600; margin-bottom: 2px; }
+.placeholder ul { margin: 4px 0 0; padding-left: 16px; list-style: disc; }
+.placeholder li + li { margin-top: 2px; }
+.placeholder--inline { display: inline-block; padding: 1px 6px; font-size: 11px; }
+.placeholder--inline .placeholder__title { display: inline; margin: 0 4px 0 0; }
+
+/* state sheet: component-level variants listed below a full frame */
+.sheet { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sheet__item { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sheet__label { font: 500 11px/1.3 var(--note-font); letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.7; }
+@media (max-width: 1023px) { .sheet { grid-template-columns: minmax(0, 1fr); } }

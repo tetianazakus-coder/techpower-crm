@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Audit Log</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Audit Log: every change to records and settings, in the Harbor theme.
+       Approved changes applied: the page sits in the sidebar's Admin group (H1, H2); one date and time format, and From / To
+       in it rather than the browser's date inputs (H4); a record name links to the record's address where it still exists
+       (H3). Types read "Updated", not "Record Updated" (M2, comes with the theme).
+       As today: filters for users, record types (Account, Contact, Opportunity) and live's nine activity types, From and
+       To; the count of entries under the title; columns When, Who, Type, Record, Record Name, Description; descriptions
+       as live writes them ("Updated opportunity: <name>", or the activity's own text); 50 a page, "Page 1 of 700",
+       Prev / Next.
+       State 1 is live: filter by user, record type and activity type. -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · Audit log: newest first, every change and activity on a record, and who did it; live — filter</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="audit-log"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Audit Log</h1>
+              <p class="console__subtitle"><span data-render="count"></span> · every action logged across the CRM, and who took it.</p>
+            </div>
+          </div>
+
+          <section class="records records--plain" aria-label="Audit log">
+            <div class="filters filters--bar" role="group" aria-label="Filter the audit log">
+              <button type="button" class="filter-btn" data-menu="au-who" data-filter="who" aria-haspopup="menu" aria-label="User"><span class="filter-btn__label">User</span><span class="filter-btn__value">Any</span><span data-icon="chevron"></span></button>
+              <button type="button" class="filter-btn" data-menu="au-entity" data-filter="entity" aria-haspopup="menu" aria-label="Record type"><span class="filter-btn__label">Record type</span><span class="filter-btn__value">Any</span><span data-icon="chevron"></span></button>
+              <button type="button" class="filter-btn" data-menu="au-type" data-filter="type" aria-haspopup="menu" aria-label="Activity type"><span class="filter-btn__label">Activity type</span><span class="filter-btn__value">Any</span><span data-icon="chevron"></span></button>
+              <span data-render="date-btns"></span>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr>
+                  <th scope="col" style="width: 140px">When</th>
+                  <th scope="col" style="width: 168px">Who</th>
+                  <th scope="col" style="width: 148px">Type</th>
+                  <th scope="col" style="width: 120px">Record</th>
+                  <th scope="col" style="width: 236px">Record name</th>
+                  <th scope="col">Description</th>
+                </tr></thead>
+                <tbody data-render="rows" aria-live="polite"></tbody>
+              </table>
+            </div>
+            <nav class="pager" aria-label="Pagination">
+              <span class="pager__text" data-pager></span>
+              <span class="pager__pages">
+                <button type="button" class="pager__btn" aria-label="Previous page" disabled><span data-icon="chevron-left"></span></button>
+                <button type="button" class="pager__btn" aria-label="Next page"><span data-icon="chevron-right"></span></button>
+              </span>
+            </nav>
+          </section>
+        </div>
+      </div>
+      <div class="sheet-scrim" hidden></div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-filtered">
+    <h2 class="state__label" id="state-filtered">State 2 · Filtered: one user's entries; the count under the title says how many match</h2>
+    <div data-clone="app-1" data-au-who="jr"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-none">
+    <h2 class="state__label" id="state-none">State 3 · Nothing matches: one line and the way back</h2>
+    <div data-clone="app-1" data-au-who="jr" data-au-entity="opportunity"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc, TY = D.auditTypes, RT = D.recordTypes;
+  var TONE = { created: 'ok', updated: 'outline' }, PAGE = 50;   /* activities: neutral */
+  var WHO = {}; D.reps.forEach(function (r) { WHO[r.id] = r.name; });
+  var LABELS = { who: WHO, entity: RT, type: TY };
+
+  function cell(text) { return '<span class="cell-clip" title="' + esc(text) + '">' + esc(text) + '</span>'; }
+  function rowHtml(u) {
+    return '<tr><td class="cell--nowrap"><time datetime="' + u.at + '">' + C.stamp(u.at) + '</time></td>' +
+      '<td>' + C.person(u.who) + '</td>' +
+      '<td><span class="badge badge--' + (TONE[u.type] || 'neutral') + '">' + TY[u.type] + '</span></td>' +
+      '<td>' + RT[u.entity] + '</td>' +
+      '<td>' + (u.ref ? C.recordLink([u.entity, u.ref]) : cell(u.name)) + '</td>' +
+      '<td>' + cell(u.text) + '</td></tr>';
+  }
+  function draw(frame) {
+    var f = frame._f, r = C.dateRange(frame), on = f.who !== 'any' || f.entity !== 'any' || f.type !== 'any' || r.from || r.to;
+    var rows = D.audit.filter(function (u) { return ['who', 'entity', 'type'].every(function (k) { return f[k] === 'any' || u[k] === f[k]; }) && C.inRange(u.at, r); });
+    frame.querySelector('[data-render="rows"]').innerHTML = rows.map(rowHtml).join('') ||
+      '<tr class="is-empty-row"><td colspan="6" class="cell--muted">Nothing matches these filters. <button type="button" class="link-btn" data-clear-au>Clear filters</button></td></tr>';
+    Object.keys(LABELS).forEach(function (k) { frame.querySelector('[data-filter="' + k + '"] .filter-btn__value').textContent = f[k] === 'any' ? 'Any' : LABELS[k][f[k]]; });
+    /* as live: the count of entries under the title, the page under the table; filtered, the sample's rows are all there is */
+    var n = on ? rows.length : D.totals.audit, pages = Math.max(1, Math.ceil(n / PAGE));
+    frame.querySelector('[data-render="count"]').textContent = C.count(n) + (n === 1 ? ' entry' : ' entries');
+    var pager = frame.querySelector('[data-pager]');
+    pager.closest('.pager').hidden = !rows.length;
+    pager.innerHTML = 'Page <span class="num">1</span> of <span class="num">' + C.count(pages) + '</span>';
+    frame.querySelector('.pager__btn[aria-label="Next page"]').disabled = pages === 1;
+  }
+
+  function menu(map, k) { return [{ id: k + ':any', label: 'Any' }].concat(Object.keys(map).map(function (x) { return { id: k + ':' + x, label: map[x] }; })); }
+  C.menus['au-who'] = menu(WHO, 'who');
+  C.menus['au-entity'] = menu(RT, 'entity');
+  C.menus['au-type'] = menu(TY, 'type');
+  document.addEventListener('crm:menu', function (e) {
+    var frame = e.target.closest('.app'), p = e.detail.action.split(':');
+    if (!frame._f || !(p[0] in frame._f)) return;
+    frame._f[p[0]] = p[1]; draw(frame);
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('[data-clear-au]')) return;
+    var frame = e.target.closest('.app'); frame._f = { who: 'any', entity: 'any', type: 'any' };
+    frame.querySelectorAll('[data-date-filter]').forEach(function (d) { C.setDate(d, '', true); }); draw(frame);
+    frame.querySelector('[data-filter="who"]').focus();
+  });
+  document.addEventListener('crm:dates', function (e) { var frame = e.target.closest('.app'); if (frame && frame._f) draw(frame); });
+
+  document.querySelectorAll('[data-render="date-btns"]').forEach(function (el) { el.innerHTML = C.dateFilters(['From', 'To']); });
+  C.boot();
+  document.querySelectorAll('.app').forEach(function (f) {
+    f._f = { who: f.dataset.auWho || 'any', entity: f.dataset.auEntity || 'any', type: f.dataset.auType || 'any' }; draw(f);
+  });
+})();
+</script>
+</body>
+</html>

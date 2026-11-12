@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Accounts</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Accounts: today's list, filters, record drawer with its tabs and the Add form, in the Harbor theme.
+       Approved changes applied: sidebar (H1); each record has a URL, Back closes the drawer, Prev / Next replace the entry,
+       names are real links (H3); one date and money format (H4, H5); Archive moves into a ⋯ row menu and gives Undo (H6).
+       Tags in the form are chips plus a list of the existing tags with search and Create tag, not comma-separated text.
+       Ticking rows floats a bulk bar at the foot of the list, as live, pinned to the bottom of the window: Assign owner, Add tag, Archive, each with Undo (M6).
+       Out of scope: the Map view. State 1 is live: search filters, a row or name opens the record, the ⋯ menu archives. -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · List: filters, accounts with owner and created date, ⋯ row menu; live — open a record, then Back</h2>
+    <div class="app app--console app--crm" id="app-1" data-url>
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="accounts"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Accounts</h1>
+              <p class="console__subtitle" data-render="summary"></p>
+            </div>
+            <div class="console__actions">
+              <div class="segmented segmented--inline" role="group" aria-label="View">
+                <button type="button" class="segment segment--icon is-active" aria-pressed="true" aria-label="List" data-tip="List"><span data-cicon="list" data-size="16"></span></button>
+                <button type="button" class="segment segment--icon" aria-pressed="false" aria-disabled="true" aria-label="Map" data-tip="Map · not in this prototype"><span data-cicon="map" data-size="16"></span></button>
+              </div>
+              <button type="button" class="btn btn--primary" data-sheet-open="sheet-form"><span data-icon="plus"></span>New account</button>
+            </div>
+          </div>
+
+          <section class="records records--plain" aria-label="Accounts">
+            <form class="filters filters--bar" role="search" aria-label="Filter accounts">
+              <div class="filter-search">
+                <label class="sr-only" for="f-accounts">Search accounts</label>
+                <span data-icon="search"></span>
+                <input class="input" id="f-accounts" type="search" placeholder="Name or domain" data-search>
+              </div>
+              <span data-render="filter-btns"></span>
+              <span class="filters__end"><label class="check"><input type="checkbox" class="checkbox"> Show archived</label></span>
+            </form>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr>
+                  <th scope="col" class="col-check"><input type="checkbox" class="checkbox" aria-label="Select all accounts on this page"></th>
+                  <th scope="col">Name</th>
+                  <th scope="col" style="width: 64px">State</th>
+                  <th scope="col" style="width: 120px">Vertical</th>
+                  <th scope="col" class="cell--right" style="width: 124px">Revenue</th>
+                  <th scope="col" class="cell--right" style="width: 96px">Employees</th>
+                  <th scope="col" style="width: 156px">Tags</th>
+                  <th scope="col" style="width: 148px">Owner</th>
+                  <th scope="col" style="width: 120px">Created</th>
+                  <th scope="col" class="col-menu"><span class="sr-only">Actions</span></th>
+                </tr></thead>
+                <tbody data-filterable data-render="rows"></tbody>
+              </table>
+            </div>
+            <nav class="pager" aria-label="Pagination">
+              <span class="pager__text" data-render="pager"></span>
+              <span class="pager__pages">
+                <button type="button" class="pager__btn" aria-label="Previous page" disabled><span data-icon="chevron-left"></span></button>
+                <button type="button" class="pager__btn num is-current" aria-current="page" aria-label="Page 1">1</button>
+                <button type="button" class="pager__btn num" aria-label="Page 2">2</button>
+                <button type="button" class="pager__btn num" aria-label="Page 3">3</button>
+                <button type="button" class="pager__btn" aria-label="Next page"><span data-icon="chevron-right"></span></button>
+              </span>
+            </nav>
+            <div class="bulkbar bulkbar--float" data-bulkbar role="group" aria-label="Actions for the selected accounts" hidden>
+              <span class="bulkbar__text" data-selection aria-live="polite"></span>
+              <span class="bulkbar__sep" aria-hidden="true"></span>
+              <button type="button" class="btn btn--ghost btn--sm" data-menu="bulk-owner" aria-haspopup="menu" aria-expanded="false" aria-label="Assign an owner to the selected accounts"><span data-cicon="user" data-size="16"></span>Assign owner</button>
+              <button type="button" class="btn btn--ghost btn--sm" data-menu="bulk-tag" aria-haspopup="menu" aria-expanded="false" aria-label="Add a tag to the selected accounts"><span data-cicon="tag" data-size="16"></span>Add tag</button>
+              <button type="button" class="btn btn--ghost btn--sm bulkbar__danger" data-bulk-archive><span data-icon="archive"></span>Archive</button>
+              <span class="bulkbar__sep" aria-hidden="true"></span>
+              <button type="button" class="btn btn--ghost btn--sm bulkbar__clear" data-bulk-clear>Clear</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- drawers -->
+      <div class="sheet-scrim" hidden></div>
+      <aside class="sheet sheet--record" id="sheet-record" role="dialog" aria-modal="true" aria-labelledby="sheet-record-title" data-record hidden>
+        <div class="sheet__bar">
+          <span></span>
+          <div class="sheet__tools">
+            <button type="button" class="btn btn--ghost btn--sm" data-sheet-open="sheet-form" data-edit><span data-cicon="pencil"></span>Edit</button>
+            <span class="sheet__step">
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" data-step="-1" aria-label="Previous account"><span data-icon="chevron-left"></span></button>
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" data-step="1" aria-label="Next account"><span data-icon="chevron-right"></span></button>
+            </span>
+          </div>
+          <button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button>
+        </div>
+        <div class="sheet__scroll" data-fill></div>
+      </aside>
+
+      <aside class="sheet" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-form-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <form class="sheet__scroll" data-fill aria-labelledby="sheet-form-title"></form>
+        <div class="sheet__foot">
+          <button type="button" class="btn btn--ghost btn--danger-text" data-form-archive hidden><span data-icon="archive"></span>Archive</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-submit>Create account</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-menu">
+    <h2 class="state__label" id="state-menu">State 2 · Row menu: Edit and Archive leave the row; the record name stays the main way in</h2>
+    <div data-clone="app-1" data-show-menu="a05"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-archived">
+    <h2 class="state__label" id="state-archived">State 3 · Archived: the row leaves the list at once, and Undo puts it back for 5 seconds</h2>
+    <div data-clone="app-1" data-archived="a05"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-record">
+    <h2 class="state__label" id="state-record">State 4 · Record: key facts, then the account's contacts, deals, activity and tasks in tabs; the address is accounts.html?record=a04</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-record" data-key="a04"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-record-opps">
+    <h2 class="state__label" id="state-record-opps">State 5 · Record, Opportunities tab: each deal with its stage, amount and close date, linked to the board</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-record" data-key="a04" data-tab="opps"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-add">
+    <h2 class="state__label" id="state-add">State 6 · New account, as the live Add Account form: name, city, state and vertical required; no vendor relationships until it exists</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-edit">
+    <h2 class="state__label" id="state-edit">State 7 · Edit account: the same fields filled in, only the name required (as live), then vendor relationships (Customer, Partner, Competitor or Prospect); opened from the record's Edit or the row menu</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form" data-key="a04"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-none">
+    <h2 class="state__label" id="state-none">State 8 · Nothing matches the search: one line and the way back</h2>
+    <div data-clone="app-1" data-query="Fairview"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-filters">
+    <h2 class="state__label" id="state-filters">State 9 · Filters: all six on a row under the search. State, Vertical, Uses vendor, Tag take several values (checkboxes, the list stays open); Revenue, Min employees take one (radios, the list closes)</h2>
+    <div data-clone="app-1" data-filters="vertical:Education,Government state:TX revenue:50-100" data-show-filter="vertical"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-bulk">
+    <h2 class="state__label" id="state-bulk">State 10 · Bulk actions: ticking rows floats a bar at the foot of the list, as live, pinned to the bottom of the window while the list scrolls, with the count and Assign owner, Add tag, Archive; the filters stay; Clear or an action puts it away</h2>
+    <div data-clone="app-1" data-picked="a01,a02,a03"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-tags">
+    <h2 class="state__label" id="state-tags">State 11 · Tags in the form: the account's tags as chips with ×; the field opens the list of the tags, ticked ones are on the account, and the list stays open for the next. A short list shows whole; past 8 tags a search sits at its top</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form" data-key="a03" data-show-tags></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-tags-new">
+    <h2 class="state__label" id="state-tags-new">State 12 · Tags, a new one: typing in Create a tag narrows the list to matches; with no tag of that name, Create tag adds it to the tags and to this account</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form" data-key="a03" data-show-tags="Health"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var app = document.getElementById('app-1');
+  function put(name, html) { app.querySelectorAll('[data-render="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
+  function acct(id) { return C.by.account[id]; }
+  var STATES = ['AR', 'CO', 'KS', 'LA', 'MO', 'NM', 'OK', 'TX'];
+  var SIZES = ['1–50', '51–200', '201–500', '501–1,000', '1,001–5,000', '5,000+'];
+  /* one line per row: the first tag, then +N with the full list in its title */
+  var tagCell = C.tagCell;
+  function sizeOf(n) { return n <= 50 ? 0 : n <= 200 ? 1 : n <= 500 ? 2 : n <= 1000 ? 3 : n <= 5000 ? 4 : 5; }
+
+  /* ---------- filters (C.filterBar) ----------
+     State, Vertical, Uses vendor and Tag take several values (an account matches any of them); Revenue and
+     Min employees take one band or threshold. All six are always in the bar, on a row under the search. */
+  function same(s) { return [s, s]; }
+  var REV = [['lt25', 'Under $25M', 0, 25e6], ['25-50', '$25M – $50M', 25e6, 50e6], ['50-100', '$50M – $100M', 50e6, 100e6], ['100-250', '$100M – $250M', 100e6, 250e6], ['gt250', 'Over $250M', 250e6, Infinity]];
+  C.filterBar(app, 'acct', { record: acct, filters: {
+    state: { label: 'State', multi: true, opts: STATES.map(same), test: function (a, v) { return v.indexOf(a.state) >= 0; } },
+    vertical: { label: 'Vertical', multi: true, opts: D.verticals.map(same), test: function (a, v) { return v.indexOf(a.vertical) >= 0; } },
+    tag: { label: 'Tag', multi: true, opts: D.tagList.map(function (t) { return [t.name, t.name]; }), test: function (a, v) { return a.tags.some(function (x) { return v.indexOf(x) >= 0; }); } },
+    vendor: { label: 'Uses vendor', multi: true, opts: D.vendors.map(same), test: function (a, v) { return a.vendors.some(function (x) { return x.type === 'Customer' && v.indexOf(x.vendor) >= 0; }); } },
+    revenue: { label: 'Revenue', opts: REV.map(function (r) { return [r[0], r[1]]; }), test: function (a, v) { var r = REV.filter(function (x) { return x[0] === v; })[0]; return a.revenue >= r[2] && a.revenue < r[3]; } },
+    employees: { label: 'Min employees', opts: [100, 250, 500, 1000, 2500].map(function (n) { return [String(n), C.count(n) + '+']; }), test: function (a, v) { return a.employees >= +v; } }
+  } });
+
+  /* ---------- list ---------- */
+  put('pager', 'Showing <span class="num" data-shown>' + D.accounts.length + '</span> of <span class="num">' + C.count(D.totals.accounts) + '</span> accounts');
+  put('summary', '<span class="console__figure">' + C.count(D.totals.accounts) + '</span> accounts');   /* the list's size, as live; the same total as the pager */
+  put('rows', D.accounts.map(function (a) {
+    return '<tr data-seg="all" data-open="sheet-record" data-key="' + a.id + '" tabindex="0" aria-label="' + esc(a.name) + ', open the record">' +
+      '<td class="col-check"><input type="checkbox" class="checkbox" aria-label="Select ' + esc(a.name) + '"></td>' +
+      '<td><span class="name-cell"><a class="link link--quiet" data-record-link href="accounts.html?record=' + a.id + '" title="' + esc(a.name) + '">' + esc(a.name) + '</a><span class="who__dept">' + esc(a.domain) + '</span></span></td>' +
+      '<td>' + a.state + '</td><td>' + esc(a.vertical) + '</td>' +
+      '<td class="cell--right num">' + C.money(a.revenue) + '</td><td class="cell--right num">' + C.count(a.employees) + '</td>' +
+      '<td data-cell="tags">' + tagCell(a.tags) + '</td>' +
+      '<td data-cell="owner">' + C.person(a.owner) + '</td><td class="cell--nowrap">' + C.date(a.created) + '</td>' +
+      '<td class="col-menu"><button type="button" class="row-menu" data-menu="account-row" data-key="' + a.id + '" aria-haspopup="menu" aria-label="More actions for ' + esc(a.name) + '">' + C.icon('more', 16) + '</button></td></tr>';
+  }).join(''));
+
+  C.menus['account-row'] = [{ id: 'edit', label: 'Edit', icon: 'pencil' }, { id: 'archive', label: 'Archive', icon: 'archive' }];
+
+  /* ---------- record drawer ---------- */
+  function contactsOf(a) { return D.contacts.filter(function (c) { return c.account === a.id; }); }
+  function oppsOf(a) { return D.opps.filter(function (o) { return o.account === a.id; }); }
+  function related(rel, a) {
+    var ids = [a.id].concat(contactsOf(a).map(function (c) { return c.id; }), oppsOf(a).map(function (o) { return o.id; }));
+    return ids.indexOf(rel[1]) >= 0;
+  }
+  function empty(text) { return '<p class="tabpanel__empty">' + text + '</p>'; }
+  function list(items) { return items.length ? '<ul class="rows rows--plain">' + items.join('') + '</ul>' : ''; }
+  function row(main, meta, side) { return '<li class="rows__item"><span class="rows__main"><span class="rows__title">' + main + '</span>' + (meta ? '<span class="rows__meta">' + meta + '</span>' : '') + '</span>' + (side ? '<span class="rows__side">' + side + '</span>' : '') + '</li>'; }
+  function due(iso) {
+    if (!iso) return '<span class="muted">No due date</span>';
+    var n = C.days(iso);
+    return n < 0 ? '<span class="state-dot state-dot--danger">' + C.day(iso) + ' · overdue</span>' : C.day(iso);
+  }
+
+  var seq = 0;
+  C.fill['sheet-record'] = function (sheet, key) {
+    var a = acct(key); if (!a) return;
+    var id = 'r' + (++seq), cs = contactsOf(a), os = oppsOf(a);
+    var acts = D.activity.filter(function (v) { return related(v.rel, a); });
+    var tasks = D.tasks.filter(function (t) { return related(t.rel, a); });
+    var docs = D.documents.filter(function (d) { return d.rel && d.rel[0] === 'account' && d.rel[1] === a.id; });
+    var tabs = [
+      ['contacts', 'Contacts', cs.length, list(cs.map(function (c) {
+        return row(C.recordLink(['contact', c.id]) + (c.dm ? ' <span class="badge badge--info">Decision maker</span>' : ''), esc(c.title), esc(c.phone));
+      })) || empty('No contacts yet.')],
+      ['opps', 'Opportunities', os.length, list(os.map(function (o) {
+        var past = C.days(o.close) < 0;
+        return row(C.recordLink(['opportunity', o.id]) + (o.renewal ? ' <span class="badge badge--outline">Renewal</span>' : ''),
+          esc(C.stage(o.stage)) + ' · ' + esc(C.rep(o.owner).name),
+          '<strong>' + C.money(o.amount) + '</strong>' + (past ? '<span class="state-dot state-dot--danger">Close ' + C.date(o.close) + ' · overdue</span>' : 'Close ' + C.date(o.close)));
+      })) || empty('No opportunities yet.')],
+      ['activity', 'Activities', acts.length, list(acts.map(function (v) {
+        return row(esc(v.text), C.recordLink(v.rel) + ' · ' + esc(C.rep(v.who).name), C.stamp(v.at));
+      })) || empty('No activity yet.')],
+      ['tasks', 'Tasks', tasks.length, list(tasks.map(function (t) { return row(esc(t.title), C.recordLink(t.rel), due(t.due)); })) || empty('No open tasks.')],
+      ['docs', 'Documents', docs.length, list(docs.map(function (d) { return row('<a class="link link--quiet" href="documents.html">' + esc(d.file) + '</a>', C.fileExt(d.file).toUpperCase() + ' · ' + esc(C.rep(d.by).name), C.date(d.date)); })) || empty('No documents yet.')],
+      ['vendors', 'Vendors', a.vendors.length, list(a.vendors.map(function (v) { return row(esc(v.vendor), '', '<span class="badge badge--outline">' + esc(v.type) + '</span>'); })) || empty('No vendor relationships yet.')],
+      ['fields', 'Custom Fields', 2, '<dl class="dl"><dt>Fiscal year end</dt><dd>June 30</dd><dt>Current IT provider</dt><dd>In-house</dd></dl>']
+    ];
+    var pick = sheet.closest('.app').dataset.tab || 'contacts';   /* a drawn state can open on another tab */
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">' + esc(a.name) + '</h2>' +
+        '<p class="sheet__sub">' + esc(a.domain) + '</p><div class="sheet__tags">' + C.tags(a.tags) + '</div></header>' +
+      '<dl class="dl"><dt>Owner</dt><dd>' + C.person(a.owner) + '</dd><dt>Vertical</dt><dd>' + esc(a.vertical) + '</dd>' +
+        '<dt>Location</dt><dd>' + esc(a.city) + ', ' + a.state + '</dd><dt>Revenue</dt><dd class="num">' + C.money(a.revenue) + '</dd>' +
+        '<dt>Employees</dt><dd class="num">' + C.count(a.employees) + '</dd><dt>Website</dt><dd><a class="link" href="#" onclick="return false">' + esc(a.domain) + '</a></dd>' +
+        '<dt>Created</dt><dd>' + C.date(a.created) + '</dd></dl>' +
+      '<div class="tabs" role="tablist" aria-label="Related to ' + esc(a.name) + '">' + tabs.map(function (t) {
+        var on = t[0] === pick;
+        return '<button type="button" class="tab' + (on ? ' is-active' : '') + '" role="tab" id="' + id + '-t-' + t[0] + '" aria-controls="' + id + '-p-' + t[0] + '" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) + '">' +
+          t[1] + (t[2] ? '<span class="tab__n">' + t[2] + '</span>' : '') + '</button>';   /* a count only when there is something */
+      }).join('') + '</div>' +
+      tabs.map(function (t) { return '<div class="tabpanel" role="tabpanel" id="' + id + '-p-' + t[0] + '" aria-labelledby="' + id + '-t-' + t[0] + '"' + (t[0] === pick ? '' : ' hidden') + '>' + t[3] + '</div>'; }).join('');
+    sheet.querySelector('[data-edit]').dataset.key = a.id;
+  };
+
+  /* ---------- add / edit form: today's fields, in a drawer ---------- */
+  function field(id, label, control, req, cls) { return '<div class="field' + (cls ? ' ' + cls : '') + '"><label class="field__label" for="' + id + '">' + label + (req ? '<span class="field__req" aria-hidden="true">*</span>' : '') + '</label>' + control + '</div>'; }
+  function input(id, value, req, extra) { return '<input class="input" id="' + id + '" value="' + esc(value || '') + '"' + (req ? ' aria-required="true"' : '') + (extra || '') + '>'; }
+  function select(id, opts, value, req) {
+    return '<span class="input-wrap"><select class="select" id="' + id + '"' + (req ? ' aria-required="true"' : '') + '><option value="">Choose…</option>' +
+      opts.map(function (o) { return '<option' + (o === value ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' + C.icon('chevron', 16) + '</span>';
+  }
+  C.fill['sheet-form'] = function (sheet, key) {
+    var a = key ? acct(key) : null, id = 'f' + (++seq), v = a || {};
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">' + (a ? 'Edit account' : 'New account') + '</h2>' +
+        (a ? '<p class="sheet__sub">' + esc(a.name) + '</p>' : '') + '</header>' +
+      '<div class="fgroup">' +
+        field(id + '-name', 'Name', input(id + '-name', v.name, true, a ? '' : ' data-autofocus'), true) +
+        field(id + '-domain', 'Domain', input(id + '-domain', v.domain)) +
+        field(id + '-street', 'Street address', input(id + '-street', a ? '400 Main Street' : '')) +
+        /* City, State and Vertical are required to create an account; live Edit requires only the name */
+        '<div class="frow" style="--cols: 3">' + field(id + '-city', 'City', input(id + '-city', v.city, !a), !a) +
+          field(id + '-state', 'State', '<span class="input-wrap"><select class="select" id="' + id + '-state"' + (a ? '' : ' aria-required="true"') + '><option value="">Choose…</option>' +
+            STATES.map(function (st) { return '<option value="' + st + '"' + (st === v.state ? ' selected' : '') + '>' + st + ' · ' + esc(D.stateNames[st]) + '</option>'; }).join('') + '</select>' + C.icon('chevron', 16) + '</span>', !a) + field(id + '-zip', 'Zip', input(id + '-zip', a ? '00000' : '')) + '</div>' +
+        '<div class="frow">' + field(id + '-vertical', 'Vertical', select(id + '-vertical', D.verticals, v.vertical, !a), !a) +
+          /* Vertical stays a list, so the Vertical filter matches every account; the next three are free text, as in live */
+          field(id + '-sub', 'Subvertical', input(id + '-sub', '', false, ' placeholder="Upstream"')) + '</div>' +
+        '<div class="frow">' + field(id + '-size', 'Company size', input(id + '-size', a ? SIZES[sizeOf(a.employees)] : '', false, ' placeholder="e.g. 1-10, 11-50, 51-200"')) +
+          field(id + '-rev', 'Estimated revenue', input(id + '-rev', a ? '$' + Math.round(a.revenue / 1e6) + 'M' : '', false, ' placeholder="e.g. $100M-$250M"')) + '</div>' +
+        C.ownerField(id + '-owner', a ? a.owner : null) +
+        field(id + '-notes', 'Notes', '<textarea class="input textarea" id="' + id + '-notes" rows="3"></textarea>') +
+        field(id + '-tags', 'Tags', C.tagField(id + '-tags', a ? a.tags : [])) +
+      '</div>' + (a ? C.multiGroup('vendor', id + '-vendor', a.vendors) : '');   /* vendors come in Edit, as in live; Add has none */
+    sheet.querySelector('[data-submit]').textContent = a ? 'Save changes' : 'Create account';
+    var fa = sheet.querySelector('[data-form-archive]'); fa.hidden = !a; if (a) fa.dataset.key = a.id;   /* Archive sits in the edit form, not behind a one-item menu */
+  };
+
+  /* ---------- archive with Undo (H6) ---------- */
+  function archive(frame, key, opts) {
+    var tr = frame.querySelector('tbody tr[data-key="' + key + '"]'), a = acct(key), rec = frame.querySelector('.sheet[data-record]');
+    if (rec && !rec.hidden) C.close(rec);
+    tr.classList.add('is-archived'); C.filter(tr.closest('.state'));
+    C.toast(frame, a.name + ' archived', function () { tr.classList.remove('is-archived'); C.filter(tr.closest('.state')); }, opts);
+  }
+  document.addEventListener('crm:menu', function (e) {
+    var frame = e.target.closest('.app'), d = e.detail;
+    if (d.action === 'archive') archive(frame, d.key);
+    if (d.action === 'edit') { var f = frame.querySelector('.sheet:not([data-record])'); C.show(f, { from: d.button, fill: function (s) { C.fill['sheet-form'](s, d.key); } }); }
+  });
+
+  document.addEventListener('click', function (e) {   /* Archive in the edit form: close the form, then archive with Undo */
+    var b = e.target.closest('[data-form-archive]'); if (!b) return;
+    C.close(b.closest('.sheet')); archive(b.closest('.app'), b.dataset.key);
+  });
+
+  /* ---------- bulk actions on the ticked rows (M6): the change shows in the rows at once, the toast names it and
+     offers Undo. The ids are prefixed so the filter bar can't read them as a filter choice ("tag:…"). ---------- */
+  C.menus['bulk-owner'] = D.reps.filter(function (r) { return r.status === 'active'; }).map(function (r) { return { id: 'bulkowner:' + r.id, label: r.name }; });
+  C.menus['bulk-tag'] = D.tagList.map(function (t) { return { id: 'bulktag:' + t.name, label: t.name, icon: 'tag' }; });
+  function redraw(tr) {
+    var a = acct(tr.dataset.key);
+    tr.querySelector('[data-cell="tags"]').innerHTML = tagCell(a.tags);
+    tr.querySelector('[data-cell="owner"]').innerHTML = C.person(a.owner);
+  }
+  function nAccounts(n) { return n === 1 ? '1 account' : n + ' accounts'; }
+  /* change(account) makes the edit and returns how to take it back, or nothing when the account already had it */
+  function bulk(frame, text, change) { C.bulk(frame, text, function (tr) { return change(acct(tr.dataset.key), tr); }, redraw); }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-bulk-archive]'); if (!b) return;
+    bulk(b.closest('.app'), function (n) { return nAccounts(n) + ' archived'; }, function (a, tr) {
+      tr.classList.add('is-archived'); return function () { tr.classList.remove('is-archived'); };
+    });
+  });
+  document.addEventListener('crm:menu', function (e) {
+    var p = e.detail.action.split(':'), k = p.shift(), val = p.join(':'), frame = e.target.closest('.app');
+    if (k === 'bulkowner') bulk(frame, function (n) { return nAccounts(n) + ' assigned to ' + C.rep(val).name; }, function (a) {
+      var was = a.owner; a.owner = val; return function () { a.owner = was; };
+    });
+    if (k === 'bulktag') bulk(frame, function (n) { return val + ' added to ' + nAccounts(n); }, function (a) {
+      if (a.tags.indexOf(val) >= 0) return;
+      a.tags.push(val); return function () { a.tags.splice(a.tags.indexOf(val), 1); };
+    });
+  });
+
+  C.boot();
+
+  /* drawn states */
+  document.querySelectorAll('[data-picked]').forEach(function (f) {
+    f.dataset.picked.split(',').forEach(function (k) { f.querySelector('tbody tr[data-key="' + k + '"] .col-check .checkbox').checked = true; });
+    C.syncPicked(f);
+  });
+  document.querySelectorAll('[data-show-menu]').forEach(function (f) { C.openMenu(f.querySelector('tr[data-key="' + f.dataset.showMenu + '"] .row-menu'), { focus: false }); });
+  document.querySelectorAll('[data-archived]').forEach(function (f) { archive(f, f.dataset.archived, { sticky: true }); });
+  document.querySelectorAll('[data-query]').forEach(function (f) { var s = f.querySelector('input[data-search]'); s.value = f.dataset.query; C.filter(f.closest('.state')); });
+})();
+</script>
+</body>
+</html>

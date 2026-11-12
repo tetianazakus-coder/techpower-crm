@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Meetings</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Meetings: today's period switch, outcome filter, 6 figures and empty state, in the Harbor theme.
+       Approved changes applied: sidebar (H1), one date format (H4). Log meeting is a flat primary button, not green
+       (M3 comes with the theme).
+       As today: Today / This week / This month / All time; an outcome filter; Scheduled, Held, Attendance rate, Qualified,
+       Qualified rate and No shows; a one-line empty state (L2, a fuller empty state, is not decided).
+       Log meeting has live's fields, in live's order: Scheduled date & time (required, empty to start), Contact (optional,
+       a dropdown with a search box, with live's note on what linking does), Outcome (live's five, Pending first) and Notes.
+       Not seen during discovery (every period was empty), so assumed: the meetings table (when, contact, rep, outcome,
+       notes), how the rates are worked out, and the Qualified outcome, which live counts but doesn't offer.
+       State 1 is live: switch period, filter by outcome, log a meeting (the date and time are required). -->
+  <section class="state" aria-labelledby="state-week">
+    <h2 class="state__label" id="state-week">State 1 · This week: 6 figures for the week and its meetings, newest first; live — switch period, filter, log a meeting</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="meetings"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Meetings</h1>
+              <p class="console__subtitle">Schedule, track, and qualify prospect meetings.</p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" data-sheet-open="sheet-form"><span data-icon="plus"></span>Log meeting</button>
+            </div>
+          </div>
+
+          <div class="view-bar">
+            <div class="segmented segmented--inline" role="group" aria-label="Period" data-period-switch>
+              <button type="button" class="segment" aria-pressed="false" data-value="today">Today</button>
+              <button type="button" class="segment" aria-pressed="false" data-value="week">This week</button>
+              <button type="button" class="segment" aria-pressed="false" data-value="month">This month</button>
+              <button type="button" class="segment" aria-pressed="false" data-value="all">All time</button>
+            </div>
+            <button type="button" class="filter-btn" data-menu="outcome" data-filter="outcome" aria-haspopup="menu" aria-label="Outcome"><span class="filter-btn__label">Outcome</span><span class="filter-btn__value">Any</span><span data-icon="chevron"></span></button>
+          </div>
+
+          <div class="stats" style="--cols: 6" data-render="stats" aria-live="polite"></div>
+
+          <section class="records records--plain" aria-label="Meetings">
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr>
+                  <th scope="col" style="width: 152px">When</th>
+                  <th scope="col">Contact</th>
+                  <th scope="col" style="width: 140px">Rep</th>
+                  <th scope="col" style="width: 120px">Outcome</th>
+                  <th scope="col" style="width: 320px">Notes</th>
+                </tr></thead>
+                <tbody data-render="rows"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="sheet-scrim" hidden></div>
+      <aside class="sheet" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-form-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <form class="sheet__scroll" data-fill aria-labelledby="sheet-form-title" novalidate></form>
+        <div class="sheet__foot">
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-log-submit>Log meeting</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-today">
+    <h2 class="state__label" id="state-today">State 2 · Today: one meeting held and qualified, one no show, one still to come</h2>
+    <div data-clone="app-1" data-period="today"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-filtered">
+    <h2 class="state__label" id="state-filtered">State 3 · Filtered: this month's qualified meetings; the figures stay for the whole month</h2>
+    <div data-clone="app-1" data-period="month" data-outcome="qualified"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-empty">
+    <h2 class="state__label" id="state-empty">State 4 · Nothing to show: no held meetings today, with a way back to all outcomes</h2>
+    <div data-clone="app-1" data-period="today" data-outcome="held"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-form">
+    <h2 class="state__label" id="state-form">State 5 · Log meeting, as live: when (required), contact, outcome and notes</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-invalid">
+    <h2 class="state__label" id="state-invalid">State 6 · Date and time missing: the form stays open and says what to fix</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form" data-invalid></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-logged">
+    <h2 class="state__label" id="state-logged">State 7 · Logged: the meeting joins the list in time order, Scheduled goes up, and a message confirms it</h2>
+    <div data-clone="app-1" data-logged></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc, O = D.meetOutcomes;
+  var app = document.getElementById('app-1');
+  var TONE = { scheduled: 'info', held: 'neutral', qualified: 'ok', noshow: 'warn', rescheduled: 'info', cancelled: 'outline' };
+  var PERIOD = { today: 'today', week: 'this week', month: 'this month', all: '' };
+  var DOW = (new Date(D.today + 'T12:00').getDay() + 6) % 7;   /* days since Monday */
+
+  /* ---------- which meetings a frame shows ---------- */
+  function inPeriod(m, p) {
+    var n = C.days(m.at);
+    return p === 'all' || (p === 'today' && n === 0) || (p === 'week' && n >= -DOW && n <= 6 - DOW) || (p === 'month' && m.at.slice(0, 7) === D.today.slice(0, 7));
+  }
+  function all(frame) { return D.meetings.concat(frame._added); }
+
+  /* ---------- the 6 figures: for the period, whatever the outcome filter ---------- */
+  function rate(a, b) { return b ? Math.round(a / b * 100) + '%' : '<span class="dash">—</span>'; }
+  function stat(label, value, meta) { return '<div class="stat"><span class="stat__label">' + label + '</span><span class="stat__value">' + value + '</span><span class="stat__meta">' + meta + '</span></div>'; }
+  function figures(list) {
+    var n = { scheduled: list.length, held: 0, qualified: 0, noshow: 0 };
+    list.forEach(function (m) { if (m.outcome === 'held' || m.outcome === 'qualified') n.held++; if (m.outcome === 'qualified') n.qualified++; if (m.outcome === 'noshow') n.noshow++; });
+    return stat('Scheduled', n.scheduled, 'On the calendar') +
+      stat('Held', n.held, 'Took place') +
+      stat('Attendance rate', rate(n.held, n.held + n.noshow), 'Showed up') +
+      stat('Qualified', n.qualified, 'Real prospects') +
+      stat('Qualified rate', rate(n.qualified, n.held), 'Of held meetings') +
+      stat('No shows', n.noshow, 'Didn\'t attend');
+  }
+
+  /* ---------- the table: newest first ---------- */
+  function row(m, isNew) {
+    var c = C.by.contact[m.contact];   /* the contact is optional, as live */
+    return '<tr' + (isNew ? ' class="is-new"' : '') + '>' +
+      '<td class="cell--nowrap"><time datetime="' + m.at + '">' + C.stamp(m.at) + '</time></td>' +
+      '<td>' + (c ? '<span class="name-cell">' + C.recordLink(['contact', c.id]) + '<span class="who__dept">' + esc(c.title) + ' · ' + esc(C.by.account[c.account].name) + '</span></span>' : '<span class="dash">—</span>') + '</td>' +
+      '<td>' + esc(C.rep(m.rep).name) + '</td>' +
+      '<td><span class="badge badge--' + TONE[m.outcome] + '">' + O[m.outcome] + '</span></td>' +
+      '<td>' + (m.note ? '<span class="cell-clip" title="' + esc(m.note) + '">' + esc(m.note) + '</span>' : '<span class="dash">—</span>') + '</td></tr>';
+  }
+  function draw(frame) {
+    var p = frame._period, o = frame._outcome;
+    var period = all(frame).filter(function (m) { return inPeriod(m, p); });
+    var shown = period.filter(function (m) { return o === 'any' || m.outcome === o; }).sort(function (a, b) { return a.at < b.at ? 1 : -1; });
+    frame.querySelector('[data-render="stats"]').innerHTML = figures(period);
+    var when = PERIOD[p] ? ' ' + PERIOD[p] : '';
+    /* one line, as today (L2 not decided); with an outcome chosen, a way back to all outcomes */
+    frame.querySelector('[data-render="rows"]').innerHTML = shown.length ? shown.map(function (m) { return row(m, m.id === frame._newId); }).join('') :
+      '<tr><td colspan="5" class="rows__empty">' + (o === 'any' ? 'No meetings found' + (when || '') + '.' :
+        'No ' + O[o].toLowerCase() + ' meetings' + when + '. <button type="button" class="link-btn" data-all-outcomes>Show all outcomes</button>') + '</td></tr>';
+    frame.querySelectorAll('[data-period-switch] .segment').forEach(function (b) { var on = b.dataset.value === p; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', on); });
+    frame.querySelector('[data-filter="outcome"] .filter-btn__value').textContent = o === 'any' ? 'Any' : O[o];
+  }
+
+  document.addEventListener('crm:segment', function (e) {
+    if (!e.target.hasAttribute('data-period-switch')) return;
+    var frame = e.target.closest('.app'); frame._period = e.detail.value; draw(frame);
+  });
+  C.menus.outcome = [{ id: 'outcome:any', label: 'Any' }].concat(Object.keys(O).map(function (k) { return { id: 'outcome:' + k, label: O[k] }; }));
+  document.addEventListener('crm:menu', function (e) {
+    var p = e.detail.action.split(':'); if (p[0] !== 'outcome') return;
+    var frame = e.target.closest('.app'); frame._outcome = p[1]; draw(frame);
+  });
+
+  /* ---------- Log meeting ---------- */
+  function field(id, lbl, control, opts) {
+    opts = opts || {};
+    return '<div class="field"' + (opts.attr || '') + '><label class="field__label" for="' + id + '">' + lbl + (opts.req ? '<span class="field__req" aria-hidden="true">*</span>' : '') + '</label>' + control +
+      (opts.hint ? '<p class="field__hint" id="' + id + '-hint">' + opts.hint + '</p>' : '') +
+      (opts.error ? '<p class="field__error" id="' + id + '-err">' + C.icon('alert', 14) + '<span>' + opts.error + '</span></p>' : '') + '</div>';
+  }
+  function select(id, pairs, value, extra) {
+    return '<span class="input-wrap"><select class="select" id="' + id + '"' + (extra || '') + '>' +
+      pairs.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === value ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>' + C.icon('chevron', 16) + '</span>';
+  }
+  /* Contact: a select, so it opens the app's Dropdown, with a search box on top (a long list); the prompt is a hidden
+     option, and "No contact" takes a chosen contact off again, since it's optional */
+  var PEOPLE = D.contacts.map(function (c) { return [c.id, c.name + ' · ' + C.by.account[c.account].name]; });
+  function contactSelect(id) {
+    return '<span class="input-wrap"><select class="select" id="' + id + '" data-log="contact" data-search="Search contact by name…" aria-describedby="' + id + '-hint">' +
+      '<option value="" hidden data-placeholder selected>Search contact by name…</option><option value="">No contact</option>' +
+      PEOPLE.map(function (p) { return '<option value="' + p[0] + '">' + esc(p[1]) + '</option>'; }).join('') + '</select>' + C.icon('chevron', 16) + '</span>';
+  }
+  /* live's outcomes, in live's order; Qualified isn't one of them */
+  var OUTS = ['scheduled', 'held', 'noshow', 'rescheduled', 'cancelled'].map(function (k) { return [k, O[k]]; });
+  var fid = 0;
+  /* live's fields in live's order: when, who, outcome, notes. The rep is whoever logs it */
+  C.fill['sheet-form'] = function (sheet) {
+    var id = 'f' + (++fid);
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">Log meeting</h2></header>' +
+      '<div class="fgroup">' +
+        field(id + '-date', 'Scheduled date & time', '<div class="frow">' + C.dateField(id + '-date', '', 'Scheduled date') + C.timeField(id + '-time', '', 'Scheduled time') + '</div>',
+          { req: true, error: 'Choose the day and time of the meeting.', attr: ' data-log-when' }) +
+        field(id + '-who', 'Contact', contactSelect(id + '-who'),
+          { hint: 'Linking a contact stops their active sequence (meeting booked) and shows the meeting on their timeline.' }) +
+        field(id + '-out', 'Outcome', select(id + '-out', OUTS, 'scheduled', ' data-log="outcome"')) +
+        field(id + '-notes', 'Notes', '<textarea class="input textarea" id="' + id + '-notes" rows="3" placeholder="Meeting notes…" data-log="note"></textarea>') +
+      '</div>';
+    sheet.querySelectorAll('[data-log-when] .date-field__btn').forEach(function (b, i) { b.setAttribute('aria-describedby', id + '-date-err'); if (!i) b.setAttribute('data-autofocus', ''); });
+  };
+  function val(sheet, k) { return sheet.querySelector('[data-log="' + k + '"]').value.trim(); }
+  function when(sheet) { var i = sheet.querySelectorAll('[data-log-when] .date-field__input'); return { date: i[0].value, time: i[1].value }; }
+  /* the date and time are the one required field, as live: say so under it, and keep the form open */
+  function check(sheet, focus) {
+    var w = when(sheet), f = sheet.querySelector('[data-log-when]'), btns = f.querySelectorAll('.date-field__btn'), bad = !w.date || !w.time;
+    f.classList.toggle('is-invalid', bad); btns.forEach(function (b) { b.setAttribute('aria-invalid', bad ? 'true' : 'false'); });
+    if (bad && focus) btns[w.date ? 1 : 0].focus();
+    return !bad;
+  }
+  /* it joins the list in the period it falls in: the one showing, or the narrowest that holds it */
+  function logged(frame, v, opts) {
+    var m = { id: 'n' + frame._added.length, contact: v.contact, rep: C.me().id, at: v.date + 'T' + v.time, outcome: v.outcome, note: v.note };
+    frame._added.push(m); frame._newId = m.id;
+    if (!inPeriod(m, frame._period)) frame._period = ['today', 'week', 'month', 'all'].filter(function (p) { return inPeriod(m, p); })[0];
+    frame._outcome = 'any'; draw(frame);
+    C.toast(frame, 'Meeting logged' + (v.contact ? ' · ' + C.by.contact[v.contact].name : ''), null, opts);
+  }
+
+  /* once a field has said what to fix, it checks again as it changes */
+  document.addEventListener('change', function (e) {
+    var s = e.target.closest('.sheet'); if (s && s.querySelector('[data-log-when]') && s.querySelector('.field.is-invalid')) check(s);
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target, frame = t.closest('.app'); if (!frame || !frame._added) return;
+    if (t.closest('[data-all-outcomes]')) { frame._outcome = 'any'; draw(frame); frame.querySelector('[data-filter="outcome"]').focus(); return; }
+    var sub = t.closest('[data-log-submit]');
+    if (sub) {
+      var sheet = sub.closest('.sheet'); if (!check(sheet, true)) return;
+      var w = when(sheet), v = { contact: val(sheet, 'contact'), date: w.date, time: w.time, outcome: val(sheet, 'outcome'), note: val(sheet, 'note') };
+      C.close(sheet); logged(frame, v);
+    }
+  });
+
+  C.boot();
+
+  /* every frame: its own period, outcome filter and logged meetings */
+  document.querySelectorAll('.app').forEach(function (f) {
+    f._added = []; f._period = f.dataset.period || 'week'; f._outcome = f.dataset.outcome || 'any';
+    draw(f);
+  });
+  /* drawn states */
+  document.querySelectorAll('.app[data-invalid]').forEach(function (f) { check(f.querySelector('.sheet:not([hidden])'), false); });
+  document.querySelectorAll('.app[data-logged]').forEach(function (f) {
+    logged(f, { contact: 'c05', date: D.today, time: '16:00', outcome: 'scheduled', note: 'Scope the network refresh with IT.' }, { sticky: true });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Import</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Import: contacts from a CSV file, in the Harbor theme.
+       Approved changes applied: the page sits in the sidebar's Tools group (H1, H2).
+       As today: Import Contacts, a file field, Download template (the PhoneBurner export's 43 columns), PhoneBurner exports
+       taken as they are, duplicates matched by PhoneBurner ID or email and skipped, a preview of the first 5 rows, Update
+       existing records (fills blank Employees, Revenue and LinkedIn, never overwrites), rows sent 200 at a time with 3 tries
+       per batch, and the result: how many were added, the skipped rows with why, the failed rows with why, Import another file.
+       Changed for the prototype: the file field is drawn by the page (a button and the file's name, the same layout as the
+       browser's own), so it reads in English and a chosen file can be shown. It is not the drop zone audit L3 proposes;
+       L3 is not decided. The preview shows Name, Email, Phone and Company rather than the file's first 8 raw columns, and
+       the result leads with three figures and links to Contacts.
+       Not seen during discovery (no file was chosen, and choosing one would import it), so the wording of every state after
+       the file is chosen is ours; the counts and reasons follow the live page's code.
+       State 1 is live: choose any .csv (it is read in the browser, nothing is sent), then Import. -->
+  <section class="state" aria-labelledby="state-ready">
+    <h2 class="state__label" id="state-ready">State 1 · Ready: choose a CSV, or start from the template; live — pick a file, then Import</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="import"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Import</h1>
+              <p class="console__subtitle">Add records to the CRM from a spreadsheet.</p>
+            </div>
+          </div>
+
+          <section class="records integration" aria-labelledby="imp-title">
+            <div class="card-head">
+              <div>
+                <h2 class="card-head__title" id="imp-title">Import contacts</h2>
+                <p class="card-head__desc">One row per contact. PhoneBurner exports work as they are; for any other spreadsheet, start from the template.</p>
+              </div>
+              <div class="card-head__aside"><button type="button" class="btn btn--ghost btn--sm" data-template><span data-cicon="download"></span>Download template</button></div>
+            </div>
+            <div class="card-body stack" data-imp-form>
+              <div class="field">
+                <span class="field__label" id="imp-file-l">CSV file</span>
+                <span class="file-field">
+                  <label class="btn btn--secondary" data-imp-pick>Choose file<input type="file" class="sr-only" accept=".csv,text/csv" aria-labelledby="imp-file-l" aria-describedby="imp-file-name imp-help" data-imp-file></label>
+                  <span class="file-field__name" id="imp-file-name" data-imp-name>No file chosen</span>
+                </span>
+                <span class="field__hint" id="imp-help">Contacts already in the CRM, matched by PhoneBurner ID or email, are skipped, not added twice.</span>
+              </div>
+              <div data-imp-preview hidden></div>
+              <label class="checkline" data-imp-opt hidden>
+                <input type="checkbox" class="checkbox" data-imp-upd>
+                <span><strong>Update existing records</strong><span>For contacts and accounts already in the CRM, fill in blank Employees, Revenue and LinkedIn from this file. Nothing already there is overwritten.</span></span>
+              </label>
+              <div data-imp-msg aria-live="polite"></div>
+            </div>
+            <div class="card-body stack" data-imp-done tabindex="-1" aria-labelledby="imp-done-t" hidden></div>
+            <div class="card-body integration__foot integration__foot--end">
+              <button type="button" class="btn btn--secondary" data-imp-again hidden>Import another file</button>
+              <a class="btn btn--primary" href="contacts.html" data-imp-view hidden>View contacts</a>
+              <button type="button" class="btn btn--primary" data-imp-go disabled>Import contacts</button>
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="sheet-scrim" hidden></div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-chosen">
+    <h2 class="state__label" id="state-chosen">State 2 · File chosen: its name and row count, the first 5 rows to check, and whether to update records already in the CRM</h2>
+    <div data-clone="app-1" data-imp="chosen"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-busy">
+    <h2 class="state__label" id="state-busy">State 3 · Importing: rows go 200 at a time, so it shows the batch it's on; the page has to stay open</h2>
+    <div data-clone="app-1" data-imp="busy"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-done">
+    <h2 class="state__label" id="state-done">State 4 · Imported: how many were added, and which rows were skipped as already in the CRM, and on what</h2>
+    <div data-clone="app-1" data-imp="done"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-full">
+    <h2 class="state__label" id="state-full">State 5 · Imported, with updates and failed rows: what was filled in on existing records, and each row that wasn't imported, with why</h2>
+    <div data-clone="app-1" data-imp="full"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-failed">
+    <h2 class="state__label" id="state-failed">State 6 · A batch failed: after 3 tries the rest wasn't added; Import again adds it, and rows already added are skipped</h2>
+    <div data-clone="app-1" data-imp="failed"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-empty">
+    <h2 class="state__label" id="state-empty">State 7 · Empty file: a header row but no contacts under it; Import stays off</h2>
+    <div data-clone="app-1" data-imp="empty"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-bad">
+    <h2 class="state__label" id="state-bad">State 8 · Can't import: no Email or PhoneBurner ID column to match contacts on; the message says what to fix, and Import stays off</h2>
+    <div data-clone="app-1" data-imp="bad"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, esc = C.esc, BATCH = 200;
+  /* the PhoneBurner export's columns, as the live template has them */
+  var TEMPLATE_COLS = 43;
+  function row(name, email, phone, company) { return { name: name, email: email, phone: phone, company: company }; }
+  var SAMPLE = {
+    name: 'fall-expo-leads.csv', total: 614, cols: TEMPLATE_COLS,
+    first: [
+      row('Ava Thornton', 'ava.thornton@cedarline-health.example', '(555) 014-2207', 'Cedarline Health'),
+      row('Jonah Whitfield', 'j.whitfield@redrock-isd.example', '(555) 014-3318', 'Red Rock ISD'),
+      row('Sofia Mendes', 'smendes@baycrest-bank.example', '(555) 014-4429', 'Baycrest Bank'),
+      row('Caleb Odum', 'caleb.odum@sunfield-county.example', '(555) 014-5530', 'Sunfield County'),
+      row('Ines Varga', 'ivarga@lakeshore-mfg.example', '(555) 014-6641', 'Lakeshore Manufacturing')
+    ]
+  };
+  /* already in the CRM: people from Contacts, so the way to them is real */
+  var SKIPPED = [
+    { name: 'Grace Lindqvist', email: 'g.lindqvist@halvorsen-logistics.example', on: 'PhoneBurner ID' },
+    { name: 'Hana Moreau', email: 'h.moreau@brightwater-ud.example', on: 'Email' },
+    { name: 'Luis Carrasco', email: 'l.carrasco@meridian-county.example', on: 'PhoneBurner ID' },
+    { name: 'Rachel Abernathy', email: 'r.abernathy@pinehollow-sd.example', on: 'Email' },
+    { name: 'Owen Prescott', email: 'o.prescott@halvorsen-logistics.example', on: 'Email' }
+  ];
+  var FAILED = [
+    { row: 139, name: 'Dana Whitcomb', why: 'No email or PhoneBurner ID' },
+    { row: 403, name: 'Theo Cole', why: 'Email isn’t valid: tcole@@stonebridge.example' }
+  ];
+
+  function plural(n, w) { return C.count(n) + ' ' + w + (n === 1 ? '' : 's'); }
+  function batches(n) { return Math.max(1, Math.ceil(n / BATCH)); }
+  function notice(kind, icon, title, text, extra) {
+    return '<div class="notice notice--' + kind + '"><span data-cicon="' + icon + '">' + C.icon(icon, 16) + '</span><div class="notice__body">' +
+      '<span class="notice__title">' + title + '</span><span class="notice__text">' + text + '</span>' + (extra || '') + '</div></div>';
+  }
+  function table(cols, rows) {
+    return '<div class="table-wrap"><table class="data-table"><thead><tr>' +
+      cols.map(function (c) { return '<th scope="col"' + (c[1] ? ' class="' + c[1] + '"' : '') + '>' + c[0] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr>' + r.map(function (v, i) { return '<td' + (cols[i][1] ? ' class="' + cols[i][1] + '"' : '') + '>' + (v ? esc(String(v)) : '<span class="cell--muted">—</span>') + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody></table></div>';
+  }
+
+  /* reading a real file: quotes may hold commas and line breaks; "" is a quote */
+  function parseCSV(text) {
+    var out = [], cells = [], cell = '', q = false;
+    function end() { cells.push(cell); cell = ''; if (cells.some(function (c) { return c.trim(); })) out.push(cells); cells = []; }
+    text = text.replace(/^﻿/, '');
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (q) { if (ch === '"' && text[i + 1] === '"') { cell += '"'; i++; } else if (ch === '"') q = false; else cell += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ',') { cells.push(cell); cell = ''; }
+      else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; end(); }
+      else cell += ch;
+    }
+    end();
+    return out;
+  }
+  /* f: { name, total, cols, first, recs?, bad: 'email' | 'empty' | undefined } — the chosen file as read */
+  function readFile(name, text) {
+    var lines = parseCSV(text);
+    var head = (lines[0] || []).map(function (h) { return h.trim().toLowerCase().replace(/[\s-]+/g, '_'); });
+    var recs = lines.slice(1).map(function (l) {
+      var o = {}; head.forEach(function (h, i) { o[h] = (l[i] || '').trim(); });
+      function get() { for (var k = 0; k < arguments.length; k++) if (o[arguments[k]]) return o[arguments[k]]; return ''; }
+      return { name: get('name', 'full_name') || [get('first_name', 'first'), get('last_name', 'last')].join(' ').trim(), email: get('email'), pb: get('pb_contact_id'),
+               phone: get('phone'), company: get('company', 'account', 'company_name') };
+    });
+    var bad = !recs.length ? 'empty' : head.indexOf('email') < 0 && head.indexOf('pb_contact_id') < 0 ? 'email' : undefined;
+    return { name: name, total: recs.length, cols: head.length, first: recs.slice(0, 5), recs: recs, bad: bad };
+  }
+  /* what the import of a real file comes to: rows with nothing to match on fail; about 1 in 17 is already in the CRM */
+  function outcome(f, upd) {
+    var failed = [], skipped = [], added = 0;
+    f.recs.forEach(function (r, i) {
+      if (!r.email && !r.pb) failed.push({ row: i + 2, name: r.name, why: 'No email or PhoneBurner ID' });
+      else if ((i + 1) % 17 === 0) skipped.push({ name: r.name, email: r.email, on: r.pb ? 'PhoneBurner ID' : 'Email' });
+      else added++;
+    });
+    var n = skipped.length;
+    return { added: added, skipped: n, shown: skipped.slice(0, 5), failed: failed, upd: upd, accounts: upd ? Math.round(n * 0.4) : 0, contacts: upd ? Math.round(n * 0.3) : 0 };
+  }
+
+  function resultHTML(f, res) {
+    var stats = [
+      ['Added', res.added, 'new contacts'],
+      ['Already in the CRM', res.skipped, res.upd ? 'Filled in ' + plural(res.accounts, 'account') + ' and ' + plural(res.contacts, 'contact') : 'skipped, not added twice'],
+      ['Not imported', res.failed.length, res.failed.length ? 'listed below, with why' : 'every row had what it needs']
+    ];
+    var h = '<div><h3 class="imp-sub__title" id="imp-done-t">' + plural(res.added, 'contact') + ' imported</h3>' +
+      '<p class="imp-sub__desc">From <strong>' + esc(f.name) + '</strong>, ' + plural(f.total, 'row') + '.</p></div>' +
+      '<div class="stats" style="--cols: 3">' + stats.map(function (s) {
+        return '<div class="stat"><span class="stat__label">' + s[0] + '</span><span class="stat__value">' + C.count(s[1]) + '</span><span class="stat__meta">' + s[2] + '</span></div>';
+      }).join('') + '</div>';
+    if (res.skipped) {
+      var more = res.skipped - res.shown.length;
+      h += '<div><div class="imp-sub"><div><h3 class="imp-sub__title">' + plural(res.skipped, 'row') + ' skipped, already in the CRM</h3>' +
+        '<p class="imp-sub__desc">Search for them on Contacts to find the existing records.</p></div>' +
+        '<button type="button" class="btn btn--ghost btn--sm" data-skipped><span data-cicon="download">' + C.icon('download', 16) + '</span>Download skipped rows</button></div>' +
+        table([['Name'], ['Email'], ['Matched on', 'cell--nowrap']], res.shown.map(function (s) { return [s.name, s.email, s.on]; })) +
+        (more > 0 ? '<p class="imp-note">And ' + C.count(more) + ' more in the skipped rows file.</p>' : '') + '</div>';
+    }
+    if (res.failed.length) {
+      h += '<div><div class="imp-sub"><div><h3 class="imp-sub__title">' + plural(res.failed.length, 'row') + ' not imported</h3>' +
+        '<p class="imp-sub__desc">Fix them in the file and import it again; rows already added are skipped.</p></div></div>' +
+        table([['Row', 'cell--mono'], ['Name'], ['Why']], res.failed.slice(0, 5).map(function (r) { return [r.row, r.name, r.why]; })) +
+        (res.failed.length > 5 ? '<p class="imp-note">And ' + C.count(res.failed.length - 5) + ' more.</p>' : '') + '</div>';
+    }
+    return h;
+  }
+
+  /* st: { f, upd, phase: 'ready' | 'busy' | 'failed' | 'done', batch, res } */
+  function draw(frame, st) {
+    var f = st.f, q = function (s) { return frame.querySelector(s); };
+    var form = q('[data-imp-form]'), done = q('[data-imp-done]'), go = q('[data-imp-go]');
+    var ok = f && !f.bad, busy = st.phase === 'busy', fin = st.phase === 'done';
+    q('[data-imp-name]').innerHTML = f ? '<strong>' + esc(f.name) + '</strong>' + (f.bad ? '' : ' · ' + plural(f.total, 'row')) : 'No file chosen';
+
+    var prev = q('[data-imp-preview]');
+    prev.hidden = !ok;
+    prev.innerHTML = !ok ? '' : '<p class="imp-lead"><strong>' + plural(f.total, 'contact') + '</strong> in this file. The first ' + Math.min(5, f.total) + ':</p>' +
+      table([['Name'], ['Email'], ['Phone', 'cell--nowrap'], ['Company']], f.first.map(function (r) { return [r.name, r.email, r.phone, r.company]; })) +
+      '<p class="imp-note">Showing 4 of the file’s ' + C.count(f.cols) + ' columns.</p>';
+    var opt = q('[data-imp-opt]'), box = q('[data-imp-upd]');
+    opt.hidden = !ok; box.checked = !!st.upd; box.disabled = busy;
+    var pick = q('[data-imp-pick]'), file = q('[data-imp-file]');
+    file.disabled = busy;
+    if (busy) pick.setAttribute('aria-disabled', 'true'); else pick.removeAttribute('aria-disabled');
+
+    var n = f ? batches(f.total) : 1, at = st.batch || 1;
+    q('[data-imp-msg]').innerHTML = !f ? ''
+      : f.bad === 'empty' ? notice('danger', 'alert', 'No contacts in this file', 'It needs a header row and at least one row of contacts under it.')
+      : f.bad === 'email' ? notice('danger', 'alert', 'This file has no Email column', 'Contacts are matched by email or PhoneBurner ID, and this file has neither, so nothing can be imported. Add an Email column, or copy your rows into the template.')
+      : busy ? notice('info', 'upload', 'Importing… batch ' + at + ' of ' + n, 'Rows are added ' + BATCH + ' at a time. Keep this page open until it finishes.',
+          '<span class="meter imp-meter" role="progressbar" aria-label="Import progress" aria-valuemin="0" aria-valuemax="' + n + '" aria-valuenow="' + (at - 1) + '" style="--p: ' + Math.round((at - 1) / n * 100) + '"><span class="meter__fill"></span></span>')
+      : st.phase === 'failed' ? notice('danger', 'alert', 'Batch ' + at + ' of ' + n + ' didn’t import',
+          'After 3 tries, the last ' + plural(f.total - (at - 1) * BATCH, 'contact') + ' weren’t added; the first ' + C.count((at - 1) * BATCH) + ' were. Import again to add the rest: rows already added are skipped.')
+      : '';
+
+    form.hidden = fin; done.hidden = !fin;
+    done.innerHTML = fin ? resultHTML(f, st.res) : '';
+    q('[data-imp-again]').hidden = !fin; q('[data-imp-view]').hidden = !fin; go.hidden = fin;
+    go.disabled = !ok || busy;
+    go.toggleAttribute('aria-busy', busy);
+    go.textContent = busy ? 'Importing…' : st.phase === 'failed' ? 'Import again' : ok ? 'Import ' + plural(f.total, 'contact') : 'Import contacts';
+    frame._st = st;
+  }
+
+  /* live: a real file is read here and never leaves the browser; Import runs its batches on a timer */
+  document.addEventListener('change', function (e) {
+    var frame = e.target.closest('.app'); if (!frame) return;
+    if (e.target.matches('[data-imp-upd]')) { frame._st.upd = e.target.checked; return; }
+    if (!e.target.matches('[data-imp-file]') || !e.target.files.length) return;
+    var file = e.target.files[0], r = new FileReader();
+    r.onload = function () { draw(frame, { f: readFile(file.name, String(r.result)), upd: frame._st.upd, phase: 'ready' }); };
+    r.readAsText(file.slice(0, 5 * 1024 * 1024));
+  });
+  function run(frame) {
+    var st = frame._st, n = batches(st.f.total);
+    st.phase = 'busy'; st.batch = 1; draw(frame, st);
+    var step = function () {
+      if (st.batch < n) { st.batch++; draw(frame, st); setTimeout(step, 600); return; }
+      st.phase = 'done'; st.res = st.f.recs ? outcome(st.f, st.upd) : { added: 602, skipped: 12, shown: SKIPPED, failed: [], upd: st.upd, accounts: st.upd ? 5 : 0, contacts: st.upd ? 4 : 0 };
+      draw(frame, st); frame.querySelector('[data-imp-done]').focus();
+    };
+    setTimeout(step, 600);
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target, frame = t.closest('.app'); if (!frame) return;
+    if (t.closest('[data-imp-go]') && frame._st.f) run(frame);
+    if (t.closest('[data-imp-again]')) {
+      frame.querySelector('[data-imp-file]').value = '';
+      draw(frame, { f: null, upd: false, phase: 'ready' });
+      frame.querySelector('[data-imp-file]').focus();
+    }
+    if (t.closest('[data-template]')) C.toast(frame, 'Downloading contacts-import-template.csv');
+    if (t.closest('[data-skipped]')) C.toast(frame, 'Downloading skipped-rows.csv');
+  });
+
+  C.boot();
+
+  document.querySelectorAll('.app').forEach(function (fr) {
+    var s = fr.dataset.imp;
+    var done = { added: 602, skipped: 12, shown: SKIPPED, failed: [], upd: false };
+    var full = { added: 600, skipped: 12, shown: SKIPPED, failed: FAILED, upd: true, accounts: 5, contacts: 4 };
+    if (s === 'chosen') draw(fr, { f: SAMPLE, phase: 'ready' });
+    else if (s === 'busy') draw(fr, { f: SAMPLE, upd: true, phase: 'busy', batch: 3 });
+    else if (s === 'done') draw(fr, { f: SAMPLE, phase: 'done', res: done });
+    else if (s === 'full') draw(fr, { f: SAMPLE, upd: true, phase: 'done', res: full });
+    else if (s === 'failed') draw(fr, { f: SAMPLE, phase: 'failed', batch: 3 });
+    else if (s === 'empty') draw(fr, { f: { name: 'expo-signups.csv', total: 0, cols: 6, first: [], bad: 'empty' }, phase: 'ready' });
+    else if (s === 'bad') draw(fr, { f: { name: 'board-members.csv', total: 18, cols: 4, first: [], bad: 'email' }, phase: 'ready' });
+    else draw(fr, { f: null, phase: 'ready' });
+  });
+})();
+</script>
+</body>
+</html>

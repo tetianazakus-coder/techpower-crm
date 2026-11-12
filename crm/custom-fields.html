@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Custom Fields</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Custom Fields: extra fields on account, contact and opportunity records, in the Harbor theme.
+       Approved changes applied: the page sits in the sidebar's Admin group (H1, H2); Delete stays in the row, a button with a trash icon, and
+       asks first, naming the field and saying its values go too (H6). "Opportunitys" reads "Opportunities" (M2) and New
+       Field is the one primary button style, not green (M3); both come with the theme.
+       As today: three tables, one per record type, with Name, Type and Options; New Field opens a modal with live's
+       fields: record type (Account first), name ("e.g. Lead Source"), type (Text, Number, Date, Checkbox, Dropdown, Text
+       first) and, for Dropdown only, options one per line. Added: the name is required with its error line, and a
+       Dropdown needs at least one option. The fields are the ones the record drawers already show in their Custom Fields
+       tab, not live's (Lead Source and the contact profile fields).
+       State 1 is live: New field (pick Dropdown to add options), delete (Cancel or confirm). -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · Custom fields: one table per record type; live — add a field, delete one</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="custom-fields"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Custom Fields</h1>
+              <p class="console__subtitle">Extra fields on account, contact and opportunity records.</p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" aria-haspopup="dialog" data-cf-new><span data-icon="plus"></span>New field</button>
+            </div>
+          </div>
+          <div class="stack" data-render="tables" aria-live="polite"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-confirm">
+    <h2 class="state__label" id="state-confirm">State 2 · Delete asks first: it names the field and says its values on every record go too</h2>
+    <div data-clone="app-1" data-confirm="cf5"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-new">
+    <h2 class="state__label" id="state-new">State 3 · New field, a modal as live: a Dropdown shows Options, one per line</h2>
+    <div data-clone="app-1" data-draft="dropdown"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc, TY = D.fieldTypes;
+  var GROUPS = [['account', 'Accounts', 'account'], ['contact', 'Contacts', 'contact'], ['opportunity', 'Opportunities', 'opportunity']];
+  function list(frame) { return frame._fields || (frame._fields = D.fields.map(function (f) { return Object.assign({}, f); })); }
+  function fieldOf(frame, id) { return list(frame).filter(function (f) { return f.id === id; })[0]; }
+
+  function draw(frame) {
+    var fid = frame._fid || (frame._fid = 'cft' + (++seq));   /* copied frames have no id, so headings get their own */
+    frame.querySelector('[data-render="tables"]').innerHTML = GROUPS.map(function (g) {
+      var rows = list(frame).filter(function (f) { return f.entity === g[0]; });
+      return '<section class="records" aria-labelledby="' + fid + '-' + g[0] + '">' +
+        '<div class="card-head"><div><h2 class="card-head__title" id="' + fid + '-' + g[0] + '">' + g[1] + '</h2>' +
+          '<p class="card-head__desc">' + (rows.length ? rows.length + (rows.length === 1 ? ' field' : ' fields') + ' on every ' + g[2] : 'No custom fields yet') + '</p></div></div>' +
+        (rows.length ? '<div class="table-wrap"><table class="data-table data-table--fit" style="table-layout: fixed"><thead><tr><th scope="col">Name</th><th scope="col" style="width: 160px">Type</th><th scope="col" style="width: 420px">Options</th><th scope="col" class="col-actions" style="width: 120px"><span class="sr-only">Actions</span></th></tr></thead><tbody>' +
+          rows.map(function (f) {
+            return '<tr data-key="' + f.id + '"' + (f.id === frame._new ? ' class="is-new"' : '') + '><td>' + esc(f.name) + '</td><td>' + TY[f.type] + '</td>' +
+              '<td>' + (f.options ? '<span class="cell-clip" title="' + esc(f.options.join(', ')) + '">' + esc(f.options.join(', ')) + '</span>' : '<span class="dash">—</span>') + '</td>' +
+              '<td class="col-actions"><span class="row-actions"><button type="button" class="btn btn--ghost btn--sm row-actions__danger row-actions__danger--label" data-row-action="delete" data-key="' + f.id + '" aria-label="Delete ' + esc(f.name) + ' field">' + C.icon('trash', 16) + 'Delete</button></span></td></tr>';
+          }).join('') + '</tbody></table></div>' : '') +
+        '</section>';
+    }).join('');
+  }
+
+  /* ---------- delete: the values go with the field, so the dialog says so ---------- */
+  function askDelete(frame, key, opts) {
+    var f = fieldOf(frame, key), g = GROUPS.filter(function (x) { return x[0] === f.entity; })[0];
+    return C.confirm(frame, {
+      title: 'Delete the “' + f.name + '” field?',
+      body: 'It leaves every ' + g[2] + ', and the values filled in on them are deleted too. This can’t be undone.',
+      action: 'Delete field',
+      onConfirm: function () {
+        frame._fields = list(frame).filter(function (x) { return x.id !== key; }); draw(frame);
+        C.toast(frame, 'Field deleted · ' + f.name);
+        frame.querySelector('[data-cf-new]').focus();
+      }
+    }, opts);
+  }
+
+  /* ---------- new field: a modal, as live; options only for a dropdown ---------- */
+  var seq = 0;
+  function openNew(frame, draft, opts) {
+    var id = 'f' + (++seq), dd = draft === 'dropdown';
+    var d = C.formDialog(frame, {
+      title: 'New custom field',
+      sub: 'It shows in the Custom Fields tab of every record of that type.',
+      body:
+        C.field(id + '-ent', 'Record type', C.select(id + '-ent', GROUPS.map(function (g) { return [g[0], g[2].charAt(0).toUpperCase() + g[2].slice(1)]; }), dd ? 'opportunity' : 'account', ' data-cf="entity"'), { req: true }) +
+        C.field(id + '-name', 'Name', C.input(id + '-name', dd ? 'Funding source' : '', ' placeholder="e.g. Lead Source" aria-required="true" aria-describedby="' + id + '-name-err" data-cf="name" data-autofocus'), { req: true, error: 'Give the field a name.' }) +
+        C.field(id + '-type', 'Type', C.select(id + '-type', Object.keys(TY).map(function (k) { return [k, TY[k]]; }), draft || 'text', ' data-cf="type"'), { req: true }) +
+        C.field(id + '-opts', 'Options', '<textarea class="input textarea" id="' + id + '-opts" rows="4" placeholder="Option A&#10;Option B&#10;Option C" aria-describedby="' + id + '-opts-hint ' + id + '-opts-err" data-cf="options"' + (dd ? ' aria-required="true"' : '') + '>' + (dd ? 'Operating budget\nGrant\nE-rate\nBond' : '') + '</textarea>',
+          { req: true, hint: 'One per line. Reps pick one of them.', error: 'Add at least one option.', attr: ' data-cf-opts' + (dd ? '' : ' hidden') }),
+      action: 'Create field',
+      onSubmit: function (d) {
+        if (!C.validate(d, true)) return false;
+        function v(k) { return d.querySelector('[data-cf="' + k + '"]').value.trim(); }
+        var nf = { id: 'cfn' + (++seq), entity: v('entity'), name: v('name'), type: v('type') };
+        if (nf.type === 'dropdown') nf.options = v('options').split(/\n+/).map(function (o) { return o.trim(); }).filter(Boolean);
+        list(frame).push(nf); frame._new = nf.id; draw(frame);
+        frame.querySelector('[data-cf-new]').focus();
+        C.toast(frame, 'Field created · ' + nf.name);
+      }
+    }, opts);
+    return d;
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-cf-new]'); if (b) openNew(b.closest('.app'), null, { from: b });
+    var del = e.target.closest('[data-row-action="delete"]'); if (del) askDelete(del.closest('.app'), del.dataset.key);
+  });
+  /* Options only for a Dropdown, and only then required */
+  document.addEventListener('change', function (e) {
+    var d = e.target.closest('.dialog'); if (!d || !d.querySelector('[data-cf-opts]')) return;
+    if (e.target.matches('[data-cf="type"]')) {
+      var on = e.target.value === 'dropdown', f = d.querySelector('[data-cf-opts]');
+      f.hidden = !on; f.classList.remove('is-invalid');
+      d.querySelector('[data-cf="options"]')[on ? 'setAttribute' : 'removeAttribute']('aria-required', 'true');
+    }
+  });
+  document.addEventListener('input', function (e) {
+    var d = e.target.closest('.dialog'); if (d && e.target.closest('.field.is-invalid') && d.querySelector('[data-cf-opts]')) C.validate(d);
+  });
+
+  C.boot();
+  document.querySelectorAll('.app').forEach(draw);
+  /* drawn states */
+  document.querySelectorAll('[data-confirm]').forEach(function (f) { askDelete(f, f.dataset.confirm, { focus: false }); });
+  document.querySelectorAll('[data-draft]').forEach(function (f) { openNew(f, f.dataset.draft, { focus: false }); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Users</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Users: who can sign in, their role, manager and status, in the Harbor theme.
+       Approved changes applied: the page sits in the sidebar's Admin group (H1, H2); one date format (H4). Roles read
+       "Sales Rep", "Biz Dev Rep", not biz_dev_rep (M2, comes with the theme).
+       As today: columns Name (with the Test badge), Email, Role as a badge, Manager, Status, Created; Edit and
+       Deactivate or Reactivate; Add User.
+       As live: Edit and Deactivate (Reactivate for an inactive user) as buttons in each row, not in a ⋯ menu.
+       Assumed, flagged for Dan: Deactivate is reversible, so it acts at once and offers Undo, like Archive. You can't
+       deactivate yourself, so on your row Deactivate shows greyed with the reason.
+       Follows live (checked 2026-11-12): the count under the title ("10 users"); five roles, Admin, Sales Manager, Biz Dev Rep,
+       Sales Rep and Engineer; a deactivated user reads "Inactive"; Add asks email, first and last name, role (each role's
+       description under the field, as live puts it in the option) and "Mark as test user (excluded from reporting)";
+       Edit shows the email but can't change it, and adds Manager, which lists only active Sales Managers or None.
+       Assumed, not seen on live: the invitation line, and the Test badge in amber to match live's yellow tag.
+       Role colours: live gives each role its own badge colour (Admin red, Sales Rep green); here each role keeps a colour,
+       shown as a tag's dot in a plain chip, from the tag colours that don't mean anything else on this page: no red
+       (danger), green (Active), yellow (Test) or grey (Inactive).
+       State 1 is live: Add user, Edit, Deactivate (then Undo) and Reactivate. -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · Users: role, manager and whether they can sign in; live — add, edit, deactivate, reactivate</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="users"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Users</h1>
+              <p class="console__subtitle" data-render="count"></p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" aria-haspopup="dialog" data-user-new><span data-icon="plus"></span>Add user</button>
+            </div>
+          </div>
+
+          <section class="records" aria-label="Users">
+            <div class="table-wrap">
+              <table class="data-table data-table--fit" style="table-layout: fixed">
+                <thead><tr>
+                  <th scope="col">Name</th>
+                  <th scope="col" style="width: 248px">Email</th>
+                  <th scope="col" style="width: 136px">Role</th>
+                  <th scope="col" style="width: 144px">Manager</th>
+                  <th scope="col" style="width: 112px">Status</th>
+                  <th scope="col" style="width: 120px">Created</th>
+                  <th scope="col" class="col-actions" style="width: 176px"><span class="sr-only">Actions</span></th>
+                </tr></thead>
+                <tbody data-render="rows" aria-live="polite"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-off">
+    <h2 class="state__label" id="state-off">State 2 · Deactivated: the status changes at once, and Undo puts it back for 5 seconds</h2>
+    <div data-clone="app-1" data-deactivated="er"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-add">
+    <h2 class="state__label" id="state-add">State 3 · Add user: email, first and last name, role with what it can do, and whether it's a test user; they get an email to set a password</h2>
+    <div data-clone="app-1" data-add></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-edit">
+    <h2 class="state__label" id="state-edit">State 4 · Edit user: the email stays as it is; names, role and their Sales Manager can change</h2>
+    <div data-clone="app-1" data-edit="no"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var ROLE_COLOR = { admin: 'purple', sales_manager: 'blue', biz_dev_rep: 'orange', sales_rep: 'teal', engineer: 'pink' };
+  /* what each role can do: live's words from its Add User role list */
+  var ROLE_NOTE = {
+    admin: 'Full access to all data and settings.',
+    sales_manager: 'Sees their team’s full pipeline.',
+    biz_dev_rep: 'Generates leads and creates early-stage opportunities.',
+    sales_rep: 'Works qualified opportunities to close.',
+    engineer: 'Technical staff: their own records, joins calls, activity tracked.'
+  };
+  function list(frame) { return frame._users || (frame._users = D.reps.concat(D.engineers, D.testUsers).map(function (u) { return Object.assign({}, u); })); }
+  function user(frame, id) { return list(frame).filter(function (u) { return u.id === id; })[0]; }
+  function email(u) { return u.email + '@' + D.domain; }
+  /* as live: a user reports to a Sales Manager or to no one */
+  function managers(frame) { return list(frame).filter(function (u) { return u.role === 'sales_manager' && u.status === 'active'; }); }
+  function first(u) { return u.name.split(' ')[0]; }
+  function last(u) { return u.name.split(' ').slice(1).join(' '); }
+
+  function draw(frame) {
+    var n = list(frame).length;
+    frame.querySelector('[data-render="count"]').textContent = n + (n === 1 ? ' user' : ' users');
+    frame.querySelector('[data-render="rows"]').innerHTML = list(frame).map(function (u) {
+      var m = u.manager && user(frame, u.manager), on = u.status === 'active';
+      return '<tr data-key="' + u.id + '"' + (u.id === frame._new ? ' class="is-new"' : '') + '>' +
+        '<td><span class="item"><span class="avatar avatar--sm" aria-hidden="true">' + C.initials(u.name) + '</span><span>' + esc(u.name) + '</span>' +
+          (u.you ? '<span class="badge badge--neutral">You</span>' : '') + (u.test ? '<span class="badge badge--warn" title="Excluded from reporting">Test</span>' : '') + '</span></td>' +
+        '<td><span class="cell-clip" title="' + esc(email(u)) + '">' + esc(email(u)) + '</span></td>' +
+        '<td>' + C.tags([{ name: D.roles[u.role], color: ROLE_COLOR[u.role] }]) + '</td>' +
+        '<td>' + (m ? esc(m.name) : '<span class="dash">—</span>') + '</td>' +
+        '<td>' + (on ? '<span class="state-dot state-dot--ok">Active</span>' : '<span class="state-dot state-dot--off">Inactive</span>') + '</td>' +
+        '<td class="cell--nowrap">' + C.date(u.created) + '</td>' +
+        '<td class="col-actions">' + C.rowActions(u.you ? 'user-self' : on ? 'user' : 'user-off', u.id, u.name) + '</td></tr>';
+    }).join('');
+  }
+
+  C.menus.user = [{ id: 'edit', label: 'Edit', icon: 'pencil' }, { id: 'deactivate', label: 'Deactivate', icon: 'lock' }];
+  C.menus['user-off'] = [{ id: 'edit', label: 'Edit', icon: 'pencil' }, { id: 'reactivate', label: 'Reactivate', icon: 'refresh' }];
+  C.menus['user-self'] = [{ id: 'edit', label: 'Edit', icon: 'pencil' }, { id: 'deactivate', label: 'Deactivate', disabled: true, note: 'You can’t deactivate yourself.' }];
+
+  /* ---------- deactivate: reversible, so it happens at once with Undo; reactivate the same way ---------- */
+  function setStatus(frame, key, to, opts) {
+    var u = user(frame, key), was = u.status;
+    u.status = to; draw(frame);
+    /* the row redraws: focus goes to the button that undoes it (Reactivate after Deactivate) */
+    if (!opts) frame.querySelector('tr[data-key="' + key + '"] [data-row-action="' + (to === 'active' ? 'deactivate' : 'reactivate') + '"]').focus();
+    C.toast(frame, to === 'active' ? u.name + ' reactivated · can sign in again' : u.name + ' deactivated · can’t sign in', function () { u.status = was; draw(frame); }, opts);
+  }
+
+  /* ---------- add / edit: a modal, as Tags and Territories: five short fields, nothing to compare against the list ---------- */
+  var seq = 0;
+  function openForm(frame, key, opts) {
+    var u = key ? user(frame, key) : null, id = 'f' + (++seq);
+    var roles = Object.keys(D.roles).map(function (k) { return [k, D.roles[k]]; }), role = u ? u.role : 'sales_rep';
+    var mgrs = u ? [['', 'None']].concat(managers(frame).filter(function (m) { return m.id !== u.id; }).map(function (m) { return [m.id, m.name]; })) : [];
+    /* as live: email first; on Edit it's who they sign in as, so it shows but can't change */
+    var mail = u
+      ? C.field(id + '-email', 'Email', C.input(id + '-email', email(u), ' type="email" disabled aria-describedby="' + id + '-email-hint"'), { hint: 'The email they sign in with can’t be changed.' })
+      : C.field(id + '-email', 'Email', C.input(id + '-email', '', ' type="email" aria-required="true" aria-describedby="' + id + '-email-err" data-u="email" placeholder="name@' + D.domain + '" data-autofocus'), { req: true, error: 'Enter the email they sign in with.' });
+    var d = C.formDialog(frame, {
+      title: u ? 'Edit user' : 'Add user',
+      sub: u ? esc(u.name) : 'They get an email with a link to set their password.',
+      body: mail +
+        '<div class="frow">' +
+          C.field(id + '-first', 'First name', C.input(id + '-first', u ? first(u) : '', ' aria-required="true" aria-describedby="' + id + '-first-err" data-u="first"'), { req: true, error: 'Enter their first name.' }) +
+          C.field(id + '-last', 'Last name', C.input(id + '-last', u ? last(u) : '', ' aria-required="true" aria-describedby="' + id + '-last-err" data-u="last"'), { req: true, error: 'Enter their last name.' }) +
+        '</div>' +
+        C.field(id + '-role', 'Role', C.select(id + '-role', roles, role, ' aria-describedby="' + id + '-role-hint" data-u="role"'), { hint: ROLE_NOTE[role] }) +
+        (u ? C.field(id + '-mgr', 'Manager', C.select(id + '-mgr', mgrs, u.manager || '', ' data-u="manager"'))
+           : '<div class="field"><label class="check"><input type="checkbox" class="checkbox" data-u="test"> Mark as test user (excluded from reporting)</label></div>'),
+      action: u ? 'Save changes' : 'Create user',
+      onSubmit: function (d) { if (!C.validate(d, true)) return false; save(d); }
+    }, opts);
+    d.dataset.key = key || '';
+    return d;
+  }
+  /* the list redraws, so focus goes to the saved row's Edit, or back to Add user */
+  function save(d) {
+    var frame = d.closest('.app'), key = d.dataset.key;
+    function el(k) { return d.querySelector('[data-u="' + k + '"]'); }
+    function v(k) { return el(k).value.trim(); }
+    var u = key ? user(frame, key) : { id: 'n' + (++seq), status: 'active', created: D.today, manager: null, email: v('email').split('@')[0], test: el('test').checked };
+    u.name = v('first') + ' ' + v('last'); u.role = v('role');
+    if (key) u.manager = v('manager') || null; else list(frame).push(u);
+    frame._new = u.id; draw(frame);
+    (key ? frame.querySelector('tr[data-key="' + key + '"] [data-row-action="edit"]') : frame.querySelector('[data-user-new]')).focus();
+    C.toast(frame, key ? 'Saved · ' + u.name : 'Invitation sent to ' + v('email'));
+  }
+  /* the role's description follows the choice */
+  document.addEventListener('change', function (e) {
+    if (!e.target.matches('[data-u="role"]')) return;
+    var hint = document.getElementById(e.target.id + '-hint'); if (hint) hint.textContent = ROLE_NOTE[e.target.value];
+  });
+
+  document.addEventListener('crm:menu', function (e) {
+    var frame = e.target.closest('.app'), d = e.detail;
+    if (d.action === 'deactivate') setStatus(frame, d.key, 'deactivated');
+    if (d.action === 'reactivate') setStatus(frame, d.key, 'active');
+    if (d.action === 'edit') openForm(frame, d.key, { from: d.button });
+  });
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-user-new]'); if (b) openForm(b.closest('.app'), null, { from: b }); });
+  document.addEventListener('input', function (e) { var d = e.target.closest('.dialog'); if (d && e.target.closest('.field.is-invalid')) C.validate(d); });
+
+  C.boot();
+  document.querySelectorAll('.app').forEach(draw);
+  /* drawn states */
+  document.querySelectorAll('[data-deactivated]').forEach(function (f) { setStatus(f, f.dataset.deactivated, 'deactivated', { sticky: true }); });
+  document.querySelectorAll('[data-add]').forEach(function (f) { openForm(f, null, { focus: false }); });
+  document.querySelectorAll('[data-edit]').forEach(function (f) { openForm(f, f.dataset.edit, { focus: false }); });
+})();
+</script>
+</body>
+</html>

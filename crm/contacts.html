@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Contacts</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Contacts: today's list, filters, record drawer and Add form, in the Harbor theme.
+       Approved changes applied: sidebar (H1); each record has a URL, Back closes the drawer, Prev / Next replace the entry,
+       names are real links (H3); one date format (H4); Archive moves into a ⋯ row menu and gives Undo (H6).
+       Ticking rows floats a bulk bar at the foot of the list, as live, pinned to the bottom of the window: Call N contacts first, as live (a dial session through those with a phone), then Assign owner, Add tag, Add to campaign, Enrol in sequence, Archive, each with Undo (M6).
+       Not changed (waiting on Dan): loading is the plain "Loading contacts…" line (M1).
+       The record drawer and Add form were not opened during discovery; they follow the Accounts drawer, which the
+       inventory assumes they match. Call is in the record because prospecting (call, then log) starts there.
+       To fit ten columns, title sits under the name and city under the company, as domain does on Accounts.
+       Out of scope: the Map view. State 1 is live: search filters, a row or name opens the record, the ⋯ menu archives. -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · List: filters, contacts with company, email and phone, Called marked; live — open a record, then Back</h2>
+    <div class="app app--console app--crm" id="app-1" data-url>
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="contacts"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Contacts</h1>
+              <p class="console__subtitle" data-render="summary"></p>
+            </div>
+            <div class="console__actions">
+              <div class="segmented segmented--inline" role="group" aria-label="View">
+                <button type="button" class="segment segment--icon is-active" aria-pressed="true" aria-label="List" data-tip="List"><span data-cicon="list" data-size="16"></span></button>
+                <button type="button" class="segment segment--icon" aria-pressed="false" aria-disabled="true" aria-label="Map" data-tip="Map · not in this prototype"><span data-cicon="map" data-size="16"></span></button>
+              </div>
+              <button type="button" class="btn btn--primary" data-sheet-open="sheet-form"><span data-icon="plus"></span>New contact</button>
+            </div>
+          </div>
+
+          <section class="records records--plain" aria-label="Contacts">
+            <form class="filters filters--bar" role="search" aria-label="Filter contacts">
+              <div class="filter-search">
+                <label class="sr-only" for="f-contacts">Search contacts</label>
+                <span data-icon="search"></span>
+                <input class="input" id="f-contacts" type="search" placeholder="Search name, email or phone" data-search>
+              </div>
+              <span data-render="filter-btns"></span>
+              <span class="filters__end"><label class="check"><input type="checkbox" class="checkbox"> Decision makers only</label>
+              <label class="check"><input type="checkbox" class="checkbox"> Show archived</label></span>
+            </form>
+            <div class="table-wrap">
+              <table class="data-table contacts-table">
+                <thead><tr>
+                  <th scope="col" class="col-check"><input type="checkbox" class="checkbox" aria-label="Select all contacts on this page"></th>
+                  <th scope="col">Name</th>
+                  <th scope="col" class="col-company">Company</th>
+                  <th scope="col" class="col-tags">Tags</th>
+                  <th scope="col" class="col-email">Email</th>
+                  <th scope="col" class="col-phone">Phone</th>
+                  <th scope="col" class="col-owner">Owner</th>
+                  <th scope="col" class="col-created">Created</th>
+                  <th scope="col" class="col-menu"><span class="sr-only">Actions</span></th>
+                </tr></thead>
+                <tbody data-filterable data-render="rows"></tbody>
+              </table>
+            </div>
+            <nav class="pager" aria-label="Pagination">
+              <span class="pager__text" data-render="pager"></span>
+              <span class="pager__pages">
+                <button type="button" class="pager__btn" aria-label="Previous page" disabled><span data-icon="chevron-left"></span></button>
+                <button type="button" class="pager__btn" aria-label="Next page"><span data-icon="chevron-right"></span></button>
+              </span>
+            </nav>
+            <div class="bulkbar bulkbar--float" data-bulkbar role="group" aria-label="Actions for the selected contacts" hidden>
+              <span class="bulkbar__text" data-selection aria-live="polite"></span>
+              <span class="bulkbar__sep" aria-hidden="true"></span>
+              <button type="button" class="btn btn--primary btn--sm" data-bulk-call title="Start a dial session"><span data-cicon="phone" data-size="16"></span><span data-call-label>Call</span></button>
+              <span class="bulkbar__sep" aria-hidden="true"></span>
+              <button type="button" class="btn btn--ghost btn--sm" data-menu="bulk-owner" aria-haspopup="menu" aria-expanded="false" aria-label="Assign an owner to the selected contacts"><span data-cicon="user" data-size="16"></span>Assign owner</button>
+              <button type="button" class="btn btn--ghost btn--sm" data-menu="bulk-tag" aria-haspopup="menu" aria-expanded="false" aria-label="Add a tag to the selected contacts"><span data-cicon="tag" data-size="16"></span>Add tag</button>
+              <button type="button" class="btn btn--ghost btn--sm" data-menu="bulk-camp" aria-haspopup="menu" aria-expanded="false" aria-label="Add the selected contacts to a campaign"><span data-cicon="megaphone" data-size="16"></span>Add to campaign</button>
+              <button type="button" class="btn btn--ghost btn--sm" data-menu="bulk-seq" aria-haspopup="menu" aria-expanded="false" aria-label="Enrol the selected contacts in a sequence"><span data-cicon="steps" data-size="16"></span>Enrol in sequence</button>
+              <button type="button" class="btn btn--ghost btn--sm bulkbar__danger" data-bulk-archive><span data-icon="archive"></span>Archive</button>
+              <span class="bulkbar__sep" aria-hidden="true"></span>
+              <button type="button" class="btn btn--ghost btn--sm bulkbar__clear" data-bulk-clear>Clear</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- drawers -->
+      <div class="sheet-scrim" hidden></div>
+      <aside class="sheet sheet--record" id="sheet-record" role="dialog" aria-modal="true" aria-labelledby="sheet-record-title" data-record hidden>
+        <div class="sheet__bar">
+          <span></span>
+          <div class="sheet__tools">
+            <button type="button" class="btn btn--ghost btn--sm"><span data-cicon="phone"></span>Call</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-sheet-open="sheet-form" data-edit><span data-cicon="pencil"></span>Edit</button>
+            <span class="sheet__step">
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" data-step="-1" aria-label="Previous contact"><span data-icon="chevron-left"></span></button>
+              <button type="button" class="btn btn--ghost btn--icon btn--sm" data-step="1" aria-label="Next contact"><span data-icon="chevron-right"></span></button>
+            </span>
+          </div>
+          <button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button>
+        </div>
+        <div class="sheet__scroll" data-fill></div>
+      </aside>
+
+      <aside class="sheet" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-form-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <form class="sheet__scroll" data-fill aria-labelledby="sheet-form-title"></form>
+        <div class="sheet__foot">
+          <button type="button" class="btn btn--ghost btn--danger-text" data-form-archive hidden><span data-icon="archive"></span>Archive</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-submit>Create contact</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-menu">
+    <h2 class="state__label" id="state-menu">State 2 · Row menu: Edit and Archive leave the row; the name stays the main way in</h2>
+    <div data-clone="app-1" data-show-menu="c07"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-archived">
+    <h2 class="state__label" id="state-archived">State 3 · Archived: the row leaves the list at once, and Undo puts it back for 5 seconds</h2>
+    <div data-clone="app-1" data-archived="c07"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-record">
+    <h2 class="state__label" id="state-record">State 4 · Record: how to reach them, decision maker and call status, then their activity; the address is contacts.html?record=c03</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-record" data-key="c03"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-record-opps">
+    <h2 class="state__label" id="state-record-opps">State 5 · Record, Opportunities tab: the deals at their company, linked to the board</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-record" data-key="c06" data-tab="opps"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-add">
+    <h2 class="state__label" id="state-add">State 6 · New contact, as the live Add Contact form: name, company (required), decision maker, one phone with its extension and an optional first email, summary, tags and owner. More phones and emails, and the address, come in Edit</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-edit">
+    <h2 class="state__label" id="state-edit">State 7 · Edit contact, in the live form's order: name, company (optional), decision maker, summary; address; tags and owner (admins only); then phones and emails, each a list with a line to add one — live: add, make one primary, remove</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form" data-key="c03"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-none">
+    <h2 class="state__label" id="state-none">State 8 · Nothing matches the search: one line and the way back</h2>
+    <div data-clone="app-1" data-query="Fairview"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-loading">
+    <h2 class="state__label" id="state-loading">State 9 · Loading, as today: one line of text while the list loads (skeleton rows wait on audit M1)</h2>
+    <div data-clone="app-1" data-loading></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-filters">
+    <h2 class="state__label" id="state-filters">State 10 · Filters: all seven on a row under the search. Call status takes one value, the rest several (checkboxes, the list stays open)</h2>
+    <div data-clone="app-1" data-filters="owner:mb,er vertical:Education,Government called:called" data-show-filter="owner"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-bulk">
+    <h2 class="state__label" id="state-bulk">State 11 · Bulk actions: ticking rows floats a bar at the foot of the list, as live, pinned to the bottom of the window while the list scrolls, with the count, Call N contacts and Assign owner, Add tag, Add to campaign, Enrol in sequence, Archive; the filters stay; Clear or an action puts it away</h2>
+    <div data-clone="app-1" data-picked="c01,c02,c03"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var app = document.getElementById('app-1');
+  function put(name, html) { app.querySelectorAll('[data-render="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
+  function person(id) { return C.by.contact[id]; }
+  function acct(id) { return C.by.account[id]; }
+  function email(c) { return c.email + '@' + acct(c.account).domain; }
+  var tagCell = C.tagCell;
+  var STATES = ['AR', 'CO', 'KS', 'LA', 'MO', 'NM', 'OK', 'TX'];
+  var CALLED = '<span class="badge badge--ok">Called</span>';
+
+  /* ---------- list ---------- */
+  /* filters (C.filterBar): all seven always in the bar, on a row under the search.
+     State, City and Vertical are the contact's company's. Call status is one of two, the rest take several values. */
+  var byContact = {}; D.contacts.forEach(function (c) { byContact[c.id] = c; });
+  function same(s) { return [s, s]; }
+  function uniq(list) { return list.filter(function (x, i) { return list.indexOf(x) === i; }).sort(); }
+  C.filterBar(app, 'contact', { record: function (id) { return byContact[id]; }, filters: {
+    company: { label: 'Company', multi: true, search: 'Search companies', opts: D.accounts.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (a) { return [a.id, a.name]; }), test: function (c, v) { return v.indexOf(c.account) >= 0; } },
+    owner: { label: 'Owner', multi: true, opts: D.reps.filter(function (r) { return D.contacts.some(function (c) { return c.owner === r.id; }); }).map(function (r) { return [r.id, r.name]; }), test: function (c, v) { return v.indexOf(c.owner) >= 0; } },
+    tag: { label: 'Tag', multi: true, opts: D.tagList.map(function (t) { return [t.name, t.name]; }), test: function (c, v) { return c.tags.some(function (x) { return v.indexOf(x) >= 0; }); } },
+    state: { label: 'State', multi: true, opts: STATES.map(same), test: function (c, v) { return v.indexOf(acct(c.account).state) >= 0; } },
+    city: { label: 'City', multi: true, opts: uniq(D.accounts.map(function (a) { return a.city; })).map(same), test: function (c, v) { return v.indexOf(acct(c.account).city) >= 0; } },
+    vertical: { label: 'Vertical', multi: true, opts: D.verticals.map(same), test: function (c, v) { return v.indexOf(acct(c.account).vertical) >= 0; } },
+    called: { label: 'Call status', opts: [['called', 'Called'], ['not', 'Not called']], test: function (c, v) { return c.called === (v === 'called'); } }
+  } });
+  put('pager', 'Showing <span class="num" data-shown>' + D.contacts.length + '</span> of <span class="num">' + C.count(D.totals.contacts) + '</span> contacts');
+  put('summary', '<span class="console__figure">' + C.count(D.totals.contacts) + '</span> contacts');   /* the list's size, as live; the same total as the pager */
+  put('rows', D.contacts.map(function (c) {
+    var a = acct(c.account);
+    return '<tr data-seg="all" data-open="sheet-record" data-key="' + c.id + '" tabindex="0" aria-label="' + esc(c.name) + ', open the record">' +
+      '<td class="col-check"><input type="checkbox" class="checkbox" aria-label="Select ' + esc(c.name) + '"></td>' +
+      '<td><span class="name-cell"><span class="name-cell__line"><a class="link link--quiet" data-record-link href="contacts.html?record=' + c.id + '">' + esc(c.name) + '</a>' + (c.called ? CALLED : '') + '</span>' +
+        '<span class="who__dept" title="' + esc(c.title) + '">' + esc(c.title) + '</span></span></td>' +
+      '<td><span class="name-cell" title="' + esc(a.name) + '">' + C.recordLink(['account', a.id]) + '<span class="who__dept">' + esc(a.city) + ', ' + a.state + '</span></span></td>' +
+      '<td class="cell--nowrap" data-cell="tags">' + tagCell(c.tags) + '</td>' +
+      '<td><span class="cell-clip" title="' + esc(email(c)) + '">' + esc(email(c)) + '</span></td>' +
+      '<td class="cell--nowrap num">' + esc(c.phone) + '</td>' +
+      '<td data-cell="owner">' + esc(C.rep(c.owner).name) + '</td><td class="cell--nowrap">' + C.date(c.created) + '</td>' +
+      '<td class="col-menu"><button type="button" class="row-menu" data-menu="contact" data-key="' + c.id + '" aria-haspopup="menu" aria-label="More actions for ' + esc(c.name) + '">' + C.icon('more', 16) + '</button></td></tr>';
+  }).join(''));
+
+  C.menus.contact = [{ id: 'edit', label: 'Edit', icon: 'pencil' }, { id: 'archive', label: 'Archive', icon: 'archive' }];
+
+  /* ---------- record drawer ---------- */
+  function empty(text) { return '<p class="tabpanel__empty">' + text + '</p>'; }
+  function list(items) { return items.length ? '<ul class="rows rows--plain">' + items.join('') + '</ul>' : ''; }
+  function row(main, meta, side) { return '<li class="rows__item"><span class="rows__main"><span class="rows__title">' + main + '</span>' + (meta ? '<span class="rows__meta">' + meta + '</span>' : '') + '</span>' + (side ? '<span class="rows__side">' + side + '</span>' : '') + '</li>'; }
+  function due(iso) {
+    if (!iso) return '<span class="muted">No due date</span>';
+    return C.days(iso) < 0 ? '<span class="state-dot state-dot--danger">' + C.day(iso) + ' · overdue</span>' : C.day(iso);
+  }
+
+  /* phones or emails in the record: the primary first, each with its type */
+  function reach(list, show) {
+    return list.slice().sort(function (x, y) { return y.primary - x.primary; }).map(function (x) {
+      return '<span class="reach">' + show(x) + ' <span class="muted">' + esc(x.type) + (list.length > 1 && x.primary ? ' · primary' : '') + '</span></span>';
+    }).join('');
+  }
+  var seq = 0;
+  C.fill['sheet-record'] = function (sheet, key) {
+    var c = person(key); if (!c) return;
+    var a = acct(c.account), id = 'r' + (++seq);
+    var acts = D.activity.filter(function (v) { return v.rel[1] === c.id; });
+    var os = D.opps.filter(function (o) { return o.account === a.id; });
+    var tasks = D.tasks.filter(function (t) { return t.rel[1] === c.id; });
+    var tabs = [
+      ['activity', 'Activities', acts.length, list(acts.map(function (v) { return row(esc(v.text), esc(C.rep(v.who).name), C.stamp(v.at)); })) || empty('No activity yet.')],
+      ['opps', 'Opportunities', os.length, list(os.map(function (o) {
+        var past = C.days(o.close) < 0;
+        return row(C.recordLink(['opportunity', o.id]) + (o.renewal ? ' <span class="badge badge--outline">Renewal</span>' : ''),
+          esc(C.stage(o.stage)) + ' · ' + esc(C.rep(o.owner).name),
+          '<strong>' + C.money(o.amount) + '</strong>' + (past ? '<span class="state-dot state-dot--danger">Close ' + C.date(o.close) + ' · overdue</span>' : 'Close ' + C.date(o.close)));
+      })) || empty('No opportunities at ' + esc(a.name) + '.')],
+      ['tasks', 'Tasks', tasks.length, list(tasks.map(function (t) { return row(esc(t.title), esc(C.rep(t.owner).name), due(t.due)); })) || empty('No open tasks.')],
+      ['docs', 'Documents', 0, empty('No documents yet.')],
+      ['fields', 'Custom Fields', 1, '<dl class="dl"><dt>Preferred contact</dt><dd>Phone</dd></dl>']
+    ];
+    var pick = sheet.closest('.app').dataset.tab || 'activity';
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">' + esc(c.name) + '</h2>' +
+        '<p class="sheet__sub">' + esc(c.title) + ' · ' + esc(a.name) + '</p><div class="sheet__tags">' + C.tags(c.tags) + '</div></header>' +
+      '<dl class="dl"><dt>Company</dt><dd>' + C.recordLink(['account', a.id]) + '</dd><dt>Title</dt><dd>' + esc(c.title) + '</dd>' +
+        '<dt>' + (c.emails.length > 1 ? 'Emails' : 'Email') + '</dt><dd>' + reach(c.emails, function (x) { return '<a class="link" href="#" onclick="return false">' + esc(x.address) + '</a>'; }) + '</dd>' +
+        '<dt>' + (c.phones.length > 1 ? 'Phones' : 'Phone') + '</dt><dd>' + reach(c.phones, function (x) { return '<a class="link num" href="#" onclick="return false">' + esc(x.number) + '</a>' + (x.ext ? ' ext. <span class="num">' + esc(x.ext) + '</span>' : ''); }) + '</dd>' +
+        '<dt>Address</dt><dd>' + esc(c.address.street) + (c.address.street2 ? ', ' + esc(c.address.street2) : '') + '<br>' + esc(c.address.city) + ', ' + c.address.state + ' <span class="num">' + esc(c.address.zip) + '</span></dd><dt>Owner</dt><dd>' + C.person(c.owner) + '</dd>' +
+        '<dt>Decision maker</dt><dd>' + (c.dm ? 'Yes' : 'No') + '</dd><dt>Call status</dt><dd>' + (c.called ? CALLED : 'Not called yet') + '</dd>' +
+        '<dt>Created</dt><dd>' + C.date(c.created) + '</dd></dl>' +
+      '<div class="tabs" role="tablist" aria-label="About ' + esc(c.name) + '">' + tabs.map(function (t) {
+        var on = t[0] === pick;
+        return '<button type="button" class="tab' + (on ? ' is-active' : '') + '" role="tab" id="' + id + '-t-' + t[0] + '" aria-controls="' + id + '-p-' + t[0] + '" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) + '">' +
+          t[1] + (t[2] ? '<span class="tab__n">' + t[2] + '</span>' : '') + '</button>';
+      }).join('') + '</div>' +
+      tabs.map(function (t) { return '<div class="tabpanel" role="tabpanel" id="' + id + '-p-' + t[0] + '" aria-labelledby="' + id + '-t-' + t[0] + '"' + (t[0] === pick ? '' : ' hidden') + '>' + t[3] + '</div>'; }).join('');
+    sheet.querySelector('[data-edit]').dataset.key = c.id;
+  };
+
+  /* ---------- add / edit form, in a drawer, as the two live forms ----------
+     New contact (live Add Contact) asks for the least: company is required, and the contact starts with one phone and,
+     if known, one email. Edit (live Edit contact) adds the address, then Phones and Emails after the owner. Cancel and
+     Save stay pinned at the foot of the drawer in both. */
+  function field(id, label, control, req) { return '<div class="field"><label class="field__label" for="' + id + '">' + label + (req ? '<span class="field__req" aria-hidden="true">*</span>' : '') + '</label>' + control + '</div>'; }
+  function input(id, value, req, extra) { return '<input class="input" id="' + id + '" value="' + esc(value || '') + '"' + (req ? ' aria-required="true"' : '') + (extra || '') + '>'; }
+  function select(id, opts, value, req) {
+    return '<span class="input-wrap"><select class="select" id="' + id + '"' + (req ? ' aria-required="true"' : '') + '><option value="">Choose…</option>' +
+      opts.map(function (o) { return '<option' + (o === value ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' + C.icon('chevron', 16) + '</span>';
+  }
+  function check(label, on) { return '<label class="check"><input type="checkbox" class="checkbox"' + (on ? ' checked' : '') + '> ' + label + '</label>'; }
+  var COMPANIES = D.accounts.map(function (a) { return a.name; }).sort();
+  var REPS = D.reps.filter(function (r) { return r.status === 'active'; }).map(function (r) { return r.name; });
+  C.fill['sheet-form'] = function (sheet, key) {
+    var c = key ? person(key) : null, id = 'f' + (++seq), a = c ? acct(c.account) : null, n = c ? c.name.split(' ') : [], ad = c ? c.address : {};
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">' + (c ? 'Edit contact' : 'New contact') + '</h2>' +
+        (c ? '<p class="sheet__sub">' + esc(c.name) + '</p>' : '') + '</header>' +
+      '<div class="fgroup">' +
+        '<div class="frow">' + field(id + '-first', 'First name', input(id + '-first', n[0], true, c ? '' : ' data-autofocus'), true) +
+          field(id + '-last', 'Last name', input(id + '-last', n.slice(1).join(' '), true), true) + '</div>' +
+        field(id + '-title', 'Title', input(id + '-title', c && c.title)) +
+        /* live Add requires a company; live Edit lets a contact have none */
+        field(id + '-company', 'Company (account)', '<span class="input-wrap"><select class="select" id="' + id + '-company"' + (c ? '' : ' aria-required="true"') + '><option value="">' + (c ? 'No account' : 'Select an account…') + '</option>' +
+          COMPANIES.map(function (o) { return '<option' + (a && o === a.name ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' + C.icon('chevron', 16) + '</span>', !c) +
+        '<div class="field">' + check('Decision maker', c && c.dm) + '</div>' +
+        (c ? '' :
+          field(id + '-phone', 'Phone', '<span class="phone-ext">' + input(id + '-phone', '', true, ' type="tel" autocomplete="tel" placeholder="+1 555 123 4567"') +
+            '<input class="input" id="' + id + '-ext" placeholder="ext." aria-label="Extension" inputmode="numeric"></span>', true) +
+          C.field(id + '-email', 'Initial email (optional)', input(id + '-email', '', false, ' type="email" autocomplete="email" placeholder="person@company.com" aria-describedby="' + id + '-email-hint"'),
+            { hint: 'Add more phones and emails, and the address, once the contact is created.' })) +
+        C.field(id + '-summary', 'Summary', '<textarea class="input textarea" id="' + id + '-summary" rows="3" aria-describedby="' + id + '-summary-hint"></textarea>',
+          { hint: 'What stays true about this contact, such as preferences. Notes from each call go in the timeline.' }) +
+      '</div>' +
+      (c ? '<fieldset class="fgroup"><legend class="fgroup__title">Address</legend>' +
+        field(id + '-street', 'Street', input(id + '-street', ad.street, false, ' autocomplete="address-line1"')) +
+        field(id + '-street2', 'Address 2', input(id + '-street2', ad.street2, false, ' autocomplete="address-line2"')) +
+        '<div class="frow" style="--cols: 3">' + field(id + '-city', 'City', input(id + '-city', ad.city, false, ' autocomplete="address-level2"')) +
+          field(id + '-state', 'State', input(id + '-state', ad.state && D.stateNames[ad.state], false, ' autocomplete="address-level1"')) +
+          field(id + '-zip', 'Zip', input(id + '-zip', ad.zip, false, ' autocomplete="postal-code" inputmode="numeric"')) + '</div>' +
+        field(id + '-country', 'Country', input(id + '-country', ad.country, false, ' autocomplete="country-name"')) +
+      '</fieldset>' : '') +
+      '<div class="fgroup">' +
+        field(id + '-tags', 'Tags', C.tagField(id + '-tags', c ? c.tags : [])) +
+        C.ownerField(id + '-owner', c ? c.owner : null) +
+      '</div>' +
+      (c ? C.multiGroup('phone', id + '-phone', c.phones) +
+        C.multiGroup('email', id + '-email', c.emails) : '');
+    sheet.querySelector('[data-submit]').textContent = c ? 'Save changes' : 'Create contact';
+    var fa = sheet.querySelector('[data-form-archive]'); fa.hidden = !c; if (c) fa.dataset.key = c.id;   /* Archive sits in the edit form, not behind a one-item menu */
+  };
+
+
+  /* ---------- archive with Undo (H6) ---------- */
+  function archive(frame, key, opts) {
+    var tr = frame.querySelector('tbody tr[data-key="' + key + '"]'), c = person(key), rec = frame.querySelector('.sheet[data-record]');
+    if (rec && !rec.hidden) C.close(rec);
+    tr.classList.add('is-archived'); C.filter(tr.closest('.state'));
+    C.toast(frame, c.name + ' archived', function () { tr.classList.remove('is-archived'); C.filter(tr.closest('.state')); }, opts);
+  }
+  document.addEventListener('crm:menu', function (e) {
+    var frame = e.target.closest('.app'), d = e.detail;
+    if (d.action === 'archive') archive(frame, d.key);
+    if (d.action === 'edit') { var f = frame.querySelector('.sheet:not([data-record])'); C.show(f, { from: d.button, fill: function (s) { C.fill['sheet-form'](s, d.key); } }); }
+  });
+
+  document.addEventListener('click', function (e) {   /* Archive in the edit form: close the form, then archive with Undo */
+    var b = e.target.closest('[data-form-archive]'); if (!b) return;
+    C.close(b.closest('.sheet')); archive(b.closest('.app'), b.dataset.key);
+  });
+
+  /* ---------- bulk actions on the ticked rows (M6): the change shows in the rows at once, the toast names it and
+     offers Undo. The ids are prefixed so the filter bar can't read them as a filter choice ("tag:…"). ---------- */
+  C.menus['bulk-owner'] = D.reps.filter(function (r) { return r.status === 'active'; }).map(function (r) { return { id: 'bulkowner:' + r.id, label: r.name }; });
+  C.menus['bulk-tag'] = D.tagList.map(function (t) { return { id: 'bulktag:' + t.name, label: t.name, icon: 'tag' }; });
+  C.menus['bulk-seq'] = D.sequences.map(function (q) { return { id: 'bulkseq:' + q.id, label: q.name }; });
+  C.menus['bulk-camp'] = D.campaigns.filter(function (m) { return m.status === 'active'; }).map(function (m) { return { id: 'bulkcamp:' + m.id, label: m.name }; });
+  /* Call N contacts, live's lead action: a dial session through the ticked contacts that have a phone. The label counts
+     only those, so it never promises a call it can't make: "Call 2 of 3 contacts" names the ones without a phone. */
+  function callable(rows) { return rows.filter(function (tr) { var c = person(tr.dataset.key); return c && c.phone; }); }
+  document.addEventListener('crm:picked', function (e) {
+    var b = e.target.querySelector('[data-bulk-call]'); if (!b) return;
+    var n = e.detail.rows.length, k = callable(e.detail.rows).length;
+    b.querySelector('[data-call-label]').textContent = k === n ? 'Call ' + nContacts(n) : 'Call ' + k + ' of ' + nContacts(n);
+    b.disabled = !k;
+    b.title = k === n ? 'Start a dial session' : (n - k === 1 ? '1 has' : (n - k) + ' have') + ' no phone';
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-bulk-call]'); if (!b) return;
+    var app = b.closest('.app'), k = callable(C.picked(app)).length;
+    C.clearPicked(app); C.toast(app, 'Dial session started with ' + nContacts(k));
+  });
+  function redraw(tr) {
+    var c = person(tr.dataset.key);
+    tr.querySelector('[data-cell="tags"]').innerHTML = tagCell(c.tags);
+    tr.querySelector('[data-cell="owner"]').textContent = C.rep(c.owner).name;
+  }
+  function nContacts(n) { return n === 1 ? '1 contact' : n + ' contacts'; }
+  /* change(contact) makes the edit and returns how to take it back, or nothing when the contact already had it */
+  function bulk(frame, text, change) { C.bulk(frame, text, function (tr) { return change(person(tr.dataset.key), tr); }, redraw); }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-bulk-archive]'); if (!b) return;
+    bulk(b.closest('.app'), function (n) { return nContacts(n) + ' archived'; }, function (c, tr) {
+      tr.classList.add('is-archived'); return function () { tr.classList.remove('is-archived'); };
+    });
+  });
+  document.addEventListener('crm:menu', function (e) {
+    var p = e.detail.action.split(':'), k = p.shift(), val = p.join(':'), frame = e.target.closest('.app');
+    if (k === 'bulkowner') bulk(frame, function (n) { return nContacts(n) + ' assigned to ' + C.rep(val).name; }, function (c) {
+      var was = c.owner; c.owner = val; return function () { c.owner = was; };
+    });
+    if (k === 'bulktag') bulk(frame, function (n) { return val + ' added to ' + nContacts(n); }, function (c) {
+      if (c.tags.indexOf(val) >= 0) return;
+      c.tags.push(val); return function () { c.tags.splice(c.tags.indexOf(val), 1); };
+    });
+    /* enrolment shows on the Sequences page, a campaign's contacts on the Campaigns page, not in this list, so the toast is the only sign here */
+    if (k === 'bulkcamp') bulk(frame, function (n) { return nContacts(n) + ' added to ' + D.campaigns.filter(function (m) { return m.id === val; })[0].name; }, function () { return function () {}; });
+    if (k === 'bulkseq') bulk(frame, function (n) { return nContacts(n) + ' enrolled in ' + D.sequences.filter(function (q) { return q.id === val; })[0].name; }, function () { return function () {}; });
+  });
+
+  C.boot();
+
+  /* drawn states */
+  document.querySelectorAll('[data-picked]').forEach(function (f) {
+    f.dataset.picked.split(',').forEach(function (k) { f.querySelector('tbody tr[data-key="' + k + '"] .col-check .checkbox').checked = true; });
+    C.syncPicked(f);
+  });
+  document.querySelectorAll('[data-show-menu]').forEach(function (f) { C.openMenu(f.querySelector('tr[data-key="' + f.dataset.showMenu + '"] .row-menu'), { focus: false }); });
+  document.querySelectorAll('[data-archived]').forEach(function (f) { archive(f, f.dataset.archived, { sticky: true }); });
+  document.querySelectorAll('[data-query]').forEach(function (f) { var s = f.querySelector('input[data-search]'); s.value = f.dataset.query; C.filter(f.closest('.state')); });
+  /* loading as today: the rows are not there yet, one line of text instead (audit M1 would show skeleton rows) */
+  document.querySelectorAll('[data-loading]').forEach(function (f) {
+    f.querySelector('tbody').innerHTML = '<tr><td colspan="9" class="cell--muted">Loading contacts…</td></tr>';
+    f.querySelector('.pager').hidden = true;
+  });
+})();
+</script>
+</body>
+</html>

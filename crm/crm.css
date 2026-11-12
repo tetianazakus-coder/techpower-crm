@@ -1,0 +1,845 @@
+/* =====================================================================
+   TechPower CRM prototype · CRM layer on top of 13's tokens.css and console.css.
+   Only what the CRM adds: the grouped sidebar (audit H1/H2), header search with its shortcut (M9), quiet record
+   links (M4) and the toast with Undo (H6/H7). Flow components (kanban, funnel, goal cell, sequence card, call script)
+   are added with their flows. Every value is a token; light in :root, dark in [data-theme="dark"].
+   ===================================================================== */
+:root {
+  --crm-rail-item-h: 32px;                   /* the work groups scroll before the pinned groups do, if the frame is short */
+  --crm-rail-collapsed-w: 64px;              /* icons only: a 40px item and 12px either side */
+  --crm-search-w: 400px;
+  --crm-activity-w: 400px;                   /* dashboard activity column */
+  --crm-record-w: 608px;                     /* record drawer, as live (about 610px); seven tabs scroll sideways */
+  --crm-editor-w: 560px;                     /* sequence drawer: day, type and what to do on one line */
+  --crm-danger-solid: #dc2626;               /* destructive button fill; light text on it is 4.8:1 in both themes */
+  --crm-dialog-w: 440px;
+  --crm-palette-w: 640px;
+  --crm-integration-w: 760px;
+  --crm-palette-list-h: 520px;               /* 6 results in 3 groups fit; more scroll */
+  --crm-board-card-w: 254px;                /* every deal card, whatever its text: long names wrap or end in …; the column is 272px, Trello's list width (Pipedrive, HubSpot, Linear: 250–320px) */
+  --crm-board-col-w: calc(var(--crm-board-card-w) + 2 * var(--space-2) + 2 * var(--border-w));   /* a stage column: the card, its padding and border */
+  --crm-menu-max-h: calc(8 * 32px + 7 * 2px + 2 * var(--space-1) + 2 * var(--border-w));   /* a menu shows 8 rows, more scroll */
+}
+/* tag colours, as in the live CRM, shown as a dot in the chip: the name stays neutral text, so a tag never reads as a
+   status (ok / warn / danger) and stays legible in both themes */
+:root {
+  --tag-pink: #db2777; --tag-green: #16a34a; --tag-purple: #7c3aed; --tag-blue: #2563eb; --tag-orange: #ea580c; --tag-teal: #0d9488;
+  --tag-red: #dc2626; --tag-yellow: #ca8a04; --tag-gray: #6b7280;
+  --crm-card-bg: var(--color-surface-raised); /* board, campaign and sequence cards */
+  --crm-deal-border: var(--color-border-data); /* neutral grey edge: a white card on a white column needs it */
+}
+[data-theme="dark"] {
+  --tag-pink: #f472b6; --tag-green: #4ade80; --tag-purple: #a78bfa; --tag-blue: #60a5fa; --tag-orange: #fb923c; --tag-teal: #2dd4bf;
+  --tag-red: #f87171; --tag-yellow: #facc15; --tag-gray: #9ca3af;
+  --crm-card-bg: #0b1426;                    /* board, campaign and sequence cards: a navy step up from the #0a0a0a page, from Figma (CRM, Opportunities / Board / Dark) */
+  --crm-deal-border: var(--color-border-card); /* thin blue edge at rest, as the campaign cards; hover brightens it */
+}
+
+/* ---------- sidebar: full height, with the lockup at the top and the collapse toggle as a round handle on its right edge,
+   then the work groups (they scroll if the frame is short), then General, Tools and Admin pinned at the bottom. The header
+   spans only the content column (navigation plan, header pass H-B) ---------- */
+.app--crm { grid-template-areas: "rail header" "rail main"; }
+.app--crm.is-rail-moving { transition: grid-template-columns 150ms ease; }   /* only when the user toggles, never on load */
+.app--crm .rail { gap: 0; padding: var(--space-3); overflow: hidden; }
+.rail__scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-2); }
+.rail__end { flex: none; display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); padding-top: var(--space-2); border-top: var(--border-w) solid var(--color-border-data); }
+.app--crm .rail__group { display: flex; flex-direction: column; }
+.rail__items { display: flex; flex-direction: column; gap: 2px; }
+/* a work group's heading is a plain label; a bottom group's heading is a button that folds it, and its chevron turns
+   when the group is closed */
+.app--crm .rail__label { display: flex; align-items: center; gap: var(--space-1); width: 100%; padding: var(--space-2) var(--space-3) 2px; border-radius: var(--radius-tile); text-align: left; }
+.app--crm .rail__label .icon { color: var(--color-text-muted); transition: transform var(--ease); }
+.app--crm button.rail__label:hover { color: var(--color-text); }
+.rail__group.is-folded .rail__label .icon { transform: rotate(-90deg); }
+.rail__group.is-folded .rail__items { display: none; }
+.app--crm .rail__item { flex: none; height: var(--crm-rail-item-h); font-size: var(--text-base); }
+.app--crm .rail__item > span:not(.rail__count) { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* the top row holds the lockup alone. The header's lockup (20px logotype, CRM at 16px medium) is too heavy beside 13px
+   labels and ends 6px short of the handle, so the rail steps it down: logotype 18px, CRM at 14px regular with lighter
+   tracking, so it reads as a product tag after the bold wordmark (about 180px in the 208px inner width; nowrap and
+   overflow guard the Inter fallback). Its 32px row centres on the header's 56px, and the groups start at the header's
+   bottom edge. Collapsed, the brandmark sits centred in the column. */
+.rail__top { flex: none; display: flex; align-items: center; margin-bottom: var(--space-3); }
+.rail .lockup { min-width: 0; height: 32px; gap: var(--space-2); padding-left: var(--space-3); border-radius: var(--radius-tile); white-space: nowrap; overflow: hidden; }
+.rail .lockup__logotype { height: 18px; }
+.rail .lockup__product { font-size: var(--text-md); font-weight: var(--weight-regular); letter-spacing: 0.06em; }
+.lockup__mark { display: none; width: 22px; height: 22px; }
+/* the collapse toggle: a 24px round handle astride the rail's right border, centred on the brand row (Salesforce, Quicken,
+   Wix put it there). It is positioned against the frame, not the rail, so the rail's overflow doesn't clip it, and it
+   follows the rail's width. It sits under a drawer's scrim (z 20), as the rest of the frame does.
+   The glyph is the group-fold chevron, turned to point the way the rail will go. */
+.rail__toggle { position: absolute; z-index: 19; top: calc(var(--header-h) / 2 - 12px); left: calc(var(--rail-w) - 12px); display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: var(--border-w) solid var(--color-border-data); background: var(--color-page); color: var(--color-text-secondary); }
+.rail__toggle:hover { border-color: var(--color-border-strong); color: var(--color-text); }
+.rail__toggle .icon { transform: rotate(90deg); transition: transform var(--ease); }
+.is-rail-collapsed .rail__toggle .icon { transform: rotate(-90deg); }
+.is-rail-moving .rail__toggle { transition: left 150ms ease; }
+.is-rail-collapsed .rail__top { justify-content: center; }
+.is-rail-collapsed .rail .lockup, .is-rail-collapsed .lockup { width: 32px; padding: 0; justify-content: center; }
+.is-rail-collapsed .lockup__logotype, .is-rail-collapsed .lockup__product { display: none; }
+.is-rail-collapsed .lockup__mark { display: block; }
+
+/* collapsed: icons centred in a 64px column; labels stay in the links for screen readers and show as tooltips */
+.app--crm.is-rail-collapsed { --rail-w: var(--crm-rail-collapsed-w); }
+.is-rail-collapsed .rail__label { display: none; }
+/* the bottom groups give way to one More button (⋯), whose menu lists their pages beside the rail: 13 icons, not 20 */
+.rail__more { display: none; width: 100%; }
+.is-rail-collapsed .rail__more { display: flex; }
+.is-rail-collapsed .rail__end .rail__group { display: none; }
+.is-rail-collapsed .rail__group + .rail__group { margin-top: var(--space-2); padding-top: var(--space-2); border-top: var(--border-w) solid var(--color-border-data); }
+.is-rail-collapsed .rail__item { position: relative; justify-content: center; gap: 0; padding: 0; }
+.is-rail-collapsed .rail__item > span:not(.rail__count) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.is-rail-collapsed .rail__count { position: absolute; top: 6px; right: 8px; min-width: 0; width: 8px; height: 8px; padding: 0; border-radius: 50%; background: var(--color-link); font-size: 0; }
+.tip {
+  position: absolute; z-index: 26; transform: translateY(-50%); padding: var(--space-1) var(--space-2); pointer-events: none; white-space: nowrap;
+  background: var(--color-sheet); border: var(--border-w) solid var(--color-border-data); border-radius: var(--radius-input); box-shadow: var(--shadow-popover);
+  font-size: var(--text-sm); color: var(--color-text);
+}
+.tip--below { transform: translateX(-50%); }
+
+/* loading: placeholder rows at full height while the role loads */
+.skel { display: block; flex: none; border-radius: 3px; background: var(--color-surface-alt); }
+.skel--label { width: 56px; height: 8px; margin: var(--space-3) var(--space-3) var(--space-2); }
+.skel--icon { width: 18px; height: 18px; }
+.skel--text { width: var(--w, 60%); height: 10px; }
+.rail__item--skel:hover { background: none; }
+@media (prefers-reduced-motion: no-preference) { .skel { animation: skel 1.4s ease-in-out infinite; } }
+@keyframes skel { 50% { opacity: 0.5; } }
+
+/* ---------- header, over the content column: the search starts at the page's 32px inset, so it lines up with the title;
+   the account on the right. ---------- */
+.app--crm .app__header { justify-content: flex-start; gap: var(--space-4); padding: 0 var(--space-8); }
+/* light theme: a light header. Harbor's black bar (tokens.css, "header subtree takes the dark values") was drawn for the
+   full-width header; over the content column beside a light sidebar it reads as a stripe. The dark-subtree tokens are
+   put back to the light root values here (a mirror of tokens.css :root), so search, avatar and focus ring follow. */
+:root:not([data-theme="dark"]) .app--crm .app__header {
+  --color-text: #0a0a0a; --color-text-body: #4d4d4d; --color-surface-alt: #f1f2f4; --color-border-data: rgba(10, 10, 10, 0.12);
+  --color-tile-bg: #e8efff; --color-focus: var(--site-blue);
+  background: var(--color-page); color: var(--color-text); border-bottom-color: var(--color-border-data);
+}
+/* a drawer is modal: it runs the full height of the frame and its scrim dims all of it, header and rail included, as
+   Stripe, Neon, incident.io and Airwallex do. Nothing behind it can be used, so nothing stays bright, and its title row
+   takes the header's place at the top. (The Harbor admin console keeps its header clear; this differs on purpose.) */
+.app--crm .sheet-scrim { inset: 0; }
+.app--crm .sheet { top: 0; }
+.app--crm .app__header .avatar { cursor: pointer; }
+.app--crm .app__header .avatar:hover, .app--crm .app__header .avatar[aria-expanded="true"] { border-color: var(--color-border-strong); }
+.hsearch {
+  display: inline-flex; align-items: center; gap: var(--space-2); width: var(--crm-search-w); height: 36px; padding: 0 var(--space-2) 0 var(--space-3);
+  border: var(--border-w) solid var(--color-border-control); border-radius: var(--radius-input); background: transparent;
+  color: var(--color-text-muted); font-size: var(--text-base); cursor: pointer; transition: border-color var(--ease);
+}
+.hsearch:hover { border-color: var(--color-border-strong); }
+.hsearch__icon { display: flex; color: var(--color-text-secondary); }
+.hsearch__text { flex: 1 1 auto; min-width: 0; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kbd {
+  flex: none; padding: 1px 6px; border: var(--border-w) solid var(--color-border-control); border-radius: 3px;
+  font-family: var(--font-body); font-size: var(--text-xs); line-height: 16px; color: var(--color-text-secondary);
+}
+.app--crm .app__header-actions { margin-left: auto; }
+
+/* ---------- record names: real links that read as text until hovered (audit M4) ---------- */
+.link--quiet { color: var(--color-text); font-weight: var(--weight-medium); }
+.link--quiet:hover { color: var(--color-link); text-decoration: underline; text-underline-offset: 3px; }
+.data-table tbody tr[data-open]:hover td { background: var(--color-surface-alt); }
+.data-table tbody tr.is-selected:hover td { background: var(--color-primary-soft); }
+
+/* ---------- toast: the result of an action, bottom centre of the frame, with Undo when it can be taken back ---------- */
+.toast {
+  position: absolute; z-index: 30; left: 50%; bottom: var(--space-6); transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: var(--space-4); min-height: var(--control-h); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  background: var(--color-sheet); border: var(--border-w) solid var(--color-border-data); border-radius: var(--radius-card); box-shadow: var(--shadow-popover);
+  font-size: var(--text-md); color: var(--color-text);
+}
+.toast__undo { height: 28px; padding: 0 var(--space-3); border-radius: var(--radius-btn); color: var(--color-link); font-weight: var(--weight-medium); }
+.toast__undo:hover { background: var(--color-primary-soft); }
+
+/* ---------- row menu (audit H6): anchored under its ⋯ button, inside the frame ---------- */
+.menu {
+  position: absolute; z-index: 25; min-width: 180px; padding: var(--space-1);
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--color-sheet); border: var(--border-w) solid var(--color-border-data); border-radius: var(--radius-input); box-shadow: var(--shadow-popover);
+  max-height: var(--crm-menu-max-h); overflow-y: auto; overscroll-behavior: contain;
+}
+/* rows keep their 32px when the list is capped and scrolls, rather than shrinking to fit */
+.menu > * { flex: none; }
+/* a search box in the menu sits outside the 8 rows */
+.menu:has(.menu__search) { max-height: calc(var(--crm-menu-max-h) + 48px); }
+.menu__item {
+  display: flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-3);
+  border-radius: var(--radius-input); font-size: var(--text-base); color: var(--color-text); text-align: left;
+}
+.menu__item .icon { color: var(--color-text-secondary); }
+.menu__item:hover, .menu__item:focus-visible { background: var(--color-surface-alt); outline: none; }
+.menu__item--danger, .menu__item--danger .icon { color: var(--color-danger-fg); }
+/* a switch that shows records with problems, in the warning colour as live (Show opportunity errors) */
+.menu__item--warn { color: var(--color-warn-fg); }
+a.menu__item { text-decoration: none; }
+.menu__item.is-current { background: var(--color-surface-alt); font-weight: var(--weight-medium); }
+.menu__sep { height: var(--border-w); margin: var(--space-1) calc(var(--space-1) * -1); background: var(--color-border-data); }
+.menu__label { padding: var(--space-2) var(--space-3) var(--space-1); font-size: var(--text-xs); color: var(--color-text-secondary); }
+.menu__check { display: inline-flex; width: 16px; margin-left: auto; color: var(--color-link); }
+/* a select's option that can't be picked: greyed, with why on the right (Goals: "Has goals") */
+.menu__item[aria-disabled="true"] { color: var(--color-text-muted); cursor: default; }
+.menu__item[aria-disabled="true"]:hover { background: none; }
+.menu__note { margin-left: auto; padding-left: var(--space-4); font-size: var(--text-sm); color: var(--color-text-muted); white-space: nowrap; }
+.menu__note + .menu__check { margin-left: 0; }
+/* a toggle's checkbox: the same box as the table's .checkbox, drawn from aria-checked on the item */
+.menu__box {
+  flex: 0 0 auto; width: 16px; height: 16px; border: var(--border-w) solid var(--color-text-secondary); border-radius: 3px;
+  background: transparent center / 12px 12px no-repeat; transition: border-color 150ms ease, background-color 150ms ease;
+}
+.menu__item:hover .menu__box, .menu__item:focus-visible .menu__box { border-color: var(--color-text); }
+.menu__item[aria-checked="true"] .menu__box {
+  border-color: var(--color-primary); background-color: var(--color-primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2 5 8.7l4.5-5.4'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) { .menu__box { transition: none; } }
+/* a switch on one row: the label on the left, a compact segmented control on the right (the theme) */
+.menu__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 32px; padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3); }
+.menu__row-label { font-size: var(--text-base); color: var(--color-text); }
+.menu__row .segmented { margin-top: 0; align-self: center; }
+.menu__row .segment { height: 28px; min-width: 0; padding: 0 var(--space-3); font-size: var(--text-sm); }
+/* account menu: who is signed in, then links, the theme and Sign out */
+.menu--account { min-width: 264px; }
+.menu__head { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-2) var(--space-3); }
+.menu__who { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.menu__name { font-size: var(--text-md); font-weight: var(--weight-medium); color: var(--color-text); }
+.menu__email { font-size: var(--text-sm); color: var(--color-text-secondary); }
+.menu__who .badge { margin-top: var(--space-1); }
+.row-menu[aria-expanded="true"] { background: var(--color-surface-alt); color: var(--color-text); }
+
+/* ---------- record drawer: wider, to hold the record's tabs; actions (Call, Edit), then Prev / Next, then ✕ ---------- */
+.sheet--record { width: var(--crm-record-w); }
+.sheet--editor { width: var(--crm-editor-w); }
+.sheet__tools { flex: none; display: flex; align-items: center; gap: var(--space-1); }
+.sheet__tools .btn--icon { color: var(--color-text-secondary); }
+.sheet__tools .btn--icon:disabled { opacity: 0.35; cursor: default; }
+/* previous / next read as one control and sit by ✕ (panel controls), a rule between them and the record's actions */
+.sheet__step { display: flex; align-items: center; gap: 2px; }
+.sheet__step::before { content: ""; width: var(--border-w); height: 20px; margin: 0 var(--space-2) 0 var(--space-1); background: var(--color-border-data); }
+.sheet__tools .btn--ghost:not(.btn--icon) { color: var(--color-text-secondary); }
+.sheet__tools .btn--ghost:not(.btn--icon):hover { color: var(--color-text); }
+.sheet__bar > header ~ .sheet__tools { margin-top: calc(var(--space-1) * -1); }
+/* the close button matches the 32px tools beside it, so the row shares one centre line */
+.sheet__tools ~ .sheet__close { width: 32px; height: 32px; margin-top: calc(var(--space-1) * -1); }
+/* a header that is only the title (New, Log, Upload drawers) centres in the bar, level with the close button */
+.sheet__bar:has(> header > .sheet__title:only-child) { align-items: center; }
+.sheet__bar:has(> header > .sheet__title:only-child) > .sheet__close { margin-top: 0; }
+/* in the drawer the tabs scroll sideways when they don't fit (Accounts has seven at the live width). The rule under them is
+   an inset shadow, not a border, so the scroller doesn't clip the active tab's line; the right edge fades while more tabs
+   lie past it, and stops fading at the end (scroll-driven, where the browser supports it) */
+@property --tabs-fade { syntax: "<length>"; inherits: false; initial-value: 32px; }
+@keyframes tabs-end { to { --tabs-fade: 0px; } }
+.sheet .tabs {
+  gap: var(--space-4); margin-top: 0; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+  border-bottom: 0; box-shadow: inset 0 calc(var(--border-w) * -1) 0 var(--color-border-data);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--tabs-fade)), transparent);
+  animation: tabs-end linear both; animation-timeline: scroll(self inline);
+}
+.sheet .tabs::-webkit-scrollbar { display: none; }
+.sheet .tab { flex: none; margin-bottom: 0; font-size: var(--text-base); height: 36px; white-space: nowrap; }
+.tab__n { margin-left: 6px; color: var(--color-text-muted); font-weight: var(--weight-regular); font-variant-numeric: tabular-nums; }
+.tabpanel { display: flex; flex-direction: column; }
+.tabpanel[hidden] { display: none; }
+.tabpanel__empty { padding: var(--space-4) 0; font-size: var(--text-base); color: var(--color-text-muted); }
+.rows--plain { margin: 0; padding: 0; list-style: none; }
+.rows--plain .rows__item { padding: var(--space-3) 0; align-items: center; }
+.rows__side { flex: none; text-align: right; font-size: var(--text-sm); color: var(--color-text-secondary); white-space: nowrap; }
+.rows__side strong { display: block; font-weight: var(--weight-medium); color: var(--color-text); font-variant-numeric: tabular-nums; }
+
+/* view switch beside the page action, not under the title */
+.segmented--inline { margin-top: 0; align-self: center; }
+.app--crm .console__actions { gap: var(--space-3); }   /* the filter bar's 12px between controls, in place of the copied 8px */
+/* view switch as icon buttons (List, Map, Board): the name is the aria-label and the tooltip */
+.segment--icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; min-width: 0; padding: 0; }   /* the site pill's 112px minimum is for words */
+.segment[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+.segment[aria-disabled="true"]:hover { color: var(--color-text-secondary); background-image: none; }
+.segment:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- list column: record name over its domain ---------- */
+.data-table .name-cell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: var(--leading-tight); }
+.data-table .name-cell .link, .data-table .name-cell .who__dept { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* name with a status badge after it (Contacts: Called); the name gives way first */
+.name-cell__line { display: flex; align-items: center; gap: var(--space-2); min-width: 0; height: 20px; }   /* same height with or without the badge */
+.name-cell__line .badge { flex: none; }
+/* one line of text that clips with an ellipsis (email); the full value is in title */
+.cell-clip { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* a control with a button beside it (Account and + New) */
+.input-row { display: flex; gap: var(--space-2); }
+.input-row > .input, .input-row > .input-wrap { flex: 1 1 auto; min-width: 0; }
+.input-row > .btn { flex: none; }
+/* a text field with suggestions (Account): our chevron, as on a select, in place of the browser's triangle, which stays
+   under it, unseen, and still opens the list. A field that no longer offers the list (+ New) drops the chevron */
+.input-wrap > .input[list] { padding-right: var(--space-3); }   /* the triangle takes the chevron's place; the text stops before both */
+.input-wrap > .input[list]::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
+.input-wrap > .input:not([list]) + .icon { display: none; }
+/* Handoff ownership in Edit: its own action after the form's fields, set off by a rule */
+.fgroup--handoff { gap: var(--space-2); margin-top: var(--space-5); padding-top: var(--space-4); border-top: var(--border-w) solid var(--color-border-data); }
+/* a checkbox's explanation starts under its label, not under the box (Renewal) */
+.field > .check + .field__hint { padding-left: calc(16px + var(--space-2)); }
+/* a checkbox in a drawer (Enroll's "Replace contacts…", Sequence's "Default sequence") is as tall as its text, so the drawer's
+   gap is the space above and below it, and its hint sits right under it; the control height is for lining up with buttons in a bar */
+[data-fill] > .check, .sheet .field > .check { height: auto; }
+/* text that wraps to two lines at most, as live (Opportunities list: name, account, stage, people); the full value is in title. The cell's own
+   ellipsis can't do this: on wrapping text it lands on whichever single word is too wide and cuts it mid-word */
+.cell-clamp { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: var(--leading-tight); }
+/* stage in the list: its number, as on the board, then the name in up to 3 lines, as the board header, so the long
+   live names keep their meaning ("…Pricing Finalized >50%…") */
+.stage-cell { display: flex; align-items: flex-start; gap: var(--space-2); min-width: 0; }
+.stage-cell .cell-clamp { -webkit-line-clamp: 3; }
+.data-table .col-check { width: 44px; }
+.data-table td.col-check, .data-table th.col-check { padding-right: 0; }
+.data-table .checkbox { vertical-align: middle; }
+.filters--bar .check { color: var(--color-text-body); }
+/* filter buttons drawn into a wrapper still sit on the bar's gap */
+.filters--bar > [data-render], .filters__fields > [data-render] { display: contents; }
+
+/* ---------- dashboard ---------- */
+.console__inner > .stats + .split { margin-top: var(--space-5); }
+.split--dash { grid-template-columns: minmax(0, 1fr) var(--crm-activity-w); }
+/* the overdue count under Due today: warn ink with its icon, and the way into the Tasks triage view (audit H7) */
+.stat__alert { display: inline-flex; align-items: center; gap: 6px; color: var(--color-warn-fg); font-weight: var(--weight-medium); }
+.stat__alert-go { color: var(--color-link); margin-left: var(--space-1); }
+.stat__alert:hover .stat__alert-go { text-decoration: underline; text-underline-offset: 3px; }
+/* pipeline table: a total row under the stages */
+.data-table--pipe tfoot th, .data-table--pipe tfoot td { padding: var(--space-3); border-top: var(--border-w) solid var(--color-border-data); background: transparent; font-size: var(--text-base); font-weight: var(--weight-medium); letter-spacing: 0; text-transform: none; color: var(--color-text); text-align: left; }   /* the row heading reads as a row, not as a column heading: no fill, no small caps */
+:root:not([data-theme="dark"]) .records .data-table--pipe tfoot th { background: transparent; font-size: var(--text-base); color: var(--color-text); }   /* light's column-heading rule is stronger, so it is matched here */
+.data-table--pipe tfoot td.cell--right { text-align: right; }
+.data-table--pipe .meter-cell { min-width: 200px; }   /* the fit table gives spare width to Stage; the bar keeps a readable length */
+/* activity: icon tile, record and what happened, time at the end */
+.rows--activity { margin: 0; padding: 0; list-style: none; }
+.rows--activity .rows__item { align-items: center; justify-content: flex-start; }
+.rows--activity .rows__main { flex: 1 1 auto; }
+.rows--activity .rows__title .link { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rows__time { flex: none; font-size: var(--text-sm); color: var(--color-text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* ---------- contacts list: widths follow the content; Name takes what is left ----------
+   Name keeps 220px in both layouts: a longer name than the sample ones, plus its Called badge. Email, truncated first,
+   gives the room. At 1305px and wider (1440 with the sidebar collapsed) Company and Tags show whole; narrower, all three share less. */
+.table-wrap:has(> .contacts-table) { container-type: inline-size; }
+.contacts-table .col-company { width: 192px; }
+.contacts-table .col-tags { width: 128px; }
+.contacts-table .col-email { width: 176px; }
+.contacts-table .col-phone { width: 125px; }
+.contacts-table .col-owner { width: 96px; }
+.contacts-table .col-created { width: 105px; }
+@container (min-width: 1305px) {
+  .contacts-table .col-company { width: 224px; }
+  .contacts-table .col-tags { width: 205px; }
+  .contacts-table .col-email { width: 235px; }
+}
+
+/* ---------- opportunities: view switch, then the board or the list ---------- */
+/* the page line's figures: text colour, the words around them stay muted. No green: a total is not good or bad news */
+.console__figure { color: var(--color-text); font-variant-numeric: tabular-nums; }
+.app[data-view="list"] [data-view-panel="board"], .app:not([data-view="list"]) [data-view-panel="list"] { display: none; }
+.console__inner > .board-bar { margin-top: var(--space-5); display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); }
+.console__inner > .board-bar + .board { margin-top: var(--space-3); }
+
+/* board: six stage columns, as today. Long stage names wrap and Renewal keeps its amber border until audit M7 is decided.
+   Each column is two rows of the board (subgrid), so every header is as tall as the tallest and the first cards line up.
+   The board runs past the page's right margin to the window's edge, as Pipedrive, HubSpot and Linear do, so a column
+   that doesn't fit is cut by the window, not mid-page, and reads as more to scroll; the console's 32px margin comes back
+   as end padding, so the last column, scrolled to, ends 32px from the window, and a board that fits doesn't scroll.
+   The bleed is that margin plus, on wide windows, the gap beside the centred page (100cqw is the console's content box,
+   100% the page's width) */
+.app--crm .console:has(.board) { container-type: inline-size; }
+.board { --board-bleed: calc((100cqw - 100%) / 2 + var(--space-8)); display: grid; grid-template-columns: repeat(6, var(--crm-board-col-w)); grid-template-rows: auto 1fr; gap: var(--space-3); align-items: start; overflow-x: auto; overscroll-behavior-x: contain; margin-right: calc(-1 * var(--board-bleed)); padding-right: var(--space-8); padding-bottom: var(--space-3); }   /* room for the scrollbar under the tallest column */
+.board__col { grid-row: span 2; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: subgrid; row-gap: var(--space-2); align-content: start; min-width: 0; padding: var(--space-2); background: var(--color-surface); border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); }
+.board__head { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-2); padding: var(--space-1) var(--space-2) var(--space-2); }
+/* the stage number, as live, then its name: up to 3 lines, the rest in the tooltip */
+.board__name { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-base); font-weight: var(--weight-medium); line-height: var(--leading-tight); color: var(--color-text); }
+.stage-num {   /* board header and list stage cell */
+  flex: none; display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px;
+  border-radius: var(--radius-input); background: var(--color-surface-alt); color: var(--color-text-secondary);
+  font-size: var(--text-xs); font-variant-numeric: tabular-nums;
+}
+.board__label { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.board__meta { display: flex; flex-direction: column; gap: 2px; font-size: var(--text-sm); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+/* the column's value in blue after a faint dot, as live: "3 opps · $1.4M" */
+.board__dot { margin: 0 var(--space-2); opacity: 0.6; }
+.board__value { color: var(--color-info-fg); }
+/* Closed: won and lost, the word first so the colour only backs it up */
+.board__split { display: flex; gap: var(--space-3); }
+.board__won { color: var(--color-ok-fg); }
+.board__lost { color: var(--color-danger-fg); }
+.board__cards { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.board__empty { padding: var(--space-2); font-size: var(--text-sm); color: var(--color-text-muted); }
+
+.deal {
+  display: flex; flex-direction: column; gap: 6px; padding: var(--space-3); cursor: pointer;
+  background: var(--crm-card-bg); border: var(--border-w) solid var(--crm-deal-border); border-radius: var(--radius-card);
+  font-size: var(--text-sm); color: var(--color-text-secondary); transition: border-color var(--ease);
+}
+.deal:hover { border-color: var(--color-border-strong); }
+/* drag a card to another stage: the held card dims, the stage it would land in takes the link colour */
+.deal.is-dragging { opacity: 0.4; }
+.board__col { transition: border-color var(--ease), background-color var(--ease); }
+.board__col.is-drop { border-color: var(--color-link); }
+/* the slot it will land in, the height of the held card */
+.deal-slot { list-style: none; border: var(--border-w) dashed var(--color-link); border-radius: var(--radius-card); background: var(--color-primary-soft); }
+.board__col.is-drop .board__empty { display: none; }
+.deal.is-selected { border-color: var(--color-link); background: var(--color-primary-soft); }
+.deal--renewal { border-color: color-mix(in srgb, var(--color-warn-fg) 55%, transparent); }
+.deal__badges { display: flex; flex-wrap: wrap; gap: 4px; }
+.deal__title { font-size: var(--text-base); line-height: var(--leading-tight); }
+.deal__account { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.deal__foot { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
+.deal__amount { font-weight: var(--weight-medium); color: var(--color-text); font-variant-numeric: tabular-nums; }
+.deal__recurrence { margin-left: 4px; font-weight: var(--weight-regular); color: var(--color-text-muted); }
+.deal .item { min-width: 0; }
+.deal .item > span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* record: tools are Call and Edit, the rest in ⋯ (audit H6) */
+.sheet__tools .btn .icon { margin-right: 2px; }
+.sheet__tags:empty { display: none; }   /* a record without tags: the sub line starts at the edge */
+
+/* ---------- tasks: Today with overdue on top, Upcoming, No due date; the overdue triage view (audit H7) ---------- */
+/* a view switch on the left and a filter on the right, under the title (Tasks, Meetings) */
+.tasks-bar, .view-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.console__inner > .tasks-bar, .console__inner > .view-bar, .console__inner > [data-panel] { margin-top: var(--space-5); }
+[data-panel] > .records + .records, [data-panel] > .records + .tasks-more { margin-top: var(--space-4); }
+.tasks-more { display: block; }
+.back-link { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-base); }
+
+.tasklist { margin: 0; padding: 0; list-style: none; }
+.tasklist > li + li { border-top: var(--border-w) solid var(--color-border-data); }
+.task { display: flex; align-items: center; gap: var(--space-3); min-height: 60px; padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2); }
+/* one click completes: a 40px target around a 20px ring */
+.task__check { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; }
+.task__ring { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--color-border-strong); color: transparent; transition: border-color var(--ease), background var(--ease); }
+.task__check:hover .task__ring { border-color: var(--color-link); color: var(--color-link); }
+.task.is-done .task__ring { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-text-inverse); }
+.task__main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.task__title { font-size: var(--text-md); color: var(--color-text); }
+.task.is-done .task__title { color: var(--color-text-muted); text-decoration: line-through; }
+.task__meta { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: var(--text-sm); color: var(--color-text-secondary); }
+.task__meta .icon { flex: none; color: var(--color-text-muted); }
+.task__meta .badge { flex: none; height: 18px; padding: 0 6px; font-size: var(--text-xs); }   /* a priority fits the meta line, so flagged rows stay the same height */
+.task__due { flex: none; font-size: var(--text-sm); color: var(--color-text-secondary); white-space: nowrap; }
+.task__tools { flex: none; display: flex; gap: 2px; }
+.task__tools .btn--icon { color: var(--color-text-muted); }
+.task__tools .btn--icon:hover { color: var(--color-text); }
+/* the backlog: one row that leads to the triage view instead of 1,287 rows */
+.task--triage { color: inherit; text-decoration: none; }
+.task--triage:hover { background: var(--color-surface-alt); }
+.task--triage .task__check { color: var(--color-warn-fg); }
+.task__go { flex: none; display: inline-flex; align-items: center; gap: 2px; color: var(--color-link); font-weight: var(--weight-medium); font-size: var(--text-base); }
+
+/* triage: what is selected, and what can be done with it */
+.bulkbar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: var(--border-w) solid var(--color-border-data); }
+.bulkbar__text { flex: 1 1 auto; font-size: var(--text-base); color: var(--color-text-secondary); }
+.bulkbar__text strong { color: var(--color-text); font-weight: var(--weight-medium); }
+.bulkbar .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+/* in a list (audit M6), where live has it: while rows are ticked the bar floats at the foot of the list, over the rows,
+   pinned to the bottom of the window as the list scrolls; at the list's end it sits over the pager. The filters stay.
+   The bar is the list's last child; the negative margin takes it out of the flow, so nothing moves when it shows.
+   overflow: clip still cuts the frame and the card at their edges but, unlike hidden, lets the bar stick to the page's scroll. */
+.app:has(.bulkbar--float), .records:has(> .bulkbar--float) { overflow: clip; }
+.bulkbar--float {
+  position: sticky; bottom: var(--space-4); z-index: 20; width: fit-content; height: 40px; gap: var(--space-1);
+  margin: -40px auto 0; padding: 0 var(--space-1) 0 var(--space-4);
+  background: linear-gradient(var(--color-primary-soft), var(--color-primary-soft)), var(--color-sheet);
+  border: var(--border-w) solid var(--color-border-data); border-radius: var(--radius-input); box-shadow: var(--shadow-popover);
+}
+/* a black shadow is lost on the dark page, so the bar stands out by the selected rows' blue tint; its edge is the toast's */
+.bulkbar--float .bulkbar__text { flex: none; color: var(--color-text); }
+.bulkbar__sep { flex: none; width: var(--border-w); height: 20px; margin: 0 var(--space-2); background: var(--color-border-data); }
+.bulkbar__danger, .bulkbar__danger:hover, .btn--danger-text, .btn--danger-text:hover { color: var(--color-danger-fg); }
+.bulkbar__clear { color: var(--color-text-secondary); }
+.data-table tbody tr:has(.col-check .checkbox:checked) td { background: var(--color-primary-soft); }
+
+/* ---------- calls & activity: the Calls and Activity Log tabs, as today ---------- */
+.console__inner > .tabs { margin-top: var(--space-5); }
+.console__inner > .tabpanel { margin-top: var(--space-4); }
+.filter-btn .icon--calendar { color: var(--color-text-muted); }
+/* From / To (CRM.dateFilters): the hidden date input lies along the field's foot so the browser's picker drops from it;
+   with a day chosen, the calendar icon gives way to the × */
+.filter-btn--date { position: relative; }
+.filter-btn__date, .date-field__input { position: absolute; left: 0; bottom: 0; width: 100%; height: 1px; padding: 0; border: 0; opacity: 0; pointer-events: none; }
+.filter-btn--date.is-set .filter-btn__open { padding-right: 0; }
+.filter-btn--date.is-set .filter-btn__open .icon { display: none; }
+.filter-btn--date.is-set { padding-right: var(--space-2); }
+/* a checkbox's aside in the bar: "Connected only (call was answered)" */
+.check__note { color: var(--color-text-muted); }
+/* a form's date (CRM.dateField): a field-styled button with the calendar where a select has its chevron */
+.date-field { position: relative; display: block; }
+.date-field__btn { display: flex; align-items: center; width: 100%; text-align: left; cursor: pointer; }
+.date-field__btn.is-empty { color: var(--color-text-muted); }   /* no day or time yet: reads as a placeholder */
+.select:disabled { background: var(--color-surface-alt); cursor: not-allowed; }   /* waits on another field (a task's related record before its type), as a disabled input */
+.select:has(option[data-placeholder]:checked) { color: var(--color-text-muted); }   /* a select still on its hidden prompt option, likewise */
+.input-wrap.date-field > .date-field__btn + .icon { display: flex; position: absolute; right: var(--space-3); top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none; }
+/* a filter whose list is open */
+.filter-btn[aria-expanded="true"], .filter-btn:has([aria-expanded="true"]) { border-color: var(--color-border-strong); }
+/* a filter field (accounts): the label opens the list; chosen values sit in it as chips, each with its ×;
+   a second × clears a multi-select with more than one. The field is a div, since a chip's × can't live inside a button. */
+.filter-btn--field { padding: 0; }
+.filter-btn--field[hidden] { display: none; }
+/* "Clear all" shows with two or more fields active */
+.filters__clear-all { flex: none; padding: 0 var(--space-2); }
+/* a bar with filter fields (CRM.filterBar) is two rows: the search at a fixed 312px and the end group (Show, Sort, the
+   archived checkboxes) on top, the filter fields on a full-width row below. Choosing values widens only the field
+   chosen and moves only the fields after it; the search and the end group never move (Mobbin: Sprig, Twenty). */
+.filters--bar:has(.filters__fields) { display: grid; grid-template-columns: 312px minmax(0, 1fr) auto; align-items: center; }
+.filters--bar:has(.filters__fields) .filter-search { grid-column: 1; grid-row: 1; width: auto; max-width: none; }
+.filters--bar:has(.filters__fields) .filters__end { grid-column: 3; grid-row: 1; margin-left: 0; }
+.filters__fields { grid-column: 1 / -1; grid-row: 2; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); min-width: 0; }
+.filter-btn--field .filter-btn__open { display: inline-flex; align-items: center; gap: 6px; height: 100%; padding: 0 var(--space-3); border-radius: inherit; color: inherit; font: inherit; }
+.filter-btn--field.is-on .filter-btn__open { padding-right: 0; }
+.filter-btn--field.is-on .filter-btn__value, .filter-btn--field.is-on .filter-btn__open .icon { display: none; }
+.filter-btn--field.is-on { padding-right: var(--space-2); }
+.filter-btn--field:has(.filter-btn__open:focus-visible) { border-color: var(--color-border-strong); box-shadow: var(--shadow-selected); }
+.filter-btn__chips { display: inline-flex; align-items: center; gap: var(--space-1); }
+.filter-btn__chips:empty { display: none; }
+.filter-btn__chip {
+  display: inline-flex; align-items: center; gap: 2px; height: 24px; padding: 0 2px 0 var(--space-2);
+  border: var(--border-w) solid var(--color-border-data); border-radius: var(--radius-chip); background: var(--color-surface-alt);
+  font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-text); white-space: nowrap;
+}
+.filter-btn__chip-text { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+.filter-btn__chip--more { padding: 0 var(--space-2); color: var(--color-text-body); cursor: default; }
+.filter-btn__chip--more:focus-visible { outline: none; border-color: var(--color-border-strong); }
+.filter-btn__x { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: var(--color-text-secondary); }
+.filter-btn__x:hover, .filter-btn__x:focus-visible { background: var(--color-primary-soft); color: var(--color-text); outline: none; }
+.filter-btn__clear { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 2px; border-radius: 50%; color: var(--color-text-secondary); }
+.filter-btn__clear:hover, .filter-btn__clear:focus-visible { background: var(--color-surface-alt); color: var(--color-text); outline: none; }
+/* the log: type icon, the record and what happened, the type tag, then the time; tag and time line up row to row */
+.rows--log { margin: 0; padding: 0; list-style: none; }
+.rows--log .rows__item { align-items: center; justify-content: flex-start; border-top-color: var(--color-border-data); }
+.rows--log .rows__main { flex: 1 1 auto; }
+.rows--log .rows__kind { color: var(--color-text-muted); font-size: var(--text-sm); }
+.rows__type { flex: none; width: 112px; }
+.rows--log .rows__time { width: 128px; text-align: right; }
+.rows__empty { padding: var(--space-6) var(--space-4); font-size: var(--text-base); color: var(--color-text-muted); }
+/* a call just logged: marked until the next one */
+.data-table tr.is-new td, .rows--log .rows__item.is-new { background: var(--color-primary-soft); }
+/* a required field left empty: the message under it, and its edge in danger */
+.sheet .field__error, .dialog .field__error { display: none; align-items: center; gap: var(--space-1); font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-danger-fg); }
+.sheet .field.is-invalid .field__error, .dialog .field.is-invalid .field__error { display: flex; }
+.sheet .field.is-invalid .select, .sheet .field.is-invalid .input, .dialog .field.is-invalid .input { border-color: var(--color-danger-fg); }
+
+/* ---------- confirm dialog: Delete asks first and names the item (audit H6) ---------- */
+.dialog-scrim { position: absolute; z-index: 40; inset: 0; background: var(--color-scrim); }
+.dialog {
+  position: absolute; z-index: 41; top: 50%; left: 50%; transform: translate(-50%, -50%);   /* centred in the frame (the window, live) */
+  width: var(--crm-dialog-w); max-width: calc(100% - var(--space-8)); max-height: calc(100% - var(--space-8)); overflow-y: auto; padding: var(--space-5);
+  background: var(--color-sheet); border: var(--border-w) solid var(--color-border-data); border-radius: var(--radius-card); box-shadow: var(--shadow-popover);
+}
+.dialog__title { font-family: var(--font-heading); font-size: var(--text-lg); font-weight: var(--weight-medium); color: var(--color-text); }
+.dialog__body { margin-top: var(--space-2); font-size: var(--text-md); line-height: var(--leading-normal); color: var(--color-text-secondary); }
+.dialog__body strong { font-weight: var(--weight-medium); color: var(--color-text); }
+.dialog__foot { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-5); }
+/* a form dialog (C.formDialog): the fields stacked as in a sheet, the foot set off by a rule */
+.dialog__fields { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-5); }
+.dialog--form > .dialog__foot { padding-top: var(--space-4); border-top: var(--border-w) solid var(--color-border-data); }
+.btn--danger { background: var(--crm-danger-solid); border-color: var(--crm-danger-solid); color: var(--color-text-inverse); }
+.btn--danger:hover { opacity: 0.9; }
+
+/* ---------- campaigns: cards filtered All / Active / Closed, then a campaign's page ---------- */
+.console__inner > [data-panel].camp-panel { margin-top: 0; }   /* the list or the page: each starts at the top */
+.camp-panel > .camp-grid { margin-top: var(--space-5); }
+.sheet .filter-search { flex: none; max-width: none; }
+.camp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.camp {
+  display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); cursor: pointer;
+  background: var(--crm-card-bg); border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); transition: border-color var(--ease);
+}
+.camp:hover { border-color: var(--color-border-strong); }
+.camp__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.camp__name { font-family: var(--font-heading); font-size: var(--text-lg); }
+.camp__goal { font-size: var(--text-base); color: var(--color-text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.camp__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-5); margin-top: auto; font-size: var(--text-sm); color: var(--color-text-secondary); }
+.camp__meta .item { gap: 6px; }
+.camp__meta .icon { color: var(--color-text-muted); }
+.camp-empty { grid-column: 1 / -1; padding: var(--space-6); font-size: var(--text-base); color: var(--color-text-muted); text-align: center; border: var(--border-w) dashed var(--color-border-card); border-radius: var(--radius-card); }
+/* reps as a row of initials */
+.avatars { display: inline-flex; gap: 2px; }
+
+.camp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-3); }
+.camp-head__title { display: flex; align-items: center; gap: var(--space-3); }
+/* a page title that takes focus when the view changes (a campaign opens, Sequences loads) so a screen reader starts there:
+   it isn't a control, so no ring */
+.console__title[tabindex="-1"]:focus-visible { outline: none; }
+.camp-head__actions { flex: none; display: flex; align-items: center; gap: var(--space-2); }
+[data-panel] > .stats { margin-top: var(--space-5); }
+[data-panel] > .stats + .split, [data-panel] > .split + .records { margin-top: var(--space-5); }
+.split__col { display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; }
+.card-text { font-size: var(--text-md); color: var(--color-text-body); }
+/* the call script as today: monospace, line by line (audit M10, not decided, would move it to body text) */
+.script { margin: 0; font-family: var(--font-mono); font-size: var(--text-sm); line-height: 1.7; white-space: pre-wrap; color: var(--color-text-body); }
+.seq { display: flex; flex-direction: column; gap: var(--space-3); }
+.seq__name { font-size: var(--text-md); font-weight: var(--weight-medium); color: var(--color-text); }
+.seq__meta { margin-top: 2px; font-size: var(--text-sm); color: var(--color-text-secondary); }
+.seq .btn { align-self: flex-start; }
+.records .rows--plain .rows__item { padding-inline: var(--space-4); }
+
+/* enrol: a checklist of contacts with a search above it */
+.pick-list { margin: 0; padding: 0; list-style: none; border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); }
+.pick { display: flex; align-items: center; gap: var(--space-3); min-height: 52px; padding: var(--space-2) var(--space-3); cursor: pointer; }
+.pick-list > li + li { border-top: var(--border-w) solid var(--color-border-data); }
+.pick:hover { background: var(--color-surface-alt); }
+.pick__main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pick__name { font-size: var(--text-md); color: var(--color-text); }
+.pick__sub { font-size: var(--text-sm); color: var(--color-text-secondary); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sheet__count { font-size: var(--text-base); color: var(--color-text-secondary); }
+.sheet__count strong { font-weight: var(--weight-medium); color: var(--color-text); }
+.textarea.script { padding: var(--space-3); }
+/* a group of checkboxes in a form (assigned reps), two to a row */
+fieldset.field { margin: 0; padding: 0; border: 0; min-width: 0; }
+.checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2) var(--space-4); margin-top: var(--space-1); }
+.checks .check { color: var(--color-text-body); }
+
+/* ---------- sequences: cards, the performance table, and the touch editor in the Edit drawer ---------- */
+.console__inner > .seq-intro { margin-top: var(--space-4); max-width: 80ch; font-size: var(--text-base); color: var(--color-text-secondary); }
+.console__inner > .seq-grid { margin-top: var(--space-5); }
+.console__inner > .seq-grid + .records { margin-top: var(--space-6); }
+.seq-foot { font-size: var(--text-sm); color: var(--color-text-muted); }
+.seq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-4); }
+.seq-card {
+  display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-5);
+  background: var(--crm-card-bg); border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card);
+}
+.seq-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.seq-card__name { font-family: var(--font-heading); font-size: var(--text-lg); font-weight: var(--weight-medium); color: var(--color-text); }
+.seq-card__desc { font-size: var(--text-base); color: var(--color-text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.seq-card__meta { font-size: var(--text-sm); color: var(--color-text-secondary); }
+.seq-card__foot { display: flex; align-items: center; gap: var(--space-2); margin-top: auto; padding-top: var(--space-3); }
+/* touches: working day, type, task title and Remove on one line; notes for the task below */
+.touch-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--space-3); }
+.touch-list > .touch + .touch { padding-top: var(--space-3); border-top: var(--border-w) solid var(--color-border-data); }
+.touch { display: grid; grid-template-columns: 20px 64px 128px minmax(0, 1fr) 32px; gap: var(--space-2); align-items: center; }
+.touch__notes { grid-column: 2 / 5; min-height: 56px; }
+/* number field: the browser's spinner is replaced by two chevrons inside the field, in the app's icons */
+.stepper { position: relative; display: block; min-width: 0; }
+.stepper > .input { width: 100%; padding-right: 26px; -moz-appearance: textfield; appearance: textfield; }
+.stepper > .input::-webkit-inner-spin-button, .stepper > .input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.stepper__btns { position: absolute; top: 50%; right: 3px; transform: translateY(-50%); display: flex; flex-direction: column; width: 20px; }
+.stepper__btn { height: 12px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 4px; background: none; color: var(--color-text-secondary); cursor: pointer; }
+.stepper__btn:hover { background: var(--color-surface-alt); color: var(--color-text); }
+.stepper__btn--up .icon { transform: rotate(180deg); }
+.touch-empty { padding: var(--space-5); font-size: var(--text-base); color: var(--color-text-muted); text-align: center; border: var(--border-w) dashed var(--color-border-card); border-radius: var(--radius-card); }
+.touch-sum { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin-top: var(--space-3); padding-top: var(--space-3); border-top: var(--border-w) solid var(--color-border-data); font-size: var(--text-sm); color: var(--color-text-secondary); }
+.touch-sum__day { display: inline-flex; align-items: center; gap: var(--space-1); }
+.touch--head { margin-top: var(--space-1); font-size: var(--text-sm); color: var(--color-text-muted); }
+.touch__n { font-size: var(--text-sm); color: var(--color-text-muted); text-align: right; font-variant-numeric: tabular-nums; }
+.touch .btn--icon { color: var(--color-text-secondary); }
+.touch [data-touch-remove]:hover { color: var(--color-danger-fg); background: var(--color-danger-bg); }
+.touch .btn--icon:disabled { opacity: 0.35; cursor: default; }
+.touch-foot { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-1); }
+
+/* ---------- meetings: period and outcome, 6 figures for the period, then the meetings ---------- */
+.console__inner > .view-bar + .stats { margin-top: var(--space-4); }
+.console__inner > .stats + .records { margin-top: var(--space-5); }
+
+/* ---------- goals: a tab per month; a table per group (call activity, meetings, opportunities); each cell is the actual
+   against the goal, with a bar; the goal is a button that turns into a field (today's "click goal to edit") ---------- */
+.data-table--goals thead tr + tr th { top: var(--row-h); }   /* the second header row sticks under the first */
+.data-table--goals .col-group { border-left: var(--border-w) solid var(--color-border-data); }
+.data-table--goals th.col-group[colspan] { color: var(--color-text); }
+.data-table--goals td { padding-block: var(--space-3); }
+.goal { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.goal__nums { display: flex; align-items: baseline; gap: var(--space-2); min-height: 28px; }
+.goal__actual { font-weight: var(--weight-medium); color: var(--color-text); }
+.goal__of { display: inline-flex; align-items: baseline; gap: 4px; font-size: var(--text-sm); color: var(--color-text-secondary); }
+.goal__pct { margin-left: auto; font-size: var(--text-sm); color: var(--color-text-secondary); }
+.goal__edit {
+  margin: 0 -4px; padding: 2px 4px; border: 0; border-radius: var(--radius-input); background: none; cursor: pointer;
+  font: inherit; color: var(--color-link); text-decoration: underline dotted; text-underline-offset: 3px;
+}
+.goal__edit:hover { background: var(--color-surface-alt); text-decoration-style: solid; }
+.goal__input { width: 88px; height: 28px; padding: 0 var(--space-2); font-size: var(--text-sm); }
+.goal__input[aria-invalid="true"] { border-color: var(--color-danger-fg); }
+.goal__error { font-size: var(--text-xs); color: var(--color-danger-fg); }
+/* a month's panel: the three tables, conversion rates, then Your progress; a small caps label over each set of cards */
+.goal-panel, .goal-progress { display: flex; flex-direction: column; gap: var(--space-4); }
+.goal-panel > .records, .goal-panel .stats, .rate-grid > .records, .goal-camps > .records { margin-top: 0; }
+.goal-panel .section-title { margin-top: var(--space-6); }
+.goal-sub { margin-bottom: calc(var(--space-2) - var(--space-4)); font-size: var(--text-xs); font-weight: var(--weight-medium); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-secondary); }
+.rate-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); align-items: start; }
+.rate-list { display: flex; flex-direction: column; padding: var(--space-2) var(--space-4) var(--space-4); }
+.rate { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px var(--space-3); padding-block: var(--space-2); font-size: var(--text-base); }
+.rate .meter { grid-column: 1 / -1; }
+.rate__val { color: var(--color-text); }
+.stats--rates .stat__label { min-height: 2lh; align-items: flex-start; }   /* the longer names wrap; values stay on one line */
+/* Campaign activity: under the months, the same in each; the figures opposite the name, as live */
+.console__inner > .tabpanel + .section-title { margin-top: var(--space-8); }
+.goal-camps { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-3); }
+.goal-camp__title { display: flex; align-items: center; gap: var(--space-2); }
+.goal-camp__figs { flex: none; display: flex; gap: var(--space-6); text-align: right; }
+.goal-camp__figs dt { font-size: var(--text-xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-muted); }
+.goal-camp__figs dd { margin-top: 2px; font-family: var(--font-heading); font-size: var(--text-lg); font-weight: var(--weight-medium); color: var(--color-text); }
+/* New period: the confirm dialog's frame holding a short form (live's Year and Month, and a Copy goals check) */
+.dialog[hidden], .dialog-scrim[hidden] { display: none; }
+.dialog--form > .frow { margin-top: var(--space-5); }
+.dialog--form > .check { height: auto; margin-top: var(--space-4); }
+.dialog__fields .check { height: auto; }
+/* a field's Dropdown opens over the dialog it sits in */
+.dialog ~ .menu { z-index: 42; }
+/* Territories' Assign users: one person per line, their email and role under the name; the count sits left of the buttons */
+.checks--people { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin-top: 0; }
+.dialog--form .checks--people .check { align-items: flex-start; margin-top: 0; }
+.checks--people .checkbox { margin-top: 2px; }
+.check__text { display: flex; flex-direction: column; gap: 2px; }
+.check__text .check__note { font-size: var(--text-sm); }
+.dialog__foot .sheet__count { margin-right: auto; align-self: center; }
+.dialog .field.is-invalid .select { border-color: var(--color-danger-fg); }
+
+/* ---------- search: today's command palette over the page (header field or ⌘K); results grouped by type ---------- */
+.palette {
+  position: absolute; z-index: 41; top: calc(var(--header-h) + var(--space-6)); left: 50%; transform: translateX(-50%);
+  width: var(--crm-palette-w); max-width: calc(100% - var(--space-8));
+  background: var(--color-sheet); border: var(--border-w) solid var(--color-border-data); border-radius: var(--radius-card); box-shadow: var(--shadow-popover);
+  overflow: hidden;
+}
+.palette__bar { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); height: 56px; color: var(--color-text-secondary); }
+.palette__input { flex: 1 1 auto; min-width: 0; height: 100%; border: 0; background: none; outline: none; font: inherit; font-size: var(--text-md); color: var(--color-text); }
+.palette__input::placeholder { color: var(--color-text-muted); }
+.palette__bar:has(.palette__input:focus-visible) { box-shadow: inset 0 -2px 0 var(--color-primary); }
+.palette__body { border-top: var(--border-w) solid var(--color-border-data); }
+.palette__hint { padding: var(--space-4); font-size: var(--text-base); color: var(--color-text-muted); }
+.palette__list { max-height: var(--crm-palette-list-h); overflow-y: auto; padding: var(--space-2); }
+.palette__group + .palette__group { margin-top: var(--space-2); }
+.palette__label {
+  display: flex; justify-content: space-between; padding: var(--space-2) var(--space-2) var(--space-1);
+  font-size: var(--text-xs); font-weight: var(--weight-medium); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-muted);
+}
+.palette__label .num { letter-spacing: 0; text-transform: none; }
+.palette__item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2); border-radius: var(--radius-input); color: var(--color-text-body); text-decoration: none; }
+.palette__item[aria-selected="true"] { background: var(--color-surface-alt); box-shadow: inset 2px 0 0 var(--color-primary); }
+.palette__icon { flex: none; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--radius-input); background: var(--color-surface-alt); color: var(--color-text-secondary); }
+.palette__item[aria-selected="true"] .palette__icon { background: var(--color-primary-soft); color: var(--color-link); }
+.palette__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.palette__name { font-weight: var(--weight-medium); color: var(--color-text); }
+.palette__meta { font-size: var(--text-sm); color: var(--color-text-muted); }
+.palette__name, .palette__meta { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.palette mark { padding: 0; }   /* Harbor's highlight, without the side padding that splits words mid-match */
+.palette__foot { padding: var(--space-3) var(--space-4); border-top: var(--border-w) solid var(--color-border-data); font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* ---------- reports: period and errors toggle, opportunity errors when shown, closed deals, then two tables ---------- */
+.console__inner > .view-bar + .records { margin-top: var(--space-5); }
+.console__inner > .view-bar + .section-title, .console__inner > .view-bar + [hidden] + .section-title { margin-top: var(--space-6); }
+.section-title + .stats { margin-top: var(--space-3); }
+
+/* ---------- biz dev: period with its dates, three titled groups of figures, then two tables ---------- */
+.view-bar__note { font-size: var(--text-sm); color: var(--color-text-muted); }
+.stat-groups > .section-title { margin-top: var(--space-6); }
+.stat-groups + .records { margin-top: var(--space-6); }
+
+/* ---------- general, tools and admin pages ---------- */
+/* PhoneBurner and Import: one card, the width of a form rather than a table */
+.integration { max-width: var(--crm-integration-w); }
+.integration__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); border-top: var(--border-w) solid var(--color-border-card); }
+.integration__foot--end { justify-content: flex-end; }
+.integration__status { font-size: var(--text-base); color: var(--color-text-secondary); }
+.integration__status strong { font-weight: var(--weight-medium); color: var(--color-text); }
+/* a file field drawn by the page: the browser's button-and-name layout, in the app's words */
+.file-field { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.file-field > .btn:has(input:focus-visible) { outline: calc(var(--border-w) * 2) solid var(--color-focus); outline-offset: 2px; }
+.file-field__name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--text-base); color: var(--color-text-muted); }
+.file-field__name strong { font-weight: var(--weight-medium); color: var(--color-text); }
+/* Import: Download template sits centred against the title and its two-line description */
+.integration .card-head { align-items: center; }
+/* Import: the preview and the result's tables fit the card, and its figures sit in the card body */
+.integration .data-table { min-width: 0; }
+.integration .stats { margin-top: 0; }
+.imp-lead { margin-bottom: var(--space-3); font-size: var(--text-base); color: var(--color-text-secondary); }
+.imp-lead strong, .imp-sub__desc strong { font-weight: var(--weight-medium); color: var(--color-text); }
+.imp-note { margin-top: var(--space-2); font-size: var(--text-sm); color: var(--color-text-muted); }
+.imp-sub { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-3); }
+.imp-sub__title { font-family: var(--font-heading); font-size: var(--text-md); font-weight: var(--weight-medium); color: var(--color-text); }
+.imp-sub__desc { margin-top: 2px; font-size: var(--text-sm); color: var(--color-text-muted); }
+.imp-meter { margin-top: var(--space-2); }
+[data-imp-done]:focus { outline: none; }
+.sheet .dropzone:has(input:focus-visible) { outline: calc(var(--border-w) * 2) solid var(--color-focus); outline-offset: 2px; }
+.sheet .field.is-invalid .dropzone { border-color: var(--color-danger-fg); }
+/* Custom Fields: a stack of cards under the head, spaced like a single card */
+.console__inner > .console__head + .stack { margin-top: var(--space-5); }
+/* several people in one cell (Territories) */
+.people { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
+.data-table .item .badge { flex: none; }
+
+/* ---------- app mode (<html data-app>): the page is the product, not a sheet of states. The frame fills the window with no
+   card border or page margin, the sidebar and header stay put, and the content column scrolls ---------- */
+html[data-app] .page { max-width: none; }
+html[data-app] .state { padding: 0; }
+html[data-app] .state ~ .state, html[data-app] .state__label { display: none; }   /* only the live frame; ?states brings the sheet back */
+html[data-app] .app--crm { height: 100vh; min-height: 0; border: 0; border-radius: 0; }
+html[data-app] .app--crm .console { overflow-y: auto; }
+html[data-app] .app--crm .console__inner { flex: none; }   /* its natural height, so the column scrolls instead of squeezing */
+
+/* ---------- the contact form's lists (Phones, Emails, Vendor relationships): the rows as one bordered block, then a line to
+   add one. In the 420px form a phone's number, extension and type take the first line, Primary and the button the second ---------- */
+.multi__list { margin: 0; padding: 0; list-style: none; border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); }
+.multi__list[hidden], .multi__empty[hidden], .multi__error[hidden] { display: none; }
+.multi__row { display: flex; align-items: center; gap: var(--space-3); min-height: 44px; padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3); border-bottom: var(--border-w) solid var(--color-border); }
+.multi__row:last-child { border-bottom: 0; }
+.multi__value { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-base); color: var(--color-text); }
+.multi__type { flex: 1 1 auto; font-size: var(--text-sm); color: var(--color-text-secondary); }
+.multi__row .btn--icon { flex: none; color: var(--color-text-secondary); }
+.multi__row .btn--icon:hover { color: var(--color-text); }
+.multi__empty { margin: 0; font-size: var(--text-base); color: var(--color-text-muted); }
+.multi__error { margin: calc(-1 * var(--space-2)) 0 0; font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-danger-fg); }
+.multi__add { display: grid; gap: var(--space-3); align-items: center; }
+.multi__add--phone { grid-template-columns: minmax(0, 1fr) 80px 112px; grid-template-areas: "val ext kind" "pri pri go"; }
+.multi__add--email { grid-template-columns: minmax(0, 1fr) 112px; grid-template-areas: "val kind" "pri go"; }
+.multi__add--vendor { grid-template-columns: minmax(0, 1fr) 152px auto; grid-template-areas: "val kind go"; }
+.multi__val { grid-area: val; }
+.multi__ext { grid-area: ext; }
+.multi__kind { grid-area: kind; }
+.multi__primary { grid-area: pri; justify-self: start; font-size: var(--text-base); color: var(--color-text-body); }
+.multi__go { grid-area: go; }
+.multi__add--phone .multi__go, .multi__add--email .multi__go { justify-self: stretch; }
+/* New contact's one phone: the number takes the width, the extension a short box beside it */
+.phone-ext { display: grid; grid-template-columns: minmax(0, 1fr) 88px; gap: var(--space-2); }
+/* a value shown in place of a control the viewer can't change (a rep's Owner) */
+/* a file's extension before its name (Documents), one width for PDF, DOCX or ZIP, so the names line up */
+.file-ext { justify-content: center; width: calc(4ch + 2 * var(--space-2)); height: 20px; padding: 0; font-family: var(--font-mono); font-size: var(--text-xs); }
+.field__value { display: flex; align-items: center; min-height: var(--control-h); }
+/* the record lists each phone and email on its own line */
+.reach { display: block; }
+
+@media (prefers-reduced-motion: reduce) { .hsearch, .deal, .task__ring, .camp, .app--crm { transition: none; } }
+
+/* ---------- tag field in a form: chips for the chosen tags, a list of the existing ones (CRM.tagField) ---------- */
+.tagfield {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); min-height: var(--control-h); padding: 3px 3px 3px var(--space-2);
+  background: var(--color-surface-raised); border: var(--border-w) solid var(--color-border-control); border-radius: var(--radius-input); cursor: pointer;
+}
+.tagfield:hover { border-color: var(--color-text-muted); }
+.tagfield:has(.tagfield__open:focus-visible), .tagfield:has(.tagfield__open[aria-expanded="true"]) { border-color: var(--color-border-strong); box-shadow: var(--shadow-selected); }
+.tagfield__chips { display: contents; }
+.tag-cell { display: inline-flex; align-items: center; gap: var(--space-1); max-width: 100%; white-space: nowrap; vertical-align: middle; }
+/* a tag longer than the column ends in an ellipsis inside its own chip, so "+N" always shows and the cell never trails dots */
+.tag-cell > .badge:first-child { display: block; min-width: 0; line-height: 22px; overflow: hidden; text-overflow: ellipsis; }
+.tag-cell__more { flex: none; cursor: default; }
+.tag-dot { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--tag-blue); }
+.tag-cell > .badge:first-child .tag-dot { margin-right: var(--space-1); vertical-align: 0; }   /* that chip is a block, for the ellipsis */
+.tagfield__chip .tag-dot { margin-right: 2px; }
+.tag-dot--pink { background: var(--tag-pink); } .tag-dot--green { background: var(--tag-green); } .tag-dot--purple { background: var(--tag-purple); }
+.tag-dot--blue { background: var(--tag-blue); } .tag-dot--orange { background: var(--tag-orange); } .tag-dot--teal { background: var(--tag-teal); }
+.tag-dot--red { background: var(--tag-red); } .tag-dot--yellow { background: var(--tag-yellow); } .tag-dot--gray { background: var(--tag-gray); }
+/* a tag's colour in its form: a radio group drawn as dots; the picked one gets a ring */
+.swatches { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-1); }
+.swatch { position: relative; display: grid; place-items: center; width: 32px; height: 32px; border: 2px solid transparent; border-radius: 50%; cursor: pointer; transition: border-color var(--ease); }
+.swatch input { position: absolute; opacity: 0; pointer-events: none; }
+.swatch .tag-dot { width: 20px; height: 20px; }
+.swatch:hover { border-color: var(--color-border-strong); }
+.swatch:has(input:checked) { border-color: var(--color-text); }
+.swatch:has(input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.tag-preview { display: flex; margin-top: var(--space-1); }
+.tag-cell__more:focus-visible { outline: none; box-shadow: inset 0 0 0 var(--border-w) var(--color-border-strong); }
+.tagfield__chip { cursor: default; }
+.tagfield__chip .filter-btn__chip-text { max-width: 200px; }
+.tagfield__open {
+  flex: 1 1 32px; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); height: 32px; padding: 0 var(--space-2) 0 var(--space-1);
+  color: var(--color-text-muted); font-size: var(--text-md); text-align: left; outline: none;
+}
+.tagfield__open .icon { flex: none; color: var(--color-text-secondary); }
+.menu__search { display: flex; align-items: center; gap: var(--space-2); height: 32px; padding: 0 var(--space-3); color: var(--color-text-secondary); }
+.menu__search--top { position: sticky; top: calc(var(--space-1) * -1); z-index: 1; display: flex; align-items: center; gap: var(--space-2); height: 36px; margin: calc(var(--space-1) * -1) calc(var(--space-1) * -1) var(--space-1); padding: 0 var(--space-3); background: var(--color-sheet); border-bottom: var(--border-w) solid var(--color-border-data); color: var(--color-text-secondary); }
+.menu__search-input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; color: var(--color-text); font-size: var(--text-base); }
+.menu__search-input::placeholder { color: var(--color-text-muted); }
+/* a search that matches nothing: one muted line where the rows were */
+.menu__empty { display: flex; align-items: center; height: 32px; padding: 0 var(--space-3); color: var(--color-text-muted); font-size: var(--text-base); }
+.menu__create { color: var(--color-link); }
+.menu__create .icon { color: inherit; }

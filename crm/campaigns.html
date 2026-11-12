@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Campaigns</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Campaigns: today's cards (All / Active / Closed) and a campaign's page, in the Harbor theme.
+       Approved changes applied: Delete leaves the header for a ⋯ menu and asks first in a dialog that names the campaign
+       (H6; Edit stays a button). Delete can't be undone, so it has no Undo. Also: sidebar (H1), one date format (H4),
+       compact amounts (H5), and the campaign's page has its own address, campaigns.html?campaign=m1 (Back returns to the list).
+       As today: cards with title, status, goal, dates, reps and opportunities. The campaign's page as live: All campaigns,
+       dates and who created it, 4 figures (Opportunities, Pipeline, Open, Won), Goal, Background, Call script (a title, then
+       sections headed in capitals) and Expectations; beside them the follow-up sequence with Enroll contacts, Assigned reps
+       with their count and Progress by rep (opps, won, amount); Call activity (calls and share, with a total) under Expectations. The Enroll
+       drawer has live's wording and Replace checkbox. The call script stays monospace (M10 is not decided).
+       Assumed (not seen on live yet): the New / Edit campaign form.
+       State 1 is live: filter, open a campaign, Back, enrol contacts, delete (Cancel or confirm). -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · Campaigns: cards with status, goal, dates, reps and opportunities; live — open one, enrol contacts, delete</h2>
+    <div class="app app--console app--crm" id="app-1" data-url>
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="campaigns"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <!-- the list -->
+          <div data-panel="list" class="camp-panel">
+            <div class="console__head">
+              <div>
+                <h1 class="console__title">Campaigns</h1>
+                <p class="console__subtitle" data-camp-count></p>
+              </div>
+              <div class="console__actions">
+                <div class="segmented segmented--inline" role="group" aria-label="Status" data-camp-filter>
+                  <button type="button" class="segment is-active" aria-pressed="true" data-value="all">All</button>
+                  <button type="button" class="segment" aria-pressed="false" data-value="active">Active</button>
+                  <button type="button" class="segment" aria-pressed="false" data-value="closed">Closed</button>
+                </div>
+                <button type="button" class="btn btn--primary" data-sheet-open="sheet-form" data-new-campaign><span data-icon="plus"></span>New campaign</button>
+              </div>
+            </div>
+            <div class="camp-grid" data-render="cards" aria-live="polite"></div>
+          </div>
+
+          <!-- a campaign's page: drawn by detail() for the campaign in data-campaign -->
+          <div data-panel="detail" class="camp-panel" hidden></div>
+        </div>
+      </div>
+
+      <div class="sheet-scrim" hidden></div>
+      <aside class="sheet" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-form-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <form class="sheet__scroll" data-fill aria-labelledby="sheet-form-title"></form>
+        <div class="sheet__foot">
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-submit>Create campaign</button>
+        </div>
+      </aside>
+      <aside class="sheet" id="sheet-enroll" role="dialog" aria-modal="true" aria-labelledby="sheet-enroll-title" hidden>
+        <div class="sheet__bar"><span></span><button type="button" class="sheet__close" data-sheet-close aria-label="Close"><span data-icon="close"></span></button></div>
+        <div class="sheet__scroll" data-fill></div>
+        <div class="sheet__foot">
+          <span class="sheet__count" data-pick-count aria-live="polite"></span>
+          <span class="spacer"></span>
+          <button type="button" class="btn btn--ghost" data-sheet-close>Cancel</button>
+          <button type="button" class="btn btn--primary" data-enroll disabled>Enroll</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-closed">
+    <h2 class="state__label" id="state-closed">State 2 · Closed: the same cards, filtered to campaigns that have ended</h2>
+    <div data-clone="app-1" data-seg="closed"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-detail">
+    <h2 class="state__label" id="state-detail">State 3 · Campaign, as live: 4 figures; goal, background, call script, expectations; follow-up sequence, assigned reps, progress by rep; call activity under expectations (campaigns.html?campaign=m1)</h2>
+    <div data-clone="app-1" data-campaign="m1"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-menu">
+    <h2 class="state__label" id="state-menu">State 4 · More actions: Edit stays a button; Delete moves into the ⋯ menu</h2>
+    <div data-clone="app-1" data-campaign="m1" data-menu-open></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-confirm">
+    <h2 class="state__label" id="state-confirm">State 5 · Delete asks first: it names the campaign and says it can't be undone; focus starts on Cancel</h2>
+    <div data-clone="app-1" data-campaign="m1" data-confirm></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-deleted">
+    <h2 class="state__label" id="state-deleted">State 6 · Deleted: back on the list without it, and a message saying what was deleted</h2>
+    <div data-clone="app-1" data-deleted="m1"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-enroll">
+    <h2 class="state__label" id="state-enroll">State 7 · Enroll contacts: pick contacts for the campaign's follow-up sequence; Enroll shows how many</h2>
+    <div data-clone="app-1" data-campaign="m1" data-key="m1" data-show-sheet="sheet-enroll" data-picked="c05,c10,c16"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-enrolled">
+    <h2 class="state__label" id="state-enrolled">State 8 · Enrolled: the sequence's active count goes up, and a message confirms the sequence</h2>
+    <div data-clone="app-1" data-campaign="m1" data-enrolled="3"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-new">
+    <h2 class="state__label" id="state-new">State 9 · New campaign: name, status, dates, goal, background, call script, sequence and reps</h2>
+    <div data-clone="app-1" data-show-sheet="sheet-form"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-edit">
+    <h2 class="state__label" id="state-edit">State 10 · Edit campaign: the same form, filled in, opened from the campaign's Edit</h2>
+    <div data-clone="app-1" data-campaign="m1" data-key="m1" data-show-sheet="sheet-form"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var app = document.getElementById('app-1');
+  function put(name, html) { app.querySelectorAll('[data-render="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
+  function camp(id) { return D.campaigns.filter(function (k) { return k.id === id; })[0]; }
+  function seq(id) { return D.sequences.filter(function (q) { return q.id === id; })[0]; }
+  /* a sheet's id in this frame: copies of the live frame carry a -sN suffix */
+  function sid(frame, base) { return frame.querySelector('.sheet[id^="' + base + '"]').id; }
+
+  function badge(k) { return k.status === 'active' ? '<span class="badge badge--ok">Active</span>' : '<span class="badge badge--neutral">Closed</span>'; }
+  function range(k) { return C.date(k.start) + ' – ' + C.date(k.end); }
+  function avatars(ids) { return '<span class="avatars" aria-hidden="true">' + ids.map(function (r) { return '<span class="avatar avatar--sm">' + C.initials(C.rep(r).name) + '</span>'; }).join('') + '</span>'; }
+  function reps(k) { return Object.keys(k.byRep); }
+  /* the campaign's figures: sums over its reps (opportunities, won, amount, calls) */
+  function sums(k) {
+    var s = [0, 0, 0, 0];
+    reps(k).forEach(function (r) { k.byRep[r].forEach(function (n, i) { s[i] += n; }); });
+    return { opps: s[0], won: s[1], amount: s[2], calls: s[3] };
+  }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many || one + 's'); }
+
+  /* ---------- the list ---------- */
+  function card(k) {
+    var n = sums(k), names = reps(k).map(function (r) { return C.rep(r).name; }).join(', ');
+    return '<article class="camp" data-camp="' + k.id + '" data-status="' + k.status + '">' +
+      '<div class="camp__head"><a class="link link--quiet camp__name" href="campaigns.html?campaign=' + k.id + '" data-campaign-link="' + k.id + '">' + esc(k.name) + '</a>' + badge(k) + '</div>' +
+      '<p class="camp__goal">' + esc(k.goal) + '</p>' +
+      '<div class="camp__meta">' +
+        '<span class="item">' + C.icon('calendar', 14) + '<span>' + range(k) + '</span></span>' +
+        '<span class="item" title="' + esc(names) + '">' + avatars(reps(k)) + '<span>' + plural(reps(k).length, 'rep') + '</span></span>' +
+        '<span class="item">' + C.icon('board', 14) + '<span>' + plural(n.opps, 'opportunity', 'opportunities') + '</span></span>' +
+      '</div></article>';
+  }
+  put('cards', D.campaigns.map(card).join(''));
+
+  function filterCards(frame) {
+    var shown = 0, grid = frame.querySelector('[data-render="cards"]');
+    grid.querySelectorAll('.camp').forEach(function (el) {
+      var ok = !frame._deleted[el.dataset.camp] && (frame._seg === 'all' || el.dataset.status === frame._seg);
+      el.hidden = !ok; if (ok) shown++;
+    });
+    var old = grid.querySelector('.camp-empty'); if (old) old.remove();
+    /* the subtitle counts the cards showing, like live's count: it follows the status filter and drops on a delete (no pager here) */
+    frame.querySelector('[data-camp-count]').innerHTML = '<span class="console__figure">' + shown + '</span> ' + (shown === 1 ? 'campaign' : 'campaigns');
+    if (!shown) grid.insertAdjacentHTML('beforeend', '<p class="camp-empty">No ' + (frame._seg === 'all' ? '' : frame._seg + ' ') + 'campaigns.</p>');
+    frame.querySelectorAll('[data-camp-filter] .segment').forEach(function (b) { var on = b.dataset.value === frame._seg; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', on); });
+  }
+  document.addEventListener('crm:segment', function (e) {
+    if (!e.target.hasAttribute('data-camp-filter')) return;
+    var frame = e.target.closest('.app'); frame._seg = e.detail.value; filterCards(frame);
+  });
+
+  /* ---------- a campaign's page ---------- */
+  function stat(label, value, meta, extra) {
+    return '<div class="stat"><span class="stat__label">' + label + '</span><span class="stat__value">' + value + '</span>' + (extra || '') + (meta ? '<span class="stat__meta">' + meta + '</span>' : '') + '</div>';
+  }
+  function textCard(title, body) {
+    return '<section class="records"><div class="card-head"><div><h2 class="card-head__title">' + title + '</h2></div></div><div class="card-body">' + body + '</div></section>';
+  }
+  function detail(frame, id) {
+    var k = camp(id), n = sums(k), q = seq(k.sequence), by = k.byRep, hid = 'cp' + (++seqN);   /* heading ids, one set per frame */
+    frame.querySelector('[data-panel="detail"]').innerHTML =
+      '<a class="link back-link" href="campaigns.html" data-to-list>' + C.icon('chevron-left', 16) + 'All campaigns</a>' +
+      '<div class="camp-head">' +
+        '<div><div class="camp-head__title"><h1 class="console__title" tabindex="-1" data-detail-title>' + esc(k.name) + '</h1>' + badge(k) + '</div>' +
+          '<p class="console__subtitle">' + range(k) + ' · created by ' + esc(C.rep(k.createdBy).name) + '</p></div>' +
+        '<div class="camp-head__actions">' +
+          '<button type="button" class="btn btn--secondary" data-sheet-open="' + sid(frame, 'sheet-form') + '" data-key="' + k.id + '">' + C.icon('pencil', 16) + 'Edit</button>' +
+          '<button type="button" class="btn btn--secondary btn--icon" data-menu="campaign" data-key="' + k.id + '" aria-haspopup="menu" aria-expanded="false" aria-label="More actions for ' + esc(k.name) + '">' + C.icon('more', 16) + '</button>' +
+        '</div></div>' +
+      '<div class="stats" style="--cols: 4">' +
+        /* live's 4 figures, in one money format: live's "count · amount" becomes the amount, with the count under it.
+           Calls are in Call activity, as live */
+        stat('Opportunities', C.count(n.opps)) +
+        stat('Pipeline', C.moneyShort(n.amount)) +
+        stat('Open', C.moneyShort(k.pipeline), plural(n.opps - n.won - k.lost, 'opportunity', 'opportunities')) +
+        stat('Won', C.moneyShort(k.wonValue), plural(n.won, 'opportunity', 'opportunities')) +
+      '</div>' +
+      '<div class="split">' +
+        '<div class="split__col">' +
+          textCard('Goal', '<p class="card-text">' + esc(k.goal) + '</p>') +
+          textCard('Background', '<p class="card-text">' + esc(k.background) + '</p>') +
+          textCard('Call script', '<p class="script">' + esc(k.script) + '</p>') +
+          textCard('Expectations', '<p class="card-text">' + esc(k.expectations) + '</p>') +
+          /* the effort per rep, under the campaign's text: as wide as Goal and Expectations */
+          '<section class="records" aria-labelledby="' + hid + '-calls' + '"><div class="card-head"><div><h2 class="card-head__title" id="' + hid + '-calls' + '">Call activity</h2></div>' +
+            '<span class="card-head__aside">' + range(k) + '</span></div>' +   /* the period opposite the title, as live */
+            '<div class="table-wrap"><table class="data-table data-table--fit data-table--pipe"><thead><tr>' +
+              '<th scope="col">Rep</th><th scope="col" class="cell--right" style="width: 88px">Calls</th><th scope="col" style="width: 360px">Share</th>' +
+            '</tr></thead><tbody>' + reps(k).map(function (r) {
+              return '<tr><td>' + C.person(r) + '</td><td class="cell--right num">' + C.count(by[r][3]) + '</td><td>' + C.meterCell(C.pct(by[r][3], n.calls)) + '</td></tr>';
+            }).join('') + '</tbody><tfoot><tr><th scope="row">Total</th><td class="cell--right num">' + C.count(n.calls) + '</td><td></td></tr></tfoot></table></div></section>' +
+        '</div>' +
+        '<div class="split__col">' +
+          textCard('Follow-up sequence', '<div class="seq"><div><div class="seq__name">' + esc(q.name) + '</div>' +
+            '<div class="seq__meta">' + plural(q.steps.length, 'touch', 'touches') + ' · ' + C.count(q.active + (frame._enrolled[k.id] || 0)) + ' active</div></div>' +
+            '<button type="button" class="btn btn--primary btn--sm" data-sheet-open="' + sid(frame, 'sheet-enroll') + '" data-key="' + k.id + '">' + C.icon('plus', 16) + 'Enroll contacts</button></div>') +
+          '<section class="records"><div class="card-head"><div><h2 class="card-head__title">Assigned reps (' + reps(k).length + ')</h2></div></div>' +
+            '<ul class="rows rows--plain">' + reps(k).map(function (r) {
+              return '<li class="rows__item">' + C.person(r) + '<span class="rows__side">' + esc(D.roles[C.rep(r).role]) + '</span></li>';
+            }).join('') + '</ul></section>' +
+          /* outcomes per rep here; effort per rep (Call activity) sits under Expectations. Tables as Biz Dev's */
+          '<section class="records" aria-labelledby="' + hid + '-prog' + '"><div class="card-head"><div><h2 class="card-head__title" id="' + hid + '-prog' + '">Progress by rep</h2></div></div>' +
+            '<div class="table-wrap"><table class="data-table data-table--fit data-table--pipe"><thead><tr>' +
+              '<th scope="col">Rep</th><th scope="col" class="cell--right">Opps</th><th scope="col" class="cell--right">Won</th><th scope="col" class="cell--right">Amount</th>' +
+            '</tr></thead><tbody>' + reps(k).map(function (r) {
+              return '<tr><td>' + C.person(r) + '</td><td class="cell--right num">' + by[r][0] + '</td><td class="cell--right num">' + by[r][1] + '</td><td class="cell--right num">' + C.moneyShort(by[r][2]) + '</td></tr>';
+            }).join('') + '</tbody></table></div></section>' +
+        '</div>' +
+      '</div>';
+  }
+
+  /* ---------- the list or a campaign's page, with its own address ---------- */
+  function param() { var p = new URLSearchParams(location.search).get('campaign'); return p && camp(p) ? p : null; }
+  function setView(frame, id) {
+    if (id && frame._deleted[id]) id = null;
+    frame.dataset.campaign = id || '';
+    frame.querySelector('[data-panel="list"]').hidden = !!id;
+    frame.querySelector('[data-panel="detail"]').hidden = !id;
+    if (id) detail(frame, id); else frame.querySelector('[data-panel="detail"]').innerHTML = '';
+  }
+  function go(frame, id, mode) {
+    setView(frame, id);
+    if (frame.hasAttribute('data-url')) {
+      var u = new URL(location.href); if (id) u.searchParams.set('campaign', id); else u.searchParams.delete('campaign');
+      history[mode === 'replace' ? 'replaceState' : 'pushState']({ crmCampaign: id }, '', u);
+    }
+    var f = id ? frame.querySelector('[data-detail-title]') : frame.querySelector('.console__title');
+    if (f) { f.tabIndex = -1; f.focus(); }
+  }
+  window.addEventListener('popstate', function () { setView(app, param()); });
+
+  /* ---------- Delete: ⋯ menu, then a confirm dialog that names the campaign (H6) ---------- */
+  C.menus.campaign = [{ id: 'delete', label: 'Delete campaign', icon: 'trash', danger: true }];
+  function askDelete(frame, id, opts) {
+    var k = camp(id);
+    return C.confirm(frame, {
+      title: 'Delete this campaign?',
+      body: '<strong>' + esc(k.name) + '</strong> will be deleted for everyone, with its goal, call script and progress by rep. This can\'t be undone.',
+      action: 'Delete campaign',
+      onConfirm: function () { remove(frame, id); }
+    }, opts);
+  }
+  /* the campaign's page is gone, so its address is replaced (Back must not return to it) */
+  function remove(frame, id) {
+    frame._deleted[id] = true; filterCards(frame);
+    go(frame, null, 'replace');
+    C.toast(frame, 'Campaign deleted · ' + camp(id).name);
+  }
+  document.addEventListener('crm:menu', function (e) {
+    if (e.detail.action === 'delete' && e.target.dataset.menu === 'campaign') askDelete(e.target.closest('.app'), e.detail.key);
+  });
+
+  /* ---------- Enroll contacts into the campaign's follow-up sequence ---------- */
+  C.fill['sheet-enroll'] = function (sheet, key) {
+    var k = camp(key || sheet.closest('.app').dataset.campaign), q = seq(k.sequence), id = sheet.id;
+    sheet.dataset.campaign = k.id;
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">Enroll contacts</h2>' +
+        '<p class="sheet__sub">Into <strong class="console__figure">' + esc(q.name) + '</strong> \u2014 everyone starts at day 1.</p></header>' +
+      /* live's option, ticked as live: enrolling replaces a contact's current sequence. A checkbox, not a switch: it applies
+         on Enroll. Above the list, which scrolls with the drawer, so it stays in view */
+      '<label class="check"><input type="checkbox" class="checkbox" checked data-replace> Replace contacts already in another sequence</label>' +
+      '<div class="filter-search"><label class="sr-only" for="' + id + '-q">Search contacts</label><span data-icon aria-hidden="true">' + C.icon('search', 16) + '</span>' +
+        '<input class="input" id="' + id + '-q" type="search" placeholder="Search contacts by name, title, phone, email\u2026" data-pick-search data-autofocus></div>' +
+      '<ul class="pick-list">' + D.contacts.map(function (c) {
+        /* the search matches what live's does (name, title, phone, email) plus the company shown; phone also as digits */
+        var find = [c.name, c.title, C.by.account[c.account].name, c.phone, c.phone.replace(/\D/g, ''), c.email + '@' + C.by.account[c.account].domain].join(' ').toLowerCase();
+        return '<li data-search="' + esc(find) + '"><label class="pick"><input type="checkbox" class="checkbox" value="' + c.id + '" data-pick>' +
+          '<span class="pick__main"><span class="pick__name">' + esc(c.name) + '</span><span class="pick__sub">' + esc(c.title) + ' · ' + esc(C.by.account[c.account].name) + '</span></span></label></li>';
+      }).join('') + '</ul>';
+    picked(sheet);
+  };
+  function picked(sheet) {
+    var n = sheet.querySelectorAll('[data-pick]:checked').length;
+    sheet.querySelector('[data-pick-count]').innerHTML = '<strong>' + n + '</strong> selected';   /* "0 selected" as live */
+    var b = sheet.querySelector('[data-enroll]'); b.disabled = !n; b.textContent = n ? 'Enroll ' + plural(n, 'contact') : 'Enroll';
+    return n;
+  }
+  function enrolled(frame, id, n, opts) {
+    frame._enrolled[id] = (frame._enrolled[id] || 0) + n;
+    if (frame.dataset.campaign === id) detail(frame, id);
+    C.toast(frame, plural(n, 'contact') + ' enrolled in “' + seq(camp(id).sequence).name + '”', null, opts);
+  }
+  document.addEventListener('change', function (e) { if (e.target.matches('[data-pick]')) picked(e.target.closest('.sheet')); });
+  document.addEventListener('input', function (e) {
+    if (!e.target.matches('[data-pick-search]')) return;
+    var q = e.target.value.trim().toLowerCase();
+    e.target.closest('.sheet').querySelectorAll('.pick-list > li').forEach(function (li) { li.hidden = !!q && li.dataset.search.indexOf(q) < 0; });
+  });
+
+  /* ---------- New / Edit campaign ---------- */
+  function field(id, label, control, req) { return '<div class="field"><label class="field__label" for="' + id + '">' + label + (req ? '<span class="field__req" aria-hidden="true">*</span>' : '') + '</label>' + control + '</div>'; }
+  function input(id, value, extra) { return '<input class="input" id="' + id + '" value="' + esc(value || '') + '"' + (extra || '') + '>'; }
+  function area(id, value, rows, cls) { return '<textarea class="input textarea' + (cls ? ' ' + cls : '') + '" id="' + id + '" rows="' + rows + '">' + esc(value || '') + '</textarea>'; }
+  function select(id, pairs, value) {
+    return '<span class="input-wrap"><select class="select" id="' + id + '">' + pairs.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === value ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>' + C.icon('chevron', 16) + '</span>';
+  }
+  function fullDate(iso) { var s = C.date(iso); return s.indexOf(',') < 0 ? s + ', ' + iso.slice(0, 4) : s; }
+  var seqN = 0;
+  C.fill['sheet-form'] = function (sheet, key) {
+    var k = key ? camp(key) : null, id = 'f' + (++seqN), mine = k ? reps(k) : [];
+    sheet.querySelector('[data-fill]').innerHTML =
+      '<header><h2 class="sheet__title" id="' + sheet.getAttribute('aria-labelledby') + '">' + (k ? 'Edit campaign' : 'New campaign') + '</h2>' +
+        (k ? '<p class="sheet__sub">' + esc(k.name) + '</p>' : '') + '</header>' +
+      '<div class="fgroup">' +
+        field(id + '-name', 'Name', input(id + '-name', k && k.name, ' aria-required="true"' + (k ? '' : ' data-autofocus')), true) +
+        field(id + '-status', 'Status', select(id + '-status', [['active', 'Active'], ['closed', 'Closed']], k ? k.status : 'active')) +
+        '<div class="frow">' + field(id + '-start', 'Start date', input(id + '-start', k && fullDate(k.start))) + field(id + '-end', 'End date', input(id + '-end', k && fullDate(k.end))) + '</div>' +
+        field(id + '-goal', 'Goal', area(id + '-goal', k && k.goal, 2)) +
+        field(id + '-bg', 'Background', area(id + '-bg', k && k.background, 3)) +
+        field(id + '-script', 'Call script', area(id + '-script', k && k.script, 6, 'script')) +
+        field(id + '-exp', 'Expectations', area(id + '-exp', k && k.expectations, 2)) +
+        field(id + '-seq', 'Follow-up sequence', select(id + '-seq', D.sequences.map(function (q) { return [q.id, q.name]; }), k ? k.sequence : D.sequences.filter(function (q) { return q.isDefault; })[0].id)) +
+        /* the reps working it: the shared people picker (chips with ×, a searchable checkbox list), as Additional owners */
+        '<div class="field"><label class="field__label" for="' + id + '-reps">Assigned reps</label>' +
+          C.peopleField(id + '-reps', mine, D.reps.filter(function (r) { return r.status === 'active'; }).map(function (r) { return r.id; })) + '</div>' +
+      '</div>';
+    sheet.querySelector('[data-submit]').textContent = k ? 'Save changes' : 'Create campaign';
+  };
+
+  document.addEventListener('click', function (e) {
+    var t = e.target, frame = t.closest('.app'); if (!frame || !frame._deleted) return;
+    var plain = !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.button === 0;
+    var ln = t.closest('[data-campaign-link]');
+    if (ln) { if (plain) { e.preventDefault(); go(frame, ln.dataset.campaignLink); } return; }
+    var cd = t.closest('.camp');
+    if (cd && !t.closest('a, button')) { go(frame, cd.dataset.camp); return; }
+    var bk = t.closest('[data-to-list]');
+    if (bk && plain) { e.preventDefault(); if (frame.hasAttribute('data-url') && history.state && history.state.crmCampaign) history.back(); else go(frame, null); return; }
+    var en = t.closest('[data-enroll]');
+    if (en) { var sh = en.closest('.sheet'), n = sh.querySelectorAll('[data-pick]:checked').length; C.close(sh); enrolled(frame, sh.dataset.campaign, n); }
+  });
+
+  C.boot();
+
+  /* every frame: its own filter, deletions, enrolments and view; the live frame follows the address */
+  document.querySelectorAll('.app').forEach(function (f) {
+    f._deleted = {}; f._enrolled = {}; f._seg = f.dataset.seg || 'all';
+    if (f.dataset.deleted) f._deleted[f.dataset.deleted] = true;
+    filterCards(f);
+    setView(f, f === app ? param() : f.dataset.campaign || null);
+  });
+  if (param()) history.replaceState({ crmCampaign: param() }, '', location.href);
+
+  /* drawn states */
+  document.querySelectorAll('.app[data-menu-open]').forEach(function (f) { C.openMenu(f.querySelector('[data-menu="campaign"]'), { focus: false }); });
+  document.querySelectorAll('.app[data-confirm]').forEach(function (f) { askDelete(f, f.dataset.campaign, { focus: false }); });
+  document.querySelectorAll('.app[data-deleted]').forEach(function (f) { C.toast(f, 'Campaign deleted · ' + camp(f.dataset.deleted).name, null, { sticky: true }); });
+  document.querySelectorAll('.app[data-picked]').forEach(function (f) {
+    var sh = f.querySelector('.sheet:not([hidden])');
+    f.dataset.picked.split(',').forEach(function (c) { sh.querySelector('[data-pick][value="' + c + '"]').checked = true; });
+    picked(sh);
+  });
+  document.querySelectorAll('.app[data-enrolled]').forEach(function (f) { enrolled(f, f.dataset.campaign, +f.dataset.enrolled, { sticky: true }); });
+})();
+</script>
+</body>
+</html>

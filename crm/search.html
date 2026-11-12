@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Search</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Search: today's command palette, here over the Dashboard. It opens from the header field or ⌘K on every page
+       (CRM.palette in crm.js); this page only shows its states.
+       Approved changes applied: the header search stays on screen at 1280px, with ⌘K shown in it (H1), and results link
+       to record URLs (H3).
+       As today: a palette over the page, one field, "Type at least 2 characters to search", Esc closes.
+       Not seen during discovery (nothing was typed), so assumed: contacts, accounts and opportunities, grouped by type
+       (as audit M9 proposes; undecided), at most 5 per type with "5 of 8", the match marked, the no-results line,
+       ↑ ↓ and Enter. The live palette had no dialog role; this one is a dialog with a combobox.
+       State 1 is live: type, move with ↑ ↓, Enter or click opens the record; Esc closes; ⌘K or the header field opens it. -->
+  <section class="state" aria-labelledby="state-open">
+    <h2 class="state__label" id="state-open">State 1 · Open: the field takes focus and asks for 2 characters; live — type to search, Esc closes, ⌘K reopens</h2>
+    <div class="app app--console app--crm" id="app-1" data-pal-open>
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="dashboard"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title" data-render="greeting"></h1>
+              <p class="console__subtitle" data-render="today"></p>
+            </div>
+          </div>
+          <div class="stats" style="--cols: 4" data-render="stats"></div>
+        </div>
+      </div>
+      <div class="sheet-scrim" hidden></div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-results">
+    <h2 class="state__label" id="state-results">State 2 · Results: “water” finds 2 contacts, 2 accounts and 2 opportunities, grouped by type, the first one ready for Enter</h2>
+    <div data-clone="app-1" data-pal-open data-q="water"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-many">
+    <h2 class="state__label" id="state-many">State 3 · Many results: “ri” shows 5 of each type and asks for more letters; ↓ has moved to the third result</h2>
+    <div data-clone="app-1" data-pal-open data-q="ri" data-active="2"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-none">
+    <h2 class="state__label" id="state-none">State 4 · No results: says what was searched and what to try</h2>
+    <div data-clone="app-1" data-pal-open data-q="brightwatr"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, T = D.totals, esc = C.esc;
+  function put(name, html) { document.querySelectorAll('[data-render="' + name + '"]').forEach(function (el) { el.innerHTML = html; }); }
+  function stat(label, value, meta) { return '<div class="stat"><span class="stat__label">' + label + '</span><span class="stat__value">' + value + '</span><span class="stat__meta">' + meta + '</span></div>'; }
+
+  /* the Dashboard's head and figures, behind the palette */
+  put('greeting', 'Good morning, ' + esc(C.me().name.split(' ')[0]));
+  put('today', 'Monday, ' + C.date(D.today));
+  put('stats',
+    stat('Open opportunities', C.count(T.openOpps), 'Across ' + D.stages.filter(function (s) { return !s.closed; }).length + ' open stages') +
+    stat('Pipeline value', C.moneyShort(T.pipeline), 'Open deals, all owners') +
+    stat('Due today', T.tasks.today, C.count(T.tasks.overdueRecent + T.tasks.overdueOlder) + ' overdue') +
+    stat('Activities this week', T.activitiesThisWeek, 'Since Monday, all reps'));
+
+  C.boot();
+
+  /* each state opens the palette with its query; only the live one takes focus */
+  document.querySelectorAll('.app[data-pal-open]').forEach(function (f) {
+    C.palette(f, { query: f.dataset.q || '', active: +(f.dataset.active || 0), focus: f.id === 'app-1' });
+  });
+})();
+</script>
+</body>
+</html>

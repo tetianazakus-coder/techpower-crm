@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Goals</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Goals: live's sections in the Harbor theme. A tab per month, newest first, and New period; per month, a table per
+       group (Call activity: dials, conversations, emails sent; Meetings: scheduled, held, qualified, good; Opportunities:
+       created, qualified, won), each cell the actual against the goal with a bar, the goal changed in place by selecting
+       it (today's "Click goal to edit"); Conversion rates per rep (call, meeting and opportunity conversions); Your
+       progress, the viewer's own goals, when they have any; and Campaign activity, the active campaigns by rep.
+       Changed from live: a cell carries goal, actual, percentage and bar in one; the show rate is held ÷ held and no
+       shows, as Biz Dev's attendance, since a meeting booked last month can be held this month (live's held ÷ scheduled
+       passes 100%); emails per conversation reads as a ratio ("2.4"), not a percentage; Your progress also has meetings
+       and the call conversions, which live leaves out; New period is a modal, as live, with live's Year and Month as
+       Dropdowns: Year offers this year and next, and a month with goals is greyed in
+       the list. Copy the latest month's goals is an addition, off by default as live starts a period empty.
+       Assumed: how the in-place edit behaves (Enter or leaving the field saves, Esc cancels, a whole number above 0), and
+       that a good meeting is a qualified one sales took on (Biz Dev's Sales accepted).
+       State 1 is live: switch month, change a goal, create a period. -->
+  <section class="state" aria-labelledby="state-nov">
+    <h2 class="state__label" id="state-nov">State 1 · November: each rep's actuals against their goals for the month so far, conversion rates and campaign activity; live — switch month, change a goal, create a period</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="goals"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Goals</h1>
+              <p class="console__subtitle">Each rep's monthly goals for calls, meetings and opportunities, and how far they've got.</p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" aria-haspopup="dialog" aria-controls="period-dlg" data-period-open><span data-icon="plus"></span>New period</button>
+            </div>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Month" data-render="tabs"></div>
+          <div class="section-title" data-anchor="camps"><h2>Campaign activity</h2><p>Active campaigns, since each one started</p></div>
+          <div class="goal-camps" data-render="camps"></div>
+        </div>
+      </div>
+      <div class="dialog-scrim" data-period-scrim hidden></div>
+      <div class="dialog dialog--form" id="period-dlg" role="dialog" aria-modal="true" aria-labelledby="period-dlg-title" aria-describedby="period-dlg-desc" data-period-dlg hidden></div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-oct">
+    <h2 class="state__label" id="state-oct">State 2 · October: a finished month, the same tables</h2>
+    <div data-clone="app-1" data-month="2026-10"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-editing">
+    <h2 class="state__label" id="state-editing">State 3 · Changing a goal: the goal turns into a field; Enter saves, Esc cancels</h2>
+    <div data-clone="app-1" data-editing="2026-11:mb:0"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-invalid">
+    <h2 class="state__label" id="state-invalid">State 4 · Not a goal: an empty or zero goal isn't saved, and the field says why</h2>
+    <div data-clone="app-1" data-editing="2026-11:tb:1" data-invalid></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-saved">
+    <h2 class="state__label" id="state-saved">State 5 · Saved: the new goal, the percentage and the bar update, and a message confirms it</h2>
+    <div data-clone="app-1" data-saved="2026-11:mb:0:450"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-form">
+    <h2 class="state__label" id="state-form">State 6 · New period: live's Year and Month; in the Month list, September to November have goals and are greyed, and December, the first free one, is picked</h2>
+    <div data-clone="app-1" data-show-period></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-created">
+    <h2 class="state__label" id="state-created">State 7 · Period created: December opens first, with November's goals and nothing done yet</h2>
+    <div data-clone="app-1" data-created="2026-12"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-blank">
+    <h2 class="state__label" id="state-blank">State 8 · Period created blank: every goal reads Set goal</h2>
+    <div data-clone="app-1" data-created="2026-12" data-blank></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-rates">
+    <h2 class="state__label" id="state-rates">State 9 · Conversion rates: per rep, for the month; a dash where there's nothing to divide by</h2>
+    <div data-clone="app-1" data-scroll="rates"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-progress">
+    <h2 class="state__label" id="state-progress">State 10 · Your progress, as Marcus Bell (Sales Rep): his own goals for the month and his conversion rates</h2>
+    <div data-clone="app-1" data-as="mb" data-scroll="progress"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-camps">
+    <h2 class="state__label" id="state-camps">State 11 · Campaign activity: each active campaign's calls, opportunities, wins and pipeline by rep</h2>
+    <div data-clone="app-1" data-scroll="camps"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc, M = D.goalMetrics, G = D.goalGroups, NOW = D.today.slice(0, 7);
+  var app = document.getElementById('app-1');
+  var SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var SOURCE = { calls: 'From PhoneBurner', meetings: 'From the Meetings list', opps: 'From Opportunities' };
+  function mon(id, long) { return (long ? LONG : SHORT)[+id.slice(5) - 1] + ' ' + id.slice(0, 4); }
+  function monthId(y, m) { return y + '-' + (m < 10 ? '0' : '') + m; }
+  function full(i) { return M[i].full || M[i].name; }
+  function cols(group) { return M.map(function (m, i) { return i; }).filter(function (i) { return M[i].group === group; }); }
+  /* every frame changes its own copy of the goals, made on first use */
+  function goals(frame) { return frame._goals || (frame._goals = JSON.parse(JSON.stringify(D.goals))); }
+  function per(frame, id) { return goals(frame).filter(function (g) { return g.id === id; })[0]; }
+  function latest(frame) { var g = goals(frame); return g[g.length - 1]; }
+  function viewer(frame) { return frame.dataset.as || C.me().id; }
+
+  /* ---------- a tab and an empty panel per month, newest first; drawn before boot so copies get their own ids ---------- */
+  function tab(id) { return '<button type="button" class="tab" role="tab" id="tab-' + id + '" aria-controls="panel-' + id + '" aria-selected="false" tabindex="-1" data-month-tab="' + id + '">' + mon(id) + '</button>'; }
+  function shell(id) { return '<div class="tabpanel goal-panel" role="tabpanel" id="panel-' + id + '" aria-labelledby="tab-' + id + '" data-month-panel="' + id + '" hidden></div>'; }
+  var months = D.goals.map(function (g) { return g.id; }).reverse();
+  var tl = app.querySelector('[data-render="tabs"]');
+  tl.innerHTML = months.map(tab).join('');
+  tl.insertAdjacentHTML('afterend', months.map(shell).join(''));
+
+  /* ---------- Campaign activity: the active campaigns, as live; the same in every month ---------- */
+  function campCard(k) {
+    var reps = Object.keys(k.byRep), t = [0, 0, 0, 0];   /* byRep: opportunities, won, pipeline, calls */
+    reps.forEach(function (r) { k.byRep[r].forEach(function (n, i) { t[i] += n; }); });
+    function row(head, n) {
+      return '<tr>' + head + '<td class="cell--right num">' + C.count(n[3]) + '</td><td class="cell--right num">' + n[0] + '</td><td class="cell--right num">' + n[1] + '</td><td class="cell--right num">' + C.moneyShort(n[2]) + '</td></tr>';
+    }
+    return '<section class="records" aria-labelledby="camp-' + k.id + '">' +
+      '<div class="card-head"><div>' +
+        '<div class="goal-camp__title"><h3 class="card-head__title" id="camp-' + k.id + '"><a class="link link--quiet" href="campaigns.html?campaign=' + k.id + '">' + esc(k.name) + '</a></h3><span class="badge badge--ok">Active</span></div>' +
+        '<p class="card-head__desc">' + C.date(k.start) + ' – ' + C.date(k.end) + '</p></div>' +
+        '<dl class="goal-camp__figs"><div><dt>Pipeline</dt><dd class="num">' + C.moneyShort(t[2]) + '</dd></div><div><dt>Won</dt><dd class="num">' + t[1] + '</dd></div></dl>' +
+      '</div>' +
+      '<div class="card-body"><p class="card-text">' + esc(k.goal) + '</p></div>' +
+      '<div class="table-wrap"><table class="data-table data-table--fit data-table--pipe"><thead><tr>' +
+        '<th scope="col">Rep</th><th scope="col" class="cell--right" style="width: 120px">Calls</th><th scope="col" class="cell--right" style="width: 120px">Opps</th>' +
+        '<th scope="col" class="cell--right" style="width: 120px">Won</th><th scope="col" class="cell--right" style="width: 140px">Pipeline</th>' +
+      '</tr></thead><tbody>' + reps.map(function (r) { return row('<td>' + C.person(r) + '</td>', k.byRep[r]); }).join('') + '</tbody>' +
+      '<tfoot>' + row('<th scope="row">Total</th>', t) + '</tfoot></table></div></section>';
+  }
+  app.querySelector('[data-render="camps"]').innerHTML = D.campaigns.filter(function (k) { return k.status === 'active'; }).map(campCard).join('');
+
+  /* ---------- a cell: the actual against the goal; the goal is the button that changes it ---------- */
+  function cell(frame, pid, rep, i) {
+    var g = per(frame, pid), goal = g.goal[rep][i], act = g.actual[rep][i], who = C.rep(rep).name, key = pid + ':' + rep + ':' + i;
+    var btn = '<button type="button" class="goal__edit" data-goal="' + key + '" aria-label="' +
+      (goal ? full(i) + ' goal for ' + esc(who) + ': ' + C.count(goal) + '. Change' : 'Set goal: ' + full(i) + ', ' + esc(who)) + '">' + (goal ? C.count(goal) : 'Set goal') + '</button>';
+    var p = goal ? Math.round(C.pct(act, goal)) : 0;
+    return '<div class="goal"><div class="goal__nums"><span class="goal__actual num">' + C.count(act) + '</span>' +
+      '<span class="goal__of">' + (goal ? 'of ' : '· ') + btn + '</span>' +
+      '<span class="goal__pct num">' + (goal ? p + '%' : '') + '</span></div>' + (goal ? C.meter(p) : '') + '</div>';
+  }
+  var tid = 0;   /* heading ids, made as panels are drawn, so every frame's are its own */
+  function table(frame, pid, grp) {
+    var g = per(frame, pid), c = cols(grp.id), hid = 'gt' + (++tid);
+    return '<section class="records records--plain" aria-labelledby="' + hid + '">' +
+      '<div class="card-head"><div><h2 class="card-head__title" id="' + hid + '">' + grp.name + '</h2><p class="card-head__desc">' + SOURCE[grp.id] + '</p></div>' +
+        '<span class="card-head__aside">Select a goal to change it</span></div>' +
+      '<div class="table-wrap"><table class="data-table data-table--goals"><thead><tr><th scope="col" style="width: 240px">Rep</th>' +
+        c.map(function (i) { return '<th scope="col" class="col-group">' + M[i].name + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        Object.keys(g.goal).map(function (r) {
+          return '<tr><td>' + C.person(r) + '</td>' + c.map(function (i) { return '<td class="col-group">' + cell(frame, pid, r, i) + '</td>'; }).join('') + '</tr>';
+        }).join('') + '</tbody></table></div></section>';
+  }
+
+  /* ---------- conversion rates: one month's actuals divided, per rep. A share reads as a percentage with its bar;
+     emails per conversation is a ratio, its bar against the highest in the card ---------- */
+  var RATES = [
+    { group: 'Call conversions', items: [
+      { name: 'Conversations per dial', how: 'Conversations ÷ dials', of: function (a) { return [a[1], a[0]]; } },
+      { name: 'Emails per conversation', how: 'Emails sent ÷ conversations', ratio: true, of: function (a) { return [a[2], a[1]]; } },
+      { name: 'Meetings per conversation', how: 'Meetings scheduled ÷ conversations', of: function (a) { return [a[3], a[1]]; } }] },
+    { group: 'Meeting conversions', items: [
+      { name: 'Show rate', how: 'Held ÷ held and no shows', of: function (a, ns) { return [a[4], a[4] + ns]; } },
+      { name: 'Qualified rate', how: 'Qualified meetings ÷ held', of: function (a) { return [a[5], a[4]]; } }] },
+    { group: 'Opportunity conversions', items: [
+      { name: 'Qualification rate', how: 'Opps qualified ÷ created', of: function (a) { return [a[8], a[7]]; } },
+      { name: 'Close rate', how: 'Opps won ÷ qualified', of: function (a) { return [a[9], a[8]]; } }] }
+  ];
+  function rate(g, r, it) { var x = it.of(g.actual[r], g.noshow[r]); return x[1] ? x[0] / x[1] : null; }
+  function rateText(v, it) { return v == null ? '<span class="dash">—</span>' : it.ratio ? v.toFixed(1) : Math.round(v * 100) + '%'; }
+  function rateFill(v, it, top) { return v == null ? 0 : it.ratio ? (top ? v / top * 100 : 0) : Math.min(v * 100, 100); }
+  function rateCard(g, it) {
+    var reps = Object.keys(g.goal), vals = reps.map(function (r) { return rate(g, r, it); }), top = Math.max.apply(null, vals.map(function (v) { return v || 0; }));
+    return '<section class="records rate-card"><div class="card-head"><div><h4 class="card-head__title">' + it.name + '</h4><p class="card-head__desc">' + it.how + '</p></div></div>' +
+      '<ul class="rate-list">' + reps.map(function (r, n) {
+        return '<li class="rate"><span class="rate__who">' + C.person(r) + '</span><span class="rate__val num">' + rateText(vals[n], it) + '</span>' +
+          '<span class="meter" aria-hidden="true"><span class="meter__fill" style="--p:' + rateFill(vals[n], it, top) + '"></span></span></li>';
+      }).join('') + '</ul></section>';
+  }
+
+  /* ---------- Your progress: the viewer's row of every table, as tiles, and their own conversion rates ---------- */
+  function tile(g, r, i) {
+    var goal = g.goal[r][i], act = g.actual[r][i], p = goal ? Math.round(C.pct(act, goal)) : 0;
+    return '<div class="stat"><span class="stat__label">' + M[i].name + '</span>' +
+      '<span class="stat__value">' + C.count(act) + (goal ? ' <span class="stat__of">of ' + C.count(goal) + '</span>' : '') + '</span>' +
+      (goal ? C.meter(p) + '<span class="stat__meta">' + p + '% of goal</span>' : '<span class="stat__meta">No goal set</span>') + '</div>';
+  }
+  function progress(frame, pid, r) {
+    var g = per(frame, pid), all = [].concat.apply([], RATES.map(function (x) { return x.items; }));
+    return '<div class="section-title" data-anchor="progress"><h2>Your progress</h2><p>' + esc(C.rep(r).name) + ', ' + mon(pid, true) + '</p></div>' +
+      G.map(function (grp) { var c = cols(grp.id); return '<h3 class="goal-sub">' + grp.name + '</h3><div class="stats" style="--cols: ' + c.length + '">' + c.map(function (i) { return tile(g, r, i); }).join('') + '</div>'; }).join('') +
+      '<h3 class="goal-sub">Conversion rates</h3><div class="stats stats--rates" style="--cols: ' + all.length + '">' + all.map(function (it) {
+        var v = rate(g, r, it);
+        return '<div class="stat"><span class="stat__label">' + it.name + '</span><span class="stat__value">' + rateText(v, it) + '</span><span class="stat__meta">' + it.how + '</span></div>';
+      }).join('') + '</div>';
+  }
+
+  function drawPanel(frame, pid) {
+    var g = per(frame, pid), who = viewer(frame);
+    frame.querySelector('[data-month-panel="' + pid + '"]').innerHTML =
+      G.map(function (grp) { return table(frame, pid, grp); }).join('') +
+      '<div class="section-title" data-anchor="rates"><h2>Conversion rates</h2><p>' + mon(pid, true) + '</p></div>' +
+      RATES.map(function (x) { return '<h3 class="goal-sub">' + x.group + '</h3><div class="rate-grid">' + x.items.map(function (it) { return rateCard(g, it); }).join('') + '</div>'; }).join('') +
+      (g.goal[who] ? '<div class="goal-progress" data-progress>' + progress(frame, pid, who) + '</div>' : '');
+  }
+  function drawProgress(frame, pid) {
+    var box = frame.querySelector('[data-month-panel="' + pid + '"] [data-progress]');
+    if (box) box.innerHTML = progress(frame, pid, viewer(frame));
+  }
+  function showMonth(frame, pid, focus) {
+    var t = frame.querySelector('[data-month-tab="' + pid + '"]'); C.selectTab(t); if (focus) t.focus();
+  }
+
+  /* ---------- change a goal in place: Enter or leaving the field saves, Esc cancels ---------- */
+  var gid = 0;
+  function startEdit(btn, focus) {
+    var k = btn.dataset.goal.split(':'), frame = btn.closest('.app'), g = per(frame, k[0]), i = +k[2];
+    var cur = g.goal[k[1]][i], id = 'gi' + (++gid);
+    btn.closest('.goal').innerHTML =
+      '<div class="goal__nums"><span class="goal__actual num">' + C.count(g.actual[k[1]][i]) + '</span><span class="goal__of">of ' +
+        '<input class="input goal__input" id="' + id + '" type="number" min="1" step="1" inputmode="numeric" value="' + (cur || '') + '"' +
+        ' aria-label="' + full(i) + ' goal for ' + esc(C.rep(k[1]).name) + '" aria-describedby="' + id + '-h ' + id + '-e" data-goal-input="' + btn.dataset.goal + '"></span></div>' +
+      '<span class="sr-only" id="' + id + '-h">Enter saves, Escape cancels.</span>' +
+      '<span class="goal__error" id="' + id + '-e" hidden>Enter a whole number above 0.</span>';
+    var input = frame.querySelector('#' + id);
+    if (focus !== false) { input.focus(); input.select(); }
+    return input;
+  }
+  function redraw(input, focus) {
+    input._done = true;
+    var k = input.dataset.goalInput.split(':'), td = input.closest('td'), frame = input.closest('.app');
+    td.innerHTML = cell(frame, k[0], k[1], +k[2]);
+    if (focus) td.querySelector('.goal__edit').focus();
+  }
+  function commit(input, how, opts) {
+    var v = input.value.trim(), ok = /^\d+$/.test(v) && +v > 0;
+    if (!ok) {
+      if (how === 'blur') { redraw(input, false); return; }
+      input.setAttribute('aria-invalid', 'true'); input.closest('.goal').querySelector('.goal__error').hidden = false;
+      if (!opts) input.focus();
+      return;
+    }
+    var k = input.dataset.goalInput.split(':'), frame = input.closest('.app'), g = per(frame, k[0]), i = +k[2], was = g.goal[k[1]][i];
+    g.goal[k[1]][i] = +v;
+    redraw(input, how === 'enter' && !opts);
+    if (k[1] === viewer(frame)) drawProgress(frame, k[0]);
+    if (+v !== was) C.toast(frame, 'Goal saved · ' + C.rep(k[1]).name + ', ' + full(i).toLowerCase() + ' ' + C.count(+v), null, opts);
+  }
+  document.addEventListener('keydown', function (e) {
+    var input = e.target.closest && e.target.closest('[data-goal-input]'); if (!input) return;
+    if (e.key === 'Enter') { e.preventDefault(); commit(input, 'enter'); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); redraw(input, true); }
+  });
+  document.addEventListener('focusout', function (e) {
+    if (e.target.matches && e.target.matches('[data-goal-input]') && !e.target._done) commit(e.target, 'blur');
+  });
+  document.addEventListener('input', function (e) {
+    if (!e.target.matches('[data-goal-input]') || e.target.getAttribute('aria-invalid') !== 'true') return;
+    e.target.removeAttribute('aria-invalid'); e.target.closest('.goal').querySelector('.goal__error').hidden = true;
+  });
+
+  /* ---------- New period: a modal, as live, with live's two fields, Year and Month, both app Dropdowns.
+     Year: this year and next (live's free number field takes any year). Month: all twelve, as live; a month that already
+     has goals stays in the list, greyed with "Has goals"; a past month can be picked, as live (goals set late).
+     It opens on the first month without goals. Copy the latest month's goals is an addition, off as live starts empty.
+     As the Delete confirm: a scrim over the frame, Tab stays inside, Esc, Cancel or the scrim close it and focus goes
+     back to New period ---------- */
+  var openDlg = null, YEARS = [+NOW.slice(0, 4), +NOW.slice(0, 4) + 1];
+  function firstOpen(frame, y, from) { for (var i = 1; i <= 12; i++) { var m = monthId(y, i); if (m >= from && !per(frame, m)) return m; } return null; }
+  function monthOptions(frame, y, sel) {
+    return LONG.map(function (name, n) {
+      var m = monthId(y, n + 1), has = !!per(frame, m);
+      return '<option value="' + m + '"' + (has ? ' disabled data-note="Has goals"' : '') + (m === sel ? ' selected' : '') + '>' + name + '</option>';
+    }).join('');
+  }
+  function drawDlg(frame) {
+    var dlg = frame.querySelector('[data-period-dlg]'), st = frame._pick, id = dlg.id, last = latest(frame).id;
+    dlg.innerHTML =
+      '<h2 class="dialog__title" id="' + id + '-title">New period</h2>' +
+      '<p class="dialog__body" id="' + id + '-desc">A month of goals for every rep. Actuals start at zero.</p>' +
+      '<div class="frow">' +
+        C.field(id + '-y', 'Year', C.select(id + '-y', YEARS.map(String), String(st.year), ' data-period-year')) +
+        C.field(id + '-m', 'Month', '<span class="input-wrap"><select class="select" id="' + id + '-m" data-period-month data-search="off">' + monthOptions(frame, st.year, st.sel) + '</select>' + C.icon('chevron', 16) + '</span>') +
+      '</div>' +
+      '<label class="check"><input type="checkbox" class="checkbox" data-period-copy' + (st.copy ? ' checked' : '') + '> Copy ' + mon(last, true) + '\'s goals</label>' +
+      '<div class="dialog__foot"><button type="button" class="btn btn--secondary" data-period-cancel>Cancel</button>' +
+        '<button type="button" class="btn btn--primary" data-create-period' + (st.sel ? '' : ' disabled') + '>Create period</button></div>';
+  }
+  function showDlg(btn, quiet) {
+    var frame = btn.closest('.app'), dlg = frame.querySelector('[data-period-dlg]');
+    var sel = firstOpen(frame, YEARS[0], NOW) || firstOpen(frame, YEARS[1], NOW);
+    frame._pick = { year: sel ? +sel.slice(0, 4) : YEARS[0], sel: sel, copy: false };
+    drawDlg(frame); dlg.hidden = false; frame.querySelector('[data-period-scrim]').hidden = false;
+    if (quiet) return dlg;   /* drawn open in a static state */
+    openDlg = dlg;
+    dlg.querySelector('[data-period-month]').focus();
+  }
+  function hideDlg() {
+    if (!openDlg) return;
+    var frame = openDlg.closest('.app');
+    openDlg.hidden = true; frame.querySelector('[data-period-scrim]').hidden = true; openDlg = null;
+    frame.querySelector('[data-period-open]').focus();
+  }
+  /* Esc closes (an open Dropdown takes the first Esc itself, its focus being in its list); Tab stays inside */
+  document.addEventListener('keydown', function (e) {
+    var dlg = e.target.closest && e.target.closest('[data-period-dlg]'); if (!dlg) return;
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); hideDlg(); }
+    if (e.key === 'Tab') {
+      var f = [].slice.call(dlg.querySelectorAll('select, input, button:not(:disabled)')), i = f.indexOf(document.activeElement);
+      e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+  });
+  document.addEventListener('change', function (e) {
+    var st = e.target.closest('[data-period-dlg]') && e.target.closest('.app')._pick; if (!st) return;
+    if (e.target.matches('[data-period-copy]')) st.copy = e.target.checked;
+    if (e.target.matches('[data-period-month]')) st.sel = e.target.value;
+    /* another year: the same month if it's free there, else that year's first free month (past ones included) */
+    if (e.target.matches('[data-period-year]')) {
+      var frame = e.target.closest('.app'), y = +e.target.value, same = monthId(y, st.sel ? +st.sel.slice(5) : 1);
+      st.year = y; st.sel = per(frame, same) ? firstOpen(frame, y, '') : same;
+      var dlg = e.target.closest('[data-period-dlg]');
+      dlg.querySelector('[data-period-month]').innerHTML = monthOptions(frame, y, st.sel);
+      dlg.querySelector('[data-create-period]').disabled = !st.sel;
+    }
+  });
+
+  /* ---------- a new period: its tab in month order (newest first) and its panel, from the latest month's goals or blank ---------- */
+  function created(frame, pid, copy, opts) {
+    var src = latest(frame), goal = {}, actual = {}, noshow = {};
+    Object.keys(src.goal).forEach(function (r) {
+      goal[r] = copy ? src.goal[r].slice() : M.map(function () { return null; });
+      actual[r] = M.map(function () { return 0; }); noshow[r] = 0;
+    });
+    goals(frame).push({ id: pid, goal: goal, actual: actual, noshow: noshow });
+    goals(frame).sort(function (a, b) { return a.id < b.id ? -1 : 1; });
+    /* this frame's id suffix, so the new tab and panel match its other ids */
+    var tabs = [].slice.call(frame.querySelectorAll('[data-month-tab]')), sfx = (tabs[0].id.match(/-s\d+$/) || [''])[0];
+    var older = tabs.filter(function (t) { return t.dataset.monthTab < pid; })[0];
+    var html = tab(pid).replace('id="tab-' + pid + '"', 'id="tab-' + pid + sfx + '"').replace('aria-controls="panel-' + pid + '"', 'aria-controls="panel-' + pid + sfx + '"');
+    if (older) older.insertAdjacentHTML('beforebegin', html); else tabs[tabs.length - 1].insertAdjacentHTML('afterend', html);
+    var panels = frame.querySelectorAll('[data-month-panel]');
+    panels[panels.length - 1].insertAdjacentHTML('afterend', shell(pid).replace('id="panel-' + pid + '"', 'id="panel-' + pid + sfx + '"').replace('aria-labelledby="tab-' + pid + '"', 'aria-labelledby="tab-' + pid + sfx + '"'));
+    drawPanel(frame, pid);
+    showMonth(frame, pid, !opts);
+    C.toast(frame, 'Period created · ' + mon(pid, true), null, opts);
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target, frame = t.closest('.app'); if (!frame) return;
+    if (t.closest('[data-period-open]')) { showDlg(t.closest('[data-period-open]')); return; }
+    if (t.closest('[data-period-scrim]')) { hideDlg(); return; }
+    if (t.closest('[data-period-dlg]')) {
+      var st = frame._pick;
+      if (t.closest('[data-period-cancel]')) {
+        hideDlg();
+      } else if (t.closest('[data-create-period]') && st.sel) {
+        var pid = st.sel, copy = st.copy; hideDlg();
+        if (per(frame, pid)) showMonth(frame, pid, true); else created(frame, pid, copy);
+      }
+      return;
+    }
+    var ed = t.closest('.goal__edit'); if (ed) startEdit(ed);
+  });
+
+  C.boot();
+
+  /* every frame: its months, and the one it shows (the current one unless the state says) */
+  document.querySelectorAll('.app').forEach(function (f) {
+    goals(f).forEach(function (g) { drawPanel(f, g.id); });
+    showMonth(f, f.dataset.month || NOW);
+  });
+  /* drawn states */
+  function goalBtn(f, key) { return f.querySelector('[data-goal="' + key + '"]'); }
+  document.querySelectorAll('.app[data-editing]').forEach(function (f) {
+    var input = startEdit(goalBtn(f, f.dataset.editing), false);
+    if (f.hasAttribute('data-invalid')) { input.value = ''; commit(input, 'enter', { static: true }); }
+  });
+  document.querySelectorAll('.app[data-saved]').forEach(function (f) {
+    var k = f.dataset.saved.split(':'), input = startEdit(goalBtn(f, k.slice(0, 3).join(':')), false);
+    input.value = k[3]; commit(input, 'enter', { sticky: true });
+  });
+  document.querySelectorAll('.app[data-created]').forEach(function (f) { created(f, f.dataset.created, !f.hasAttribute('data-blank'), { sticky: true }); });
+  /* New period drawn open, its Month list open too, so the greyed months with goals show */
+  document.querySelectorAll('.app[data-show-period]').forEach(function (f) {
+    var m = C.openMenu(showDlg(f.querySelector('[data-period-open]'), true).querySelector('[data-period-month]'), { focus: false });
+    m.scrollTop = m.scrollHeight;   /* scrolled to the picked month, as focusing it does when opened by hand */
+  });
+  /* states further down the page: the console scrolled to the section, once the frame is shown (a hidden one has no layout) */
+  var seen = new ResizeObserver(function (list) {
+    list.forEach(function (en) {
+      var f = en.target; if (!en.contentRect.height) return;
+      seen.unobserve(f);
+      var c = f.querySelector('.console'), s = f.dataset.scroll;
+      var to = f.querySelector('.tabpanel:not([hidden]) [data-anchor="' + s + '"]') || f.querySelector('[data-anchor="' + s + '"]');
+      if (to) c.scrollTop += to.getBoundingClientRect().top - c.getBoundingClientRect().top - 32;
+    });
+  });
+  document.querySelectorAll('.app[data-scroll]').forEach(function (f) { seen.observe(f); });
+})();
+</script>
+</body>
+</html>

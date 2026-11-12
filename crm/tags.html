@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Tags</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Tags: the shared labels and how many records carry each, in the Harbor theme.
+       Approved changes applied: the page sits in the sidebar's Tools group (H1, H2); Delete asks first, naming the tag and
+       how many records lose it (H6); one date format (H4).
+       As today: columns Tag, Contacts, Accounts, Opportunities, Created; the count of tags under the title; New Tag; Edit
+       and Delete in sight on each row, not in a ⋯ menu (two actions are cheaper to show than to hunt for); the New / Edit form, a modal as live's: a name (live's placeholder), a colour and a preview of the chip.
+       Colours: live offers 12 and "none"; the chip shows its colour as an 8px dot, where cyan, amber and lime can't be told
+       from teal, orange and green, so the picker keeps the 9 that stay distinct, with grey as live's "none" (the default).
+       Assumed: the message for a name that's taken.
+       State 1 is live: New tag, Edit, delete (Cancel or confirm). -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · Tags: each with its record counts by type; live — add, rename, delete</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="tags"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Tags</h1>
+              <p class="console__subtitle"><span data-render="count"></span> · labels the whole team uses to group contacts, accounts and opportunities.</p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" aria-haspopup="dialog" data-tag-new><span data-icon="plus"></span>New tag</button>
+            </div>
+          </div>
+
+          <section class="records" aria-label="Tags">
+            <div class="table-wrap">
+              <table class="data-table data-table--fit">
+                <thead><tr>
+                  <th scope="col">Tag</th>
+                  <th scope="col" class="cell--right" style="width: 120px">Contacts</th>
+                  <th scope="col" class="cell--right" style="width: 120px">Accounts</th>
+                  <th scope="col" class="cell--right" style="width: 128px">Opportunities</th>
+                  <th scope="col" style="width: 140px">Created</th>
+                  <th scope="col" class="col-actions" style="width: 160px"><span class="sr-only">Actions</span></th>
+                </tr></thead>
+                <tbody data-render="rows" aria-live="polite"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-confirm">
+    <h2 class="state__label" id="state-confirm">State 2 · Delete asks first: it names the tag and how many records lose it; the records themselves stay</h2>
+    <div data-clone="app-1" data-confirm="g-happyhour"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-taken">
+    <h2 class="state__label" id="state-taken">State 3 · New tag, name taken: tags are shared, so the form says which tag already has it</h2>
+    <div data-clone="app-1" data-typed="gov"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-edit">
+    <h2 class="state__label" id="state-edit">State 4 · Edit tag: name and colour, with a preview of the chip as records show it</h2>
+    <div data-clone="app-1" data-edit="g-gov"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  function tag(frame, id) { return frame._tags.filter(function (t) { return t.id === id; })[0]; }
+  function n(v) { return v ? '<td class="cell--right num">' + C.count(v) + '</td>' : '<td class="cell--right"><span class="dash">—</span></td>'; }
+  function plural(v, w) { return C.count(v) + ' ' + w + (v === 1 ? '' : 's'); }
+  /* "143 contacts", "52 accounts and 31 opportunities" */
+  function uses(t) {
+    var p = [];
+    if (t.contacts) p.push(plural(t.contacts, 'contact'));
+    if (t.accounts) p.push(plural(t.accounts, 'account'));
+    if (t.opps) p.push(C.count(t.opps) + (t.opps === 1 ? ' opportunity' : ' opportunities'));
+    return p.length ? p.slice(0, -1).join(', ') + (p.length > 1 ? ' and ' : '') + p[p.length - 1] : 'no records';
+  }
+
+  function draw(frame) {
+    frame.querySelector('[data-render="count"]').textContent = plural(frame._tags.length, 'tag');
+    frame.querySelector('[data-render="rows"]').innerHTML = frame._tags.map(function (t) {
+      return '<tr data-key="' + t.id + '"' + (t.id === frame._new ? ' class="is-new"' : '') + '><td>' + C.tags([t]) + '</td>' + n(t.contacts) + n(t.accounts) + n(t.opps) +
+        '<td class="cell--nowrap">' + C.date(t.created) + '</td><td class="col-actions">' + C.rowActions('tag', t.id, t.name + ' tag') + '</td></tr>';
+    }).join('');
+  }
+
+  C.menus.tag = [{ id: 'edit', label: 'Edit', icon: 'pencil' }, { id: 'delete', label: 'Delete', icon: 'trash', danger: true }];
+
+  /* ---------- delete: names the tag and its reach; the records stay, so the body says so ---------- */
+  function askDelete(frame, key, opts) {
+    var t = tag(frame, key);
+    return C.confirm(frame, {
+      title: 'Delete the “' + t.name + '” tag?',
+      body: 'It comes off ' + uses(t) + '. The records themselves stay. This can’t be undone.',
+      action: 'Delete tag',
+      onConfirm: function () {
+        frame._tags = frame._tags.filter(function (x) { return x.id !== key; }); draw(frame);
+        C.toast(frame, 'Tag deleted · ' + t.name);
+        frame.querySelector('[data-tag-new]').focus();
+      }
+    }, opts);
+  }
+
+  /* ---------- new tag / edit: a name, unique across the team, and a colour; the preview is the chip records show ---------- */
+  var seq = 0, NONE = 'gray';
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function swatches(id, on) {
+    return '<fieldset class="field"><legend class="field__label">Color</legend><div class="swatches">' + D.tagColors.map(function (c) {
+      return '<label class="swatch" title="' + cap(c) + '"><input type="radio" name="' + id + '-color" value="' + c + '"' + (c === on ? ' checked' : '') + ' data-tag-color>' +
+        '<span class="tag-dot tag-dot--' + c + '" aria-hidden="true"></span><span class="sr-only">' + cap(c) + '</span></label>';
+    }).join('') + '</div></fieldset>';
+  }
+  function preview(d) {
+    var v = d.querySelector('[data-tag-name]').value.trim(), c = d.querySelector('[data-tag-color]:checked').value;
+    d.querySelector('[data-preview]').innerHTML = C.tags([{ name: v || 'Tag name', color: c }]);
+  }
+  /* a modal, not a side sheet: three short fields done in seconds, as live's */
+  function openForm(frame, key, opts) {
+    var t = key ? tag(frame, key) : null, id = 'f' + (++seq);
+    var d = C.formDialog(frame, {
+      title: t ? 'Edit tag' : 'New tag',
+      sub: t ? 'Changes show on ' + uses(t) + '.' : 'Everyone on the team can add it to records.',
+      body: C.field(id + '-name', 'Name', C.input(id + '-name', t ? t.name : (opts && opts.typed) || '', ' placeholder="e.g. Oil &amp; Gas, Enterprise, Cisco-shop" aria-required="true" aria-describedby="' + id + '-name-err" data-tag-name data-autofocus'),
+          { req: true, error: '<span data-name-err>Give the tag a name.</span>' }) +
+        swatches(id, t ? t.color || NONE : NONE) +
+        '<div class="field"><span class="field__label" id="' + id + '-prev">Preview</span><div class="tag-preview" role="group" aria-labelledby="' + id + '-prev" data-preview></div></div>',
+      action: t ? 'Save changes' : 'Create tag',
+      onSubmit: function (d) { if (!check(d, true)) return false; save(d); }
+    }, opts);
+    d.dataset.key = key || '';
+    preview(d);
+    return d;
+  }
+  /* empty, or the same name as another tag (any case) */
+  function check(d, focus) {
+    var frame = d.closest('.app'), el = d.querySelector('[data-tag-name]'), v = el.value.trim();
+    var taken = v && frame._tags.filter(function (t) { return t.id !== d.dataset.key && t.name.toLowerCase() === v.toLowerCase(); })[0];
+    d.querySelector('[data-name-err]').textContent = taken ? '“' + taken.name + '” already exists. Use it, or pick another name.' : 'Give the tag a name.';
+    var bad = !v || !!taken;
+    el.closest('.field').classList.toggle('is-invalid', bad); el.setAttribute('aria-invalid', bad ? 'true' : 'false');
+    if (bad && focus) el.focus();
+    return !bad;
+  }
+  /* the list redraws, so focus goes to the saved row's Edit, or back to New tag */
+  function save(d) {
+    var frame = d.closest('.app'), v = d.querySelector('[data-tag-name]').value.trim(), key = d.dataset.key,
+        c = d.querySelector('[data-tag-color]:checked').value;
+    if (key) {
+      var t = tag(frame, key), was = t.name; t.name = v; t.color = c; frame._new = key; draw(frame);
+      frame.querySelector('tr[data-key="' + key + '"] [data-row-action="edit"]').focus();
+      C.toast(frame, was === v ? 'Tag updated · ' + v : 'Renamed · ' + was + ' is now ' + v); return;
+    }
+    var nt = { id: 'g-new' + (++seq), name: v, color: c, contacts: 0, accounts: 0, opps: 0, created: D.today };
+    frame._tags.unshift(nt); frame._new = nt.id; draw(frame);
+    frame.querySelector('[data-tag-new]').focus(); C.toast(frame, 'Tag created · ' + v);
+  }
+
+  document.addEventListener('crm:menu', function (e) {
+    var frame = e.target.closest('.app'), d = e.detail;
+    if (d.action === 'delete') askDelete(frame, d.key);
+    if (d.action === 'edit') openForm(frame, d.key, { from: d.button });
+  });
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-tag-new]'); if (b) openForm(b.closest('.app'), null, { from: b }); });
+  document.addEventListener('input', function (e) {
+    var d = e.target.closest('.dialog'); if (!d || !e.target.matches('[data-tag-name]')) return;
+    preview(d); if (e.target.closest('.is-invalid')) check(d);
+  });
+  document.addEventListener('change', function (e) { if (e.target.matches('[data-tag-color]')) preview(e.target.closest('.dialog')); });
+
+  C.boot();
+
+  document.querySelectorAll('.app').forEach(function (f) { f._tags = D.tagList.map(function (t) { return Object.assign({}, t); }); draw(f); });
+  /* drawn states */
+  document.querySelectorAll('[data-confirm]').forEach(function (f) { askDelete(f, f.dataset.confirm, { focus: false }); });
+  document.querySelectorAll('[data-typed]').forEach(function (f) { check(openForm(f, null, { focus: false, typed: f.dataset.typed }), false); });
+  document.querySelectorAll('[data-edit]').forEach(function (f) { openForm(f, f.dataset.edit, { focus: false }); });
+})();
+</script>
+</body>
+</html>

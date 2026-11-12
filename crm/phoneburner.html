@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · PhoneBurner</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- PhoneBurner: the dialer integration card, in the Harbor theme.
+       Approved changes applied: the page sits in the sidebar's General group (H1, H2); one primary button style (M3 comes
+       with the theme).
+       As today: one card with a description, a plain-text status ("Checking status…") and Connect PhoneBurner. The status
+       stays text, not a badge, because audit L4 is not decided.
+       Not seen during discovery (the status never finished loading), so assumed: the Not connected and Connected wording,
+       who it's connected as, and Disconnect. Connecting itself happens on PhoneBurner's site and is out of scope; here
+       Connect switches straight to Connected.
+       State 1 is live: Connect, then Disconnect. -->
+  <section class="state" aria-labelledby="state-off">
+    <h2 class="state__label" id="state-off">State 1 · Not connected: what the integration does and one button to connect; live — connect, then disconnect</h2>
+    <div class="app app--console app--crm" id="app-1" data-pb="off">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="phoneburner"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">PhoneBurner</h1>
+              <p class="console__subtitle">The dialer your reps call from.</p>
+            </div>
+          </div>
+
+          <section class="records integration" aria-labelledby="pb-title">
+            <div class="card-head">
+              <span class="item">
+                <span class="tile" data-tile><span data-cicon="plug" data-size="18"></span></span>
+                <span class="item__body">
+                  <h2 class="card-head__title" id="pb-title">PhoneBurner</h2>
+                  <span class="card-head__desc">Call contacts from the CRM in one click. Each call is logged on the contact with its outcome and talk time, and counts on the Biz Dev panel.</span>
+                </span>
+              </span>
+            </div>
+            <div class="card-body integration__foot">
+              <p class="integration__status" role="status" data-pb-status></p>
+              <span data-pb-action></span>
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="sheet-scrim" hidden></div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-checking">
+    <h2 class="state__label" id="state-checking">State 2 · Checking: as today, while the CRM asks PhoneBurner; Connect waits until it knows</h2>
+    <div data-clone="app-1" data-pb="checking"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-on">
+    <h2 class="state__label" id="state-on">State 3 · Connected: whose PhoneBurner account it uses and since when; Disconnect is the only action</h2>
+    <div data-clone="app-1" data-pb="on"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var me = C.me(), as = me.email + '@' + D.domain, SINCE = '2026-10-02';
+
+  function draw(frame, state) {
+    frame.dataset.pb = state;
+    var status = frame.querySelector('[data-pb-status]'), action = frame.querySelector('[data-pb-action]');
+    frame.querySelector('[data-tile]').classList.toggle('is-off', state !== 'on');
+    status.innerHTML = state === 'checking' ? 'Checking status…'
+      : state === 'on' ? 'Connected as <strong>' + esc(as) + '</strong> since ' + C.date(SINCE) + '.'
+      : 'Not connected. Calls can’t be placed or logged from the CRM until it is.';
+    action.innerHTML = state === 'on'
+      ? '<button type="button" class="btn btn--secondary" data-pb-set="off">Disconnect</button>'
+      : '<button type="button" class="btn btn--primary" data-pb-set="on"' + (state === 'checking' ? ' disabled' : '') + '>Connect PhoneBurner</button>';
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pb-set]'); if (!b || b.disabled) return;
+    var frame = b.closest('.app'), to = b.dataset.pbSet;
+    draw(frame, to);
+    frame.querySelector('[data-pb-set]').focus();
+    C.toast(frame, to === 'on' ? 'PhoneBurner connected' : 'PhoneBurner disconnected');
+  });
+
+  C.boot();
+  document.querySelectorAll('.app').forEach(function (f) { draw(f, f.dataset.pb); });
+})();
+</script>
+</body>
+</html>

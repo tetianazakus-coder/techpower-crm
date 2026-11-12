@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Territories</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Territories: which reps a state, vertical and subvertical belong to, in the Harbor theme.
+       Approved changes applied: the page sits in the sidebar's Admin group (H1, H2); Delete asks first, naming the territory
+       and the reps it no longer routes to (H6). New Territory is the one primary button style, not green (M3).
+       Follows live (checked 2026-11-12): columns Tag, State, Vertical, Subvertical, Assigned users; the tag in monospace and made
+       from the state and vertical ("CA-Providers"), so New territory asks only State, Vertical and an optional Subvertical,
+       in a modal, Cancel / Create. Assign users is a modal too: everyone who can own accounts, each with their email and role,
+       and "N selected" beside Save. Assign users and Delete sit in the row; Delete is a trash icon button.
+       Ours: State and Vertical are picked from lists, not typed, so one territory can't be "Healthcare" and another "healthcare";
+       the modal shows the tag it will make; "Any" for a blank subvertical; the "No one assigned" warning.
+       State 1 is live: Assign users, New territory, delete (Cancel or confirm). -->
+  <section class="state" aria-labelledby="state-list">
+    <h2 class="state__label" id="state-list">State 1 · Territories: who covers each state and vertical; a territory with no one is flagged; live — assign, add, delete</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="territories"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Territories</h1>
+              <p class="console__subtitle"><span data-render="count"></span> · which reps cover each state and vertical.</p>
+            </div>
+            <div class="console__actions">
+              <button type="button" class="btn btn--primary" aria-haspopup="dialog" data-terr-new><span data-icon="plus"></span>New territory</button>
+            </div>
+          </div>
+
+          <section class="records" aria-label="Territories">
+            <div class="table-wrap">
+              <table class="data-table data-table--fit" style="table-layout: fixed">
+                <thead><tr>
+                  <th scope="col" style="width: 184px">Tag</th>
+                  <th scope="col" style="width: 80px">State</th>
+                  <th scope="col" style="width: 152px">Vertical</th>
+                  <th scope="col" style="width: 184px">Subvertical</th>
+                  <th scope="col">Assigned users</th>
+                  <th scope="col" class="col-actions" style="width: 168px"><span class="sr-only">Actions</span></th>
+                </tr></thead>
+                <tbody data-render="rows" aria-live="polite"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-confirm">
+    <h2 class="state__label" id="state-confirm">State 2 · Delete asks first: it names the territory and who stops getting its accounts; existing owners stay</h2>
+    <div data-clone="app-1" data-confirm="tr1"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-assign">
+    <h2 class="state__label" id="state-assign">State 3 · Assign users: the territory that has no one, with two reps picked; the count sits beside Save</h2>
+    <div data-clone="app-1" data-assign-open="tr8" data-picked="mb,tb"></div>
+  </section>
+
+  <section class="state" aria-labelledby="state-new">
+    <h2 class="state__label" id="state-new">State 4 · New territory: state and vertical are required, subvertical can stay Any; the tag is made from the first two</h2>
+    <div data-clone="app-1" data-new="TX,Healthcare"></div>
+  </section>
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var STATES = { AR: 'Arkansas', CO: 'Colorado', KS: 'Kansas', LA: 'Louisiana', MO: 'Missouri', NM: 'New Mexico', OK: 'Oklahoma', TX: 'Texas' };
+  var ACTIVE = D.reps.filter(function (r) { return r.status === 'active'; });
+  /* each frame keeps its own copy, made on first use: boot fills a drawn drawer before the page's own code runs */
+  function list(frame) { return frame._terr || (frame._terr = D.territories.map(function (t) { return Object.assign({}, t, { users: t.users.slice() }); })); }
+  function terr(frame, id) { return list(frame).filter(function (t) { return t.id === id; })[0]; }
+  function names(ids) { var n = ids.map(function (i) { return C.rep(i).name; }); return n.length > 1 ? n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1] : n[0]; }
+  function scope(t) { return STATES[t.state] + ' ' + t.vertical.toLowerCase() + (t.sub ? ' (' + t.sub.toLowerCase() + ')' : ''); }
+
+  function tagOf(state, vertical) { return state + '-' + vertical; }   /* as live's: "CA-Providers" */
+  function email(r) { return r.email + '@' + D.domain; }
+
+  function draw(frame) {
+    var n = list(frame).length;
+    frame.querySelector('[data-render="count"]').textContent = n + (n === 1 ? ' territory' : ' territories');
+    frame.querySelector('[data-render="rows"]').innerHTML = list(frame).map(function (t) {
+      return '<tr data-key="' + t.id + '"' + (t.id === frame._new ? ' class="is-new"' : '') + '>' +
+        '<td><span class="badge badge--mono">' + esc(t.tag) + '</span></td><td>' + t.state + '</td><td>' + esc(t.vertical) + '</td>' +
+        '<td>' + (t.sub ? esc(t.sub) : '<span class="muted">Any</span>') + '</td>' +
+        '<td>' + (t.users.length ? '<span class="people">' + t.users.map(C.person).join('') + '</span>' : '<span class="state-dot state-dot--warn">No one assigned</span>') + '</td>' +
+        '<td class="col-actions"><span class="row-actions">' +
+          '<button type="button" class="btn btn--ghost btn--sm" aria-haspopup="dialog" data-assign="' + t.id + '" aria-label="Assign users to ' + esc(t.tag) + '">Assign users</button>' +
+          '<button type="button" class="btn btn--ghost btn--sm btn--icon row-actions__danger" data-row-action="delete" data-key="' + t.id + '" aria-label="Delete ' + esc(t.tag) + ' territory" title="Delete">' + C.icon('trash', 16) + '</button>' +
+        '</span></td></tr>';
+    }).join('');
+  }
+
+  /* ---------- delete: names the territory and the reps its new accounts stop going to ---------- */
+  function askDelete(frame, key, opts) {
+    var t = terr(frame, key);
+    return C.confirm(frame, {
+      title: 'Delete the ' + t.tag + ' territory?',
+      body: 'New ' + esc(scope(t)) + ' accounts will no longer go to ' + (t.users.length ? esc(names(t.users)) : 'anyone') + '. Accounts they already own keep their owner. This can’t be undone.',
+      action: 'Delete territory',
+      onConfirm: function () {
+        frame._terr = list(frame).filter(function (x) { return x.id !== key; }); draw(frame);
+        C.toast(frame, 'Territory deleted · ' + t.tag);
+        frame.querySelector('[data-terr-new]').focus();
+      }
+    }, opts);
+  }
+
+  /* ---------- assign users: a modal as live's; everyone who can own accounts, with their email and role ---------- */
+  var seq = 0;
+  function countPicked(d) {
+    var n = d.querySelectorAll('[data-pick]:checked').length;
+    d.querySelector('[data-pick-count]').textContent = n + ' selected';
+  }
+  function openAssign(frame, key, opts) {
+    var t = terr(frame, key), picked = (opts && opts.picked) || t.users;
+    var d = C.formDialog(frame, {
+      title: 'Assign users · ' + t.tag,
+      sub: 'New ' + esc(scope(t)) + ' accounts go to these people.',
+      body: '<fieldset class="field"><legend class="sr-only">Assigned users</legend><div class="checks checks--people">' + ACTIVE.map(function (r) {
+        return '<label class="check"><input type="checkbox" class="checkbox" value="' + r.id + '" data-pick' + (picked.indexOf(r.id) >= 0 ? ' checked' : '') + '>' +
+          '<span class="check__text">' + esc(r.name) + '<span class="check__note">' + esc(email(r)) + ' · ' + esc(D.roles[r.role]) + '</span></span></label>';
+      }).join('') + '</div></fieldset>',
+      action: 'Save',
+      onSubmit: function (d) {
+        t.users = [].map.call(d.querySelectorAll('[data-pick]:checked'), function (c) { return c.value; });
+        frame._new = t.id; draw(frame);
+        frame.querySelector('[data-assign="' + t.id + '"]').focus();
+        C.toast(frame, t.tag + ' · ' + (t.users.length ? 'assigned to ' + names(t.users) : 'no one assigned'));
+      }
+    }, opts);
+    d.querySelector('.dialog__foot').insertAdjacentHTML('afterbegin', '<span class="sheet__count" data-pick-count aria-live="polite"></span>');
+    countPicked(d);
+    return d;
+  }
+
+  /* ---------- new territory: live's three fields in a modal; the tag is made from state and vertical ---------- */
+  function preview(d) {
+    var st = d.querySelector('[data-t="state"]').value, ve = d.querySelector('[data-t="vertical"]').value;
+    d.querySelector('[data-tag-preview]').innerHTML = st && ve ? '<span class="badge badge--mono">' + esc(tagOf(st, ve)) + '</span>' : '<span class="muted">Pick a state and a vertical</span>';
+  }
+  function openNew(frame, opts) {
+    var id = 'f' + (++seq), pre = (opts && opts.values) || [];
+    var d = C.formDialog(frame, {
+      title: 'New territory',
+      sub: 'Accounts in this state and vertical go to the people you assign.',
+      body:
+        C.field(id + '-state', 'State', C.select(id + '-state', [['', 'Choose…']].concat(Object.keys(STATES).map(function (k) { return [k, k + ' · ' + STATES[k]]; })), pre[0] || '', ' aria-required="true" aria-describedby="' + id + '-state-err" data-t="state" data-autofocus'), { req: true, error: 'Choose a state.' }) +
+        C.field(id + '-vert', 'Vertical', C.select(id + '-vert', [['', 'Choose…']].concat(D.verticals), pre[1] || '', ' aria-required="true" aria-describedby="' + id + '-vert-err" data-t="vertical"'), { req: true, error: 'Choose a vertical.' }) +
+        C.field(id + '-sub', 'Subvertical', C.select(id + '-sub', [['', 'Any']].concat(D.subverticals), '', ' aria-describedby="' + id + '-sub-hint" data-t="sub"'), { hint: 'Optional. Any covers every subvertical.' }) +
+        '<div class="field"><span class="field__label" id="' + id + '-tag">Tag</span><div role="group" aria-labelledby="' + id + '-tag" aria-live="polite" data-tag-preview></div></div>',
+      action: 'Create',
+      onSubmit: function (d) {
+        if (!C.validate(d, true)) return false;
+        function v(k) { return d.querySelector('[data-t="' + k + '"]').value; }
+        var nt = { id: 'trn' + (++seq), tag: tagOf(v('state'), v('vertical')), state: v('state'), vertical: v('vertical'), sub: v('sub') || null, users: [] };
+        list(frame).push(nt); frame._new = nt.id; draw(frame);
+        frame.querySelector('[data-assign="' + nt.id + '"]').focus();
+        C.toast(frame, 'Territory created · ' + nt.tag + ' · assign users next');
+      }
+    }, opts);
+    preview(d);
+    return d;
+  }
+
+  document.addEventListener('crm:menu', function (e) { if (e.detail.action === 'delete') askDelete(e.target.closest('.app'), e.detail.key); });
+  document.addEventListener('change', function (e) {
+    var d = e.target.closest('.dialog'); if (!d) return;
+    if (e.target.matches('[data-pick]')) countPicked(d);
+    if (e.target.matches('[data-t="state"], [data-t="vertical"]')) preview(d);
+    if (e.target.closest('.field.is-invalid')) C.validate(d);
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target, frame = t.closest('.app'); if (!frame) return;
+    var a = t.closest('[data-assign]'); if (a) { openAssign(frame, a.dataset.assign, { from: a }); return; }
+    var n = t.closest('[data-terr-new]'); if (n) openNew(frame, { from: n });
+  });
+
+  C.boot();
+  document.querySelectorAll('.app').forEach(draw);
+  /* drawn states */
+  document.querySelectorAll('[data-confirm]').forEach(function (f) { askDelete(f, f.dataset.confirm, { focus: false }); });
+  document.querySelectorAll('[data-assign-open]').forEach(function (f) { openAssign(f, f.dataset.assignOpen, { focus: false, picked: f.dataset.picked.split(',') }); });
+  document.querySelectorAll('[data-new]').forEach(function (f) { openNew(f, { focus: false, values: f.dataset.new.split(',') }); });
+})();
+</script>
+</body>
+</html>

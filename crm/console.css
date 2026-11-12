@@ -1,0 +1,565 @@
+/* =====================================================================
+   TechPower CRM prototype · copied whole from 13 Combined (Nov 2026). Original header follows.
+   ---------------------------------------------------------------------
+   13 Combined · admin console and form layer for the remaining screens
+   (Usage, Users, Units, Connectors, Budgets, Tickets, Disclosure report, Report a problem).
+   Loaded after tokens.css. Every value is a token from tokens.css or the small block below; the patterns reuse 13's:
+   the records card, the toolbar, the joined segmented control, badges, the usage card's figure + meter, the rail's
+   selected fill. New here: stat strip, meter cell, tree rows, switch, notice, in-frame drawer (sheet), choice cards,
+   drop zone, timeline, form sections. Light in :root, dark in [data-theme="dark"].
+   ===================================================================== */
+:root {
+  --sheet-w: 460px;                          /* in-frame drawer */
+  --aside-w: 360px;                          /* secondary column (disclosure, usage) */
+  --tree-indent: 20px;
+  --switch-w: 34px; --switch-h: 20px;
+  --color-scrim: rgba(10, 10, 10, 0.28);
+  --color-sheet: #ffffff;
+  --color-note-bg: rgba(217, 119, 6, 0.08);  /* internal note: warm tint so it never reads as a reply */
+  --color-meter-warn: #d97706;
+}
+[data-theme="dark"] {
+  --color-scrim: rgba(0, 0, 0, 0.55);
+  --color-sheet: #0d0e11;
+  --color-note-bg: rgba(245, 158, 11, 0.08);
+  --color-meter-warn: #f59e0b;
+}
+
+/* the frame holds the drawer, so it is the positioning box */
+.app--console { position: relative; }
+
+/* ---------- page head: title + subtitle on the left, the page's action on the right ---------- */
+.console__head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-6); }
+.console__head > div { min-width: 0; }
+.console__actions { display: flex; align-items: center; gap: var(--space-2); flex: none; }
+.console__inner > .segmented + .records,
+.console__inner > .notice + .records,
+.console__inner > .records + .records,
+.console__inner > .records + .split,
+.console__inner > .split + .records { margin-top: var(--space-5); }
+.console__inner > .notice { margin-top: var(--space-5); }
+
+/* section title inside the page, above a card */
+.section-title { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-8); }
+.section-title h2 { font-family: var(--font-heading); font-size: var(--text-lg); font-weight: var(--weight-medium); color: var(--color-text); }
+.section-title p { font-size: var(--text-base); color: var(--color-text-muted); }
+.section-title + .records, .section-title + .split { margin-top: var(--space-3); }
+
+/* a titled card: the records card with a head row */
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding: var(--space-4); border-bottom: var(--border-w) solid var(--color-border-card); }
+.card-head__title { font-family: var(--font-heading); font-size: var(--text-md); font-weight: var(--weight-medium); color: var(--color-text); }
+.card-head__desc { margin-top: 2px; font-size: var(--text-sm); color: var(--color-text-muted); }
+.card-head__aside { flex: none; display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--color-text-muted); }
+.card-body { padding: var(--space-4); }
+.records .card-head + .filters { border-top: 0; }
+
+/* two columns: main + a narrower aside (disclosure) or two equals (usage) */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) var(--aside-w); gap: var(--space-5); align-items: start; }
+.split--even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.split > .records { margin-top: 0; }
+.stack { display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; }
+
+/* ---------- toolbar additions ---------- */
+.filters--bar .filters__end { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); }
+.filter-btn--ghost { border-color: transparent; color: var(--color-text-body); }
+.filter-btn--ghost:hover { border-color: var(--color-border-button); }
+.records--plain .filter-search { flex: 1 1 260px; max-width: 360px; }
+.toolbar-count { font-size: var(--text-base); color: var(--color-text-muted); white-space: nowrap; }
+.toolbar-count strong { font-weight: var(--weight-medium); color: var(--color-text); }
+
+/* segmented with counts: one text span keeps the joined control a single row (segments are column flex boxes) */
+.segment__n { margin-left: 6px; font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-text-muted); font-weight: var(--weight-regular); }
+.segment.is-active .segment__n { color: var(--color-text-body); }
+
+/* disabled buttons read as unavailable, and keep their title as the reason */
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- tables ---------- */
+.data-table--fit, .records--plain .data-table { min-width: 0; }
+/* list tables take the header widths, the unsized column gets the rest, and long cells truncate instead of widening the card */
+.records--plain .data-table { table-layout: fixed; }
+.records--plain .data-table td { overflow: hidden; text-overflow: ellipsis; }
+/* the toolbar above has no bottom edge (.records .filters), so the header row draws the split */
+.records--plain .data-table th { border-top: var(--border-w) solid var(--color-border-data); }
+/* the first column takes what is left and truncates, so a long unit name never pushes the figures off the card */
+.data-table--fit td:first-child { max-width: 0; width: 100%; }
+.data-table--fit td + td { white-space: nowrap; }
+.who__dept { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.stack > .records { margin-top: 0; }
+.data-table td.cell--right, .data-table th.cell--right { text-align: right; }
+.data-table td.cell--mono { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-text-secondary); white-space: nowrap; }
+.data-table td.cell--nowrap { white-space: nowrap; }
+.data-table td.cell--muted { color: var(--color-text-muted); }
+.data-table tr.is-selected td { background: var(--color-primary-soft); }
+.data-table tr.is-selected td:first-child { box-shadow: inset 2px 0 0 var(--color-link); }
+/* a cell that clips (overflow: hidden, for the ellipsis) keeps its fill off the rule, so a see-through rule
+   showed dark under those cells and blue under the rest. A solid rule reads the same under every cell. */
+.data-table tr.is-selected td, .data-table tbody tr:has(.col-check .checkbox:checked) td { border-bottom-color: var(--color-rule-selected); }
+.data-table tbody tr[data-open] { cursor: pointer; }
+.data-table .col-menu { width: 56px; text-align: right; }
+.records--plain .data-table td.col-menu { overflow: visible; }
+.data-table tr.is-muted td { color: var(--color-text-muted); }
+.data-table tr.is-muted .who__name { color: var(--color-text-secondary); }
+.who__line { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.dash { color: var(--color-text-muted); }
+:root:not([data-theme="dark"]) .dash { color: var(--color-placeholder-dash); }
+/* a rate after a count in a table cell (Biz Dev: "6 20%"), in the stat cards' caption grey; a fixed width, so the
+   counts above and below line up whether the rate is "—", "29%" or "100%" */
+.num__rate { display: inline-block; min-width: 4.5ch; margin-left: var(--space-2); text-align: right; font-size: var(--text-sm); color: var(--color-text-secondary); }
+/* items wrap whole: a narrow card drops the note to its own line instead of breaking it mid-sentence */
+.records__foot--static { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-3); }
+.records__foot--static > :first-child { white-space: nowrap; }
+
+/* badges and statuses beyond warn / danger */
+.badge--ok { background: var(--color-ok-bg); color: var(--color-ok-fg); }
+.badge--neutral { background: var(--color-neutral-bg); color: var(--color-neutral-fg); }
+.badge--info { background: var(--color-primary-soft); color: var(--color-link); }
+.badge--outline { background: transparent; color: var(--color-text-secondary); box-shadow: inset 0 0 0 var(--border-w) var(--color-border-data); }
+.badge--mono { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: var(--weight-regular); }
+/* status with a dot: lighter than a filled badge, for states that are not alerts */
+.state-dot { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-base); color: var(--color-text-body); white-space: nowrap; }
+.state-dot::before { content: ""; width: 6px; height: 6px; flex: none; background: var(--color-text-muted); }
+.state-dot--ok::before { background: var(--color-ok-fg); }
+.state-dot--warn::before { background: var(--color-warn-fg); }
+.state-dot--danger::before { background: var(--color-danger-fg); }
+.state-dot--info::before { background: var(--color-link); }
+.state-dot--off { color: var(--color-text-muted); }
+
+/* small avatar initials */
+.avatar--sm { width: 24px; height: 24px; font-size: 10px; flex: none; }
+.avatar--md { width: 32px; height: 32px; flex: none; }
+
+/* row menu: a quiet icon button at the row's end */
+.row-menu { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-input); color: var(--color-text-secondary); }
+.row-menu:hover { background: var(--color-surface-alt); color: var(--color-text); }
+/* row actions in sight: quiet text buttons at the row's end; Delete turns red only on hover or focus, so a column of
+   them doesn't read as a list of errors */
+.data-table .col-actions { text-align: right; }
+.row-actions { display: inline-flex; gap: var(--space-1); vertical-align: middle; }
+.row-actions .btn { color: var(--color-text-secondary); }
+.row-actions .btn:hover, .row-actions .btn:focus-visible { color: var(--color-text); }
+.row-actions .row-actions__danger:hover, .row-actions .row-actions__danger:focus-visible { color: var(--color-danger-fg); }
+.row-actions .btn[aria-disabled="true"]:hover { color: var(--color-text-secondary); background: none; }
+/* a labelled Delete (Custom Fields) is red at rest: the word says what it does, the colour that it can't be taken back */
+.row-actions .row-actions__danger--label, .row-actions .row-actions__danger--label:hover { color: var(--color-danger-fg); }
+.row-actions .row-actions__danger--label:hover { background: var(--color-danger-bg); }
+
+/* ---------- meter: a thin bar in a cell or under a figure; marks for thresholds ---------- */
+.meter { position: relative; display: block; width: 100%; height: 6px; background: var(--color-surface-alt); border-radius: var(--radius-chip); }
+:root:not([data-theme="dark"]) .meter { background: var(--color-track); }
+.meter__fill { display: block; height: 100%; max-width: 100%; width: calc(var(--p, 0) * 1%); background: var(--color-primary); border-radius: inherit; }
+.meter--warn .meter__fill { background: var(--color-meter-warn); }
+.meter--danger .meter__fill { background: var(--color-danger-fg); }
+.meter--quiet .meter__fill { background: color-mix(in srgb, var(--color-primary) 55%, transparent); }
+.meter__mark { position: absolute; top: -3px; bottom: -3px; left: calc(var(--at) * 1%); width: 2px; margin-left: -1px; background: var(--color-text-secondary); border-radius: 1px; }
+.meter__mark--strong { background: var(--color-text); }
+.meter-cell { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: center; gap: var(--space-3); min-width: 120px; }
+.meter-cell__pct { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-text-secondary); text-align: right; }
+
+/* ---------- stat strip: several figures in one card, each with its own freshness line ---------- */
+.stats { display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); margin-top: var(--space-6); border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); background: var(--color-surface); }
+.stat { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; padding: var(--space-5); }
+.stat + .stat { border-left: var(--border-w) solid var(--color-border-card); }
+.stat__label { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); font-weight: var(--weight-medium); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-secondary); }
+.stat__value { font-family: var(--font-heading); font-size: var(--text-2xl); font-weight: var(--weight-medium); line-height: 1.1; letter-spacing: var(--tracking-stat); color: var(--color-text); font-variant-numeric: tabular-nums; }
+.stat__of { font-family: var(--font-body); font-size: var(--text-md); font-weight: var(--weight-regular); letter-spacing: 0; color: var(--color-text-secondary); }
+.stat__meta { font-size: var(--text-sm); color: var(--color-text-secondary); }
+.stat .meter { margin-top: var(--space-1); }
+/* freshness: where a figure comes from and how old it is, in place of the explanatory paragraph */
+.fresh { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm); color: var(--color-text-muted); }
+.fresh::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-text-muted); flex: none; }
+.fresh--live::before { background: var(--color-ok-fg); box-shadow: 0 0 0 3px var(--color-ok-bg); }
+.fresh--lag::before { background: var(--color-warn-fg); }
+
+/* usage summary: two money cards, one per question (within the cap? does the meter match the bill?), freshness once in each head.
+   Cofounder Usage, Xero project equation, Snowflake Cost Management. */
+.money { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-5); margin-top: var(--space-6); }
+.money > .records { margin-top: 0; display: flex; flex-direction: column; container: money-card / inline-size; }
+.money .card-body { flex: 1 1 auto; display: flex; flex-direction: column; gap: var(--space-3); }
+/* both cards run the same rows (label, figure, one line of text) so they line up; the spend card adds its meter last */
+.money__scale { position: relative; height: 16px; margin-top: calc(var(--space-1) * -1); }
+.money__mark { position: absolute; left: calc(var(--at) * 1%); transform: translateX(-50%); font-size: var(--text-xs); color: var(--color-text-muted); white-space: nowrap; }
+.money__line { font-size: var(--text-base); color: var(--color-text-secondary); }
+.money__line strong { font-weight: var(--weight-medium); color: var(--color-text); }
+/* labelled figures; in the bill card, metered − billed = difference, the operators come from CSS so a screen reader hears three labelled figures */
+.figures { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3) 0; margin: 0; }
+.figures__term { position: relative; display: flex; flex-direction: column; gap: var(--space-1); }
+.figures__term + .figures__term { padding-left: var(--space-10); }
+.figures__term + .figures__term::before { position: absolute; left: 0; bottom: 0; width: var(--space-10); text-align: center; font-family: var(--font-heading); font-size: var(--text-2xl); line-height: 1.1; color: var(--color-text-muted); }
+.figures__term:nth-child(2)::before { content: "\2212" / ""; }
+.figures__term:nth-child(3)::before { content: "=" / ""; }
+.figures dt { font-size: var(--text-xs); font-weight: var(--weight-medium); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-text-secondary); }
+.figures dd { margin: 0; font-family: var(--font-heading); font-size: var(--text-2xl); font-weight: var(--weight-medium); line-height: 1.1; letter-spacing: var(--tracking-stat); color: var(--color-text); font-variant-numeric: tabular-nums; }
+.figures dd small { font-family: var(--font-body); font-size: var(--text-md); font-weight: var(--weight-regular); letter-spacing: 0; color: var(--color-text-secondary); }
+/* narrow cards: both step the figures down together (equal columns, so they always match) and the sum stays on one line */
+@container money-card (max-width: 480px) {
+  .figures dd, .figures__term + .figures__term::before { font-size: var(--text-xl); line-height: 1.2; }
+  .figures dd small { font-size: var(--text-base); }
+  .figures__term + .figures__term { padding-left: var(--space-8); }
+  .figures__term + .figures__term::before { width: var(--space-8); }
+}
+@media (max-width: 900px) { .money { grid-template-columns: minmax(0, 1fr); } }
+
+/* budgets: the hard cap card: head with Edit, figure + meter, facts under a rule */
+.cap { margin-top: var(--space-6); }
+.cap__body { display: flex; flex-direction: column; gap: var(--space-3); }
+.cap__pace { color: var(--color-warn-fg); }
+.cap__pace .icon { display: inline-block; vertical-align: -2px; margin-right: var(--space-1); }
+/* the totals the cap also covers: label over value, under a rule, like a card's footer */
+.cap__facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin: 0; padding: var(--space-4); border-top: var(--border-w) solid var(--color-border-card); }
+.cap__facts > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cap__facts dt { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-text-secondary); }
+.cap__facts dd { margin: 0; font-size: var(--text-base); color: var(--color-text); }
+@media (max-width: 640px) { .cap__facts { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- notice: one line of consequence + the fix, not a paragraph ---------- */
+.notice { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); background: var(--color-surface); font-size: var(--text-md); color: var(--color-text-body); }
+.notice > [data-icon], .notice > [data-cicon], .notice > .icon { display: flex; flex: none; margin-top: 2px; color: var(--color-link); }
+.notice__body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.notice__title { font-weight: var(--weight-medium); color: var(--color-text); }
+.notice__text { font-size: var(--text-base); color: var(--color-text-secondary); }
+.notice__actions { flex: none; display: flex; align-items: center; gap: var(--space-2); align-self: center; }
+.notice--info { border-color: color-mix(in srgb, var(--color-info-fg) 45%, transparent); background: var(--color-info-bg); }
+.notice--warn { border-color: color-mix(in srgb, var(--color-warn-fg) 45%, transparent); background: var(--color-warn-bg); }
+.notice--warn > [data-icon], .notice--warn > [data-cicon], .notice--warn > .icon { color: var(--color-warn-fg); }
+.notice--danger { border-color: color-mix(in srgb, var(--color-danger-fg) 45%, transparent); background: var(--color-danger-bg); }
+.notice--danger > [data-icon], .notice--danger > [data-cicon], .notice--danger > .icon { color: var(--color-danger-fg); }
+.notice--ok > [data-icon], .notice--ok > [data-cicon], .notice--ok > .icon { color: var(--color-ok-fg); }
+.notice--compact { padding: var(--space-2) var(--space-3); font-size: var(--text-base); }
+/* warn notices under a drawer field, e.g. a budget limit that goes past the cap */
+.sheet__notes { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
+.sheet__notes:empty { display: none; }
+
+/* ---------- switch ---------- */
+.switch { position: relative; flex: none; width: var(--switch-w); height: var(--switch-h); padding: 0; border: var(--border-w) solid var(--color-border-control-hover); border-radius: 999px; background: transparent; cursor: pointer; transition: background-color var(--ease), border-color var(--ease); }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--color-text-secondary); transition: transform var(--ease), background-color var(--ease); }
+.switch[aria-checked="true"] { background: var(--color-primary); border-color: var(--color-primary); }
+.switch[aria-checked="true"]::after { transform: translateX(14px); background: #ffffff; }
+.switch:hover { border-color: var(--color-border-strong); }
+.switch:disabled { opacity: 0.45; cursor: not-allowed; }
+.switch-row { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-base); color: var(--color-text-body); }
+
+/* ---------- tree rows ---------- */
+.tree-cell { display: flex; align-items: center; gap: var(--space-2); min-width: 0; padding-left: calc(var(--depth, 0) * var(--tree-indent)); }
+.tree-toggle { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 20px; height: 20px; border-radius: var(--radius-input); color: var(--color-text-secondary); }
+.tree-toggle:hover { background: var(--color-surface-alt); color: var(--color-text); }
+.tree-toggle .icon { transition: transform 150ms ease; }
+.tree-toggle[aria-expanded="false"] .icon { transform: rotate(-90deg); }
+.tree-spacer { flex: none; width: 20px; }
+.tree-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text); }
+.tree-sub { font-size: var(--text-sm); color: var(--color-text-muted); white-space: nowrap; }
+.data-table tr.is-group td { background: color-mix(in srgb, var(--color-surface-alt) 55%, transparent); }
+.data-table tr.is-group .tree-name { font-weight: var(--weight-medium); }
+.data-table tr.is-draft .tree-name { color: var(--color-text-secondary); }
+.data-table tr[hidden] { display: none; }
+
+/* ---------- connector tile ---------- */
+.tile { display: inline-flex; align-items: center; justify-content: center; flex: none; width: var(--icon-tile); height: var(--icon-tile); border-radius: var(--radius-icon-tile); background: var(--color-tile-bg); color: var(--color-tile-icon); }
+.tile--sm { width: 28px; height: 28px; }
+.tile.is-off { background: var(--color-surface-alt); color: var(--color-text-muted); }
+.item { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.item__body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.item__title { font-family: var(--font-heading); font-size: var(--text-md); font-weight: var(--weight-medium); color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item__meta { font-size: var(--text-sm); color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item__meta .mono { font-family: var(--font-mono); font-size: var(--text-xs); }
+
+/* ---------- in-frame drawer (sheet): shown open as a state, or opened from a row ----------
+   Sits under the header like every side panel (see "Side panel placement" below); the scrim dims only the page under
+   it. margin and gap reset the annotation layer's .sheet (common/annotations.css), which shares the class name and
+   would push the drawer 16px down. */
+.sheet-scrim { position: absolute; z-index: 20; inset: var(--header-h) 0 0 0; background: var(--color-scrim); }
+.sheet {
+  position: absolute; z-index: 21; top: var(--header-h); right: 0; bottom: 0; width: var(--sheet-w); max-width: 100%; margin: 0; gap: 0;
+  display: flex; flex-direction: column; background: var(--color-sheet);
+  border-left: var(--border-w) solid var(--color-border-data); box-shadow: var(--shadow-popover);
+}
+.sheet[hidden], .sheet-scrim[hidden] { display: none; }
+.sheet__bar { display: flex; align-items: center; gap: var(--space-2); min-height: var(--header-h); padding: 0 var(--space-3) 0 var(--space-5); border-bottom: var(--border-w) solid var(--color-border-data); font-family: var(--font-heading); font-size: var(--text-lg); font-weight: var(--weight-medium); color: var(--color-text-secondary); }
+.sheet__bar > :first-child { margin-right: auto; }
+.sheet__close { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--row-h); height: var(--row-h); border-radius: var(--radius-input); color: var(--color-text-secondary); }
+.sheet__close:hover { background: var(--color-surface-alt); color: var(--color-text); }
+.sheet__scroll { flex: 1 1 auto; min-height: 0; overflow: auto; padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-6); }
+/* children keep their height and the drawer scrolls (an overflow:hidden child would otherwise shrink to nothing) */
+.sheet__scroll > *, .panel__form > * { flex: none; }
+.sheet__eyebrow { margin-bottom: var(--space-2); }
+.sheet__title { font-family: var(--font-heading); font-size: var(--text-xl); font-weight: var(--weight-medium); line-height: var(--leading-tight); color: var(--color-text); }
+.sheet__sub { margin-top: var(--space-1); font-size: var(--text-base); color: var(--color-text-secondary); }
+.sheet__tags { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-3); }
+/* identity lifted into the bar (console.js liftHead): name on line 1; tags, then the sub line, share line 2 and wrap.
+   The bar grows to fit and the close button stays on the name's line. */
+.sheet__bar:has(> header) { flex: none; align-items: flex-start; padding-block: var(--space-3); }  /* flex: none, or a long body squeezes the bar */
+.sheet__bar > header { flex: 1 1 auto; min-width: 0; margin-right: 0; font-family: var(--font-body); font-size: var(--text-sm); font-weight: var(--weight-regular); }
+.sheet__bar > header:not(.sheet__ident) { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
+.sheet__bar > header .sheet__title { flex: 1 0 100%; font-size: var(--text-lg); overflow-wrap: anywhere; }
+.sheet__bar > header .sheet__sub { order: 2; max-width: 100%; margin: 0; font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }  /* one line; the full text is in title */
+.sheet__sub.mono { font-family: var(--font-mono); }
+.sheet__bar > header:not(.sheet__ident) .sheet__tags { order: 1; margin: 0; }
+.sheet__bar > header ~ .sheet__close { margin-top: calc(var(--space-1) * -1); }
+.sheet__foot { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-4) var(--space-5); border-top: var(--border-w) solid var(--color-border-data); }
+.sheet__foot .spacer { margin-left: auto; }
+.sheet__foot-note { margin-right: auto; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* definition list in a drawer or card */
+.dl { display: grid; grid-template-columns: 128px minmax(0, 1fr); margin: 0; border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); overflow: hidden; font-size: var(--text-base); }
+.dl dt, .dl dd { margin: 0; padding: 9px var(--space-3); border-bottom: var(--border-w) solid var(--color-border); }
+.dl dt { color: var(--color-text-secondary); background: color-mix(in srgb, var(--color-surface-alt) 60%, transparent); }
+.dl dd { color: var(--color-text); overflow-wrap: anywhere; }
+.dl dt:last-of-type, .dl dd:last-of-type { border-bottom: 0; }
+.dl .mono { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-text-secondary); }
+/* a list, not label/value pairs: the tool name takes the width and wraps, what it may do sits at the right */
+.dl--tools { grid-template-columns: minmax(0, 1fr) auto; }
+.dl--tools dt { background: none; overflow-wrap: anywhere; }
+.dl--tools .mono { color: var(--color-text); }
+.dl--tools dd { text-align: right; white-space: nowrap; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* group of fields inside a drawer or card */
+fieldset.fgroup { margin: 0; padding: 0; border: 0; min-width: 0; }
+fieldset.fgroup > legend { padding: 0; margin-bottom: var(--space-3); }
+.fgroup { display: flex; flex-direction: column; gap: var(--space-4); }
+/* section titles in drawers and panels read like field labels (sentence case), not caps eyebrows */
+.fgroup__title { font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-text-secondary); }
+.fgroup__desc { margin-top: calc(-1 * var(--space-3)); font-size: var(--text-sm); color: var(--color-text-muted); }
+.frow { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--space-3); }
+.field__label { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+/* required: an asterisk right after the label text (the input carries aria-required for screen readers); fields
+   without one are optional, so nothing marks them. Not muted, so it is seen; the label is flex, so pull it back to the text */
+.field__req { font-weight: var(--weight-medium); color: var(--color-danger-fg); }
+.field__label > .field__req { margin: 0 auto 0 calc(var(--space-1) - var(--space-2)); }
+.field__req[hidden] { display: none; }
+.field__hint { font-size: var(--text-sm); color: var(--color-text-muted); }
+/* warn hints carry the alert icon so the state never rests on colour alone; it hangs beside the first line and wrapped lines indent under the text */
+.field__hint--warn { position: relative; display: block; padding-left: calc(14px + var(--space-2)); color: var(--color-warn-fg); }
+.field__hint--warn::before { content: ""; position: absolute; left: 0; top: calc((1lh - 14px) / 2); width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--icon-alert) center / contain no-repeat; mask: var(--icon-alert) center / contain no-repeat; }
+:root { --icon-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4l9 16H3z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E"); }
+.input--mono { font-family: var(--font-mono); font-size: var(--text-base); }
+.input[readonly], .input:disabled { background: var(--color-surface-alt); color: var(--color-text-secondary); cursor: not-allowed; }
+.input-prefix { position: relative; }
+.input-prefix > span { position: absolute; left: var(--space-3); top: 50%; transform: translateY(-50%); color: var(--color-text-secondary); pointer-events: none; }
+.input-prefix .input { padding-left: 26px; }
+.textarea { height: auto; min-height: 96px; padding: 10px var(--space-3); line-height: var(--leading-normal); resize: vertical; font-family: inherit; }
+.input-wrap .select + [data-icon], .input-wrap .select + .icon { position: absolute; right: var(--space-3); top: 50%; transform: translateY(-50%); display: flex; color: var(--color-text-secondary); pointer-events: none; }
+
+/* inline checkbox line (consent, include) */
+.checkline { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--text-base); color: var(--color-text-body); cursor: pointer; }
+.checkline strong { display: block; font-weight: var(--weight-medium); color: var(--color-text); }
+.checkline span span { display: block; margin-top: 2px; font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* drawn checkbox and radio for the new screens, as the facet panel's */
+.console .checkbox, .sheet .checkbox, .panel .checkbox {
+  appearance: none; -webkit-appearance: none; flex: 0 0 auto; width: 16px; height: 16px; margin: 0; cursor: pointer;
+  border: var(--border-w) solid var(--color-text-secondary); border-radius: 3px; background: transparent center / 12px 12px no-repeat;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.console .checkbox:hover, .sheet .checkbox:hover, .panel .checkbox:hover { border-color: var(--color-text); }
+.console .checkbox:checked, .sheet .checkbox:checked, .panel .checkbox:checked {
+  border-color: var(--color-primary); background-color: var(--color-primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.2 5 8.7l4.5-5.4'/%3E%3C/svg%3E");
+}
+.console .checkbox:indeterminate, .sheet .checkbox:indeterminate {
+  border-color: var(--color-primary); background-color: var(--color-primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M3 6h6'/%3E%3C/svg%3E");
+}
+.console .checkbox:disabled, .sheet .checkbox:disabled { opacity: 0.4; cursor: not-allowed; }
+.console .checkbox:focus-visible, .sheet .checkbox:focus-visible, .panel .checkbox:focus-visible { outline: 2px solid var(--color-link); outline-offset: 2px; }
+/* checkline box centred on the first text line; sits after the drawn rule so its margin: 0 does not win */
+.checkline .checkbox { margin-top: calc((1lh - 16px) / 2); }
+
+/* ---------- choice cards (role, severity, scope): a radio group drawn as cards ---------- */
+.choices { display: grid; grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr)); gap: var(--space-2); }
+.choice { position: relative; display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3); border: var(--border-w) solid var(--color-border-button); border-radius: var(--radius-card); background: var(--color-surface); cursor: pointer; transition: border-color var(--ease), background-color var(--ease); }
+.choice:hover { border-color: var(--color-border-strong); }
+.choice input { position: absolute; opacity: 0; pointer-events: none; }
+.choice__dot { flex: none; width: 16px; height: 16px; margin-top: 2px; border: var(--border-w) solid var(--color-text-secondary); border-radius: 50%; }
+.choice__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.choice__title { font-size: var(--text-md); font-weight: var(--weight-medium); color: var(--color-text); }
+.choice__desc { font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal); }
+.choice:has(input:checked) { border-color: var(--color-border-strong); background: linear-gradient(var(--color-primary-soft), var(--color-primary-soft)), var(--color-surface); }
+.choice:has(input:checked) .choice__dot { border: 5px solid var(--color-link); }
+.choice:has(input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.choices--compact .choice { padding: var(--space-2) var(--space-3); }
+.choices--compact .choice__dot { display: none; }
+/* rows: a ranked choice in a narrow column (severity in the report panel). One bordered list, most severe on top,
+   name and meaning on one line, so nothing wraps and the levels read as a scale, not as equal cards */
+.choices--rows { display: flex; flex-direction: column; gap: 0; border: var(--border-w) solid var(--color-border-button); border-radius: var(--radius-card); overflow: hidden; }
+.choices--rows .choice { align-items: center; border: 0; border-radius: 0; padding: var(--space-3); }
+.choices--rows .choice + .choice { border-top: var(--border-w) solid var(--color-border-data); }
+/* light: the group's edge matches the text fields beside it, not the darker button edge */
+:root:not([data-theme="dark"]) .choices--rows { border-color: var(--color-border-control); }
+.choices--rows .choice:hover { background: var(--color-surface-alt); }
+.choices--rows .choice__dot { margin-top: 0; }
+.choices--rows .choice__body { flex-direction: row; align-items: baseline; gap: var(--space-3); }
+.choices--rows .choice__title { flex: none; width: 76px; }
+.choices--rows .choice:has(input:checked) .choice__title { color: var(--color-link); }
+.choices--rows .choice:has(input:focus-visible) { outline-offset: -2px; }
+
+/* ---------- drop zone ---------- */
+.dropzone { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: var(--border-w) dashed var(--color-border-button); border-radius: var(--radius-card); font-size: var(--text-base); color: var(--color-text-secondary); cursor: pointer; transition: border-color var(--ease), background-color var(--ease); }
+.dropzone:hover { border-color: var(--color-border-strong); background: var(--color-primary-soft); }
+.dropzone > [data-icon] { display: flex; color: var(--color-link); }
+.dropzone strong { font-weight: var(--weight-medium); color: var(--color-link); }
+
+/* ---------- timeline: every change, in order ---------- */
+.log { display: flex; flex-direction: column; }
+.log__item { position: relative; display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: var(--space-3); padding: 0 0 var(--space-4); font-size: var(--text-base); color: var(--color-text-body); }
+.log__item::before { content: ""; position: absolute; left: 7px; top: 16px; bottom: 0; width: 1px; background: var(--color-border-data); }
+.log__item:last-child { padding-bottom: 0; }
+.log__item:last-child::before { content: none; }
+.log__dot { width: 9px; height: 9px; margin: 5px 0 0 3px; border-radius: 50%; background: var(--color-surface); border: var(--border-w) solid var(--color-text-secondary); }
+.log__item--strong .log__dot { background: var(--color-link); border-color: var(--color-link); }
+.log__text strong { font-weight: var(--weight-medium); color: var(--color-text); }
+.log__time { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-muted); white-space: nowrap; padding-top: 2px; }
+.bubble { margin-top: var(--space-2); padding: var(--space-3); border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); background: var(--color-surface); color: var(--color-text); line-height: var(--leading-normal); }
+.bubble--note { border-color: color-mix(in srgb, var(--color-warn-fg) 40%, transparent); background: var(--color-note-bg); }
+.audience { display: inline-flex; align-items: center; gap: 6px; margin-bottom: var(--space-1); font-size: var(--text-xs); font-weight: var(--weight-medium); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--color-warn-fg); }
+
+/* reply box with an audience switch: Reply to reporter vs Internal note */
+.reply { border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); background: var(--color-surface); }
+.reply:focus-within { border-color: var(--color-border-strong); box-shadow: var(--shadow-selected); }
+.reply__tabs { display: flex; gap: var(--space-1); padding: var(--space-2) var(--space-2) 0; }
+.reply__tab { height: 28px; padding: 0 var(--space-3); border-radius: var(--radius-input); font-size: var(--text-base); color: var(--color-text-secondary); }
+.reply__tab:hover { color: var(--color-text); background: var(--color-surface-alt); }
+.reply__tab[aria-pressed="true"] { background: var(--color-primary-soft); color: var(--color-text); font-weight: var(--weight-medium); }
+.reply__tab--note[aria-pressed="true"] { background: var(--color-note-bg); color: var(--color-warn-fg); }
+.reply textarea { display: block; width: 100%; min-height: 72px; padding: var(--space-2) var(--space-3); border: 0; background: transparent; color: var(--color-text); font-size: var(--text-md); resize: none; }
+.reply textarea:focus-visible { outline: none; }
+.reply--note { border-color: color-mix(in srgb, var(--color-warn-fg) 45%, transparent); background: var(--color-note-bg); }
+.reply--note:focus-within { border-color: var(--color-warn-fg); box-shadow: none; }
+.reply--note .reply__bar > span { color: var(--color-warn-fg); }
+.reply__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: 0 var(--space-2) var(--space-2) var(--space-3); font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* gated content: a conversation the reporter did not share */
+.gate-box { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) var(--space-4); border: var(--border-w) dashed var(--color-border-button); border-radius: var(--radius-card); font-size: var(--text-base); color: var(--color-text-secondary); }
+.gate-box > [data-icon], .gate-box > [data-cicon] { display: flex; color: var(--color-text-secondary); margin-top: 2px; }
+.gate-box > .icon { flex: none; margin-top: 2px; color: var(--color-text-secondary); }
+.gate-box strong { display: block; font-weight: var(--weight-medium); color: var(--color-text); }
+
+/* unit picker in a drawer: the active tree with checkboxes */
+.pick-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.pick-count { font-size: var(--text-sm); color: var(--color-text-secondary); }
+.picklist { display: flex; flex-direction: column; padding: var(--space-1); border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); }
+.pick { display: flex; align-items: center; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-2) 0 calc(var(--space-2) + var(--depth, 0) * var(--tree-indent)); border-radius: var(--radius-input); font-size: var(--text-base); color: var(--color-text-body); cursor: pointer; }
+.pick:hover { background: var(--color-surface-alt); color: var(--color-text); }
+.pick:has(.checkbox:checked) { color: var(--color-text); }
+.pick__name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pick__meta { margin-left: auto; font-size: var(--text-sm); color: var(--color-text-muted); white-space: nowrap; }
+[data-picker][hidden] { display: none; }
+
+/* ---------- summary counts (disclosure): a row of small figures ---------- */
+.counts { display: grid; grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr)); border-bottom: var(--border-w) solid var(--color-border-card); }
+.count { padding: var(--space-4); }
+.count + .count { border-left: var(--border-w) solid var(--color-border); }
+.count__n { font-family: var(--font-heading); font-size: var(--text-xl); font-weight: var(--weight-medium); color: var(--color-text); font-variant-numeric: tabular-nums; }
+.count__label { margin-top: 2px; font-size: var(--text-sm); color: var(--color-text-secondary); }
+
+/* disclosure builder */
+.builder__actions { display: flex; align-items: center; gap: var(--space-3); }
+.builder__actions .btn[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+.builder__dl { display: inline-flex; align-items: center; gap: var(--space-2); }
+.summary { border-top: var(--border-w) solid var(--color-border-card); }
+.summary[hidden] { display: none; }
+.summary .records__foot { margin: 0; }
+mark { background: var(--color-warn-bg); color: var(--color-text); padding: 0 2px; border-radius: 2px; }
+a.segment { text-decoration: none; }
+
+/* plain list with ticks and crosses (what a report includes / leaves out) */
+.ticks { display: flex; flex-direction: column; gap: var(--space-2); font-size: var(--text-base); color: var(--color-text-body); }
+.ticks li { display: flex; gap: var(--space-2); align-items: flex-start; }
+.ticks [data-cicon] { display: flex; flex: none; margin-top: 2px; }
+.ticks--in [data-cicon] { color: var(--color-ok-fg); }
+.ticks--out [data-cicon] { color: var(--color-text-muted); }
+
+/* list rows inside a card (recent runs, my reports) */
+.rows { display: flex; flex-direction: column; }
+.rows__item { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-top: var(--border-w) solid var(--color-border); }
+.rows__item:first-child { border-top: 0; }
+.rows__item > .btn { flex: none; }
+.rows__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rows__title { font-size: var(--text-md); color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rows__meta { font-size: var(--text-sm); color: var(--color-text-muted); }
+.rows__meta .mono { font-family: var(--font-mono); font-size: var(--text-xs); }
+
+/* ---------- chat: Report a problem in the right column ---------- */
+.panel--form { padding: 0; }
+.panel--form .sheet__bar { padding-left: var(--space-5); }
+.panel__form { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-5); }
+.panel__sent { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+.panel__sent-mark { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--color-ok-bg); color: var(--color-ok-fg); }
+.sidebar__footer .btn.is-active { background: var(--color-primary-soft); color: var(--color-text); }
+.shot-row { display: flex; align-items: flex-start; gap: var(--space-3); }
+/* attached files: one slim row each (thumbnail, name + size, its category, remove), not a preview tile.
+   Shared: the report panel edits the row (category select, remove); a ticket shows it read-only (category as text, open) */
+.files { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.files[hidden] { display: none; }
+.file { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-3) var(--space-3); border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); background: var(--color-surface); }
+.file__thumb { grid-area: 1 / 1; flex: none; display: flex; align-items: center; justify-content: center; width: var(--space-10); height: var(--space-10); overflow: hidden; border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-input); background: var(--color-surface-alt); color: var(--color-text-muted); }
+.file__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.file__head { grid-area: 1 / 2; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-2); min-width: 0; }
+.file__name { min-width: 0; font-size: var(--text-base); color: var(--color-text); overflow-wrap: anywhere; }
+.file__meta { flex: none; font-size: var(--text-xs); color: var(--color-text-muted); }
+.file__sub { flex: 1 0 100%; font-size: var(--text-sm); color: var(--color-text-secondary); }
+.file--view { padding-bottom: var(--space-2); }
+.file__remove, .file__open { grid-area: 1 / 3; flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--row-h); height: var(--row-h); border: 0; border-radius: var(--radius-btn); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.file__remove:hover, .file__open:hover { color: var(--color-text); background: var(--color-surface-alt); }
+/* the category runs the row's full width under the file line, so it reads as this file's field */
+.file__class { grid-area: 2 / 1 / 3 / 4; }
+.file__class .select { width: 100%; font-size: var(--text-base); }
+.panel--form .dropzone[hidden] { display: none; }
+.rows--boxed { border: var(--border-w) solid var(--color-border-card); border-radius: var(--radius-card); }
+.panel--form .sheet__bar .panel__title { font: inherit; }  /* the bar sets the type, same as every drawer */
+.panel__view { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.panel__form[hidden], .panel__view[hidden] { display: none; }
+
+
+/* nav count on a rail item (open tickets) */
+.rail__count { margin-left: auto; min-width: 20px; height: 18px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; background: var(--color-primary-soft); color: var(--color-link); font-size: var(--text-xs); font-weight: var(--weight-medium); }
+
+@media (prefers-reduced-motion: reduce) {
+  .switch, .switch::after, .choice, .dropzone, .tree-toggle .icon { transition: none; }
+}
+
+/* Report panel overrides: keep the shared drawer/form patterns unchanged. */
+/* Side panel placement, one rule for every frame: every side panel sits under the header, docked (this one, the chat
+   context panel, the console rail) or modal (.sheet drawers). The header is global chrome (logo, console, account),
+   so it spans the full width and stays usable (Dialpad, Whop pattern). */
+.app--wide-panel { grid-template-columns: var(--sidebar-w) minmax(0, 1fr) calc(var(--space-10) * 10); height: min(var(--app-h), 100svh); }
+.panel--form { min-width: 0; overflow: hidden; }
+.panel--form .sheet__bar { flex: none; min-height: var(--header-h); }
+.panel--form .select, .panel--form input.input, .panel--form .btn { min-height: var(--row-h); height: auto; }
+.panel--form .select, .panel--form input.input { height: var(--row-h); }
+.panel--form .choice, .panel--form .checkline, .panel--form .dropzone, .panel--form .link-btn { min-height: var(--row-h); }
+.panel--form .link-btn { white-space: normal; text-align: left; }
+.panel--form .choices--rows .choice__body { flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+.panel--form .choices--rows .choice__title { width: calc(var(--space-5) * 4); }
+.panel--form .choice__dot { margin-top: var(--space-1); }
+.panel--form .checkline.is-disabled { cursor: default; }
+.panel--form .sheet__foot { flex: none; flex-wrap: wrap; justify-content: flex-end; }
+.panel--form .sheet__foot .btn { flex: none; }
+.panel--form .sheet__foot-note { flex: 1 1 var(--space-16); }
+.panel--form .rows__title, .panel--form .rows__meta { white-space: normal; overflow-wrap: anywhere; }
+.panel--form .rows__item > .badge { flex: none; align-self: flex-start; }
+.panel--form .dl { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.panel--form .dl dt { background: var(--color-surface-alt); color: var(--color-text); }
+.panel--form [data-file-status]:empty, .panel--form [hidden] { display: none; }
+.panel--form [data-errors] { color: var(--color-danger-fg); }
+.panel--form [aria-invalid="true"] { border-color: var(--color-danger-fg); }
+.panel--form .choices:has([aria-invalid="true"]) { border-color: var(--color-danger-fg); }
+.panel--form :focus-visible, .panel--form .dropzone:has(input:focus-visible) { outline: calc(var(--border-w) * 2) solid var(--color-focus); outline-offset: var(--space-1); }
+.panel--form .choice:has(input:focus-visible) { outline-offset: calc(-2 * var(--border-w)); }
+.panel--form .panel__form { scroll-padding: var(--space-5); }
+.panel--form .dropzone { position: relative; }
+@media (max-width: 1180px) {
+  .app--wide-panel { grid-template-columns: minmax(0, 1fr) calc(var(--space-10) * 10); grid-template-areas: "header header" "main panel"; }
+  .app--wide-panel > .sidebar { display: none; }
+}
+@media (max-width: 720px) {
+  .app--wide-panel { grid-template-columns: minmax(0, 1fr); grid-template-areas: "panel"; grid-template-rows: minmax(0, 1fr); }
+  .app--wide-panel > .app__header, .app--wide-panel > .main { display: none; }
+  .app--wide-panel > .panel--form { border-left: 0; }
+  .app--wide-panel .panel__form { padding: var(--space-4); }
+  .app--wide-panel .sheet__bar { padding-left: var(--space-4); }
+  .app--wide-panel .sheet__foot { padding: var(--space-3) var(--space-4); }
+  .app--wide-panel .sheet__foot .btn { width: 100%; }
+  .app--wide-panel .select, .app--wide-panel .input { font-size: var(--text-lg); }
+}
+
+.panel--form .dropzone > [data-cicon] { flex: none; color: var(--color-link); }

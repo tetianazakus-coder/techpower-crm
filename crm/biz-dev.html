@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en" data-default-theme="dark" data-app>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>TechPower CRM · Biz Dev</title>
+<link rel="stylesheet" href="../common/reset.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="console.css">
+<link rel="stylesheet" href="crm.css">
+<script src="../common/theme.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- Biz Dev: PhoneBurner call activity by rep for a period, in the Harbor theme.
+       Approved changes applied: sidebar (H1). Sentence case and words instead of DM, GK and VM (M2 comes with the theme).
+       As today: Today / This week / This month (This week first); three groups of figures — Call activity (Total calls,
+       Connected, Talk time, Voicemails), Call quality (Decision maker conversations, Gatekeeper, Emails sent,
+       Conversation to meeting) and Meetings (Scheduled, Held, No shows, Qualified, Sales accepted); By rep (Calls,
+       Connected, Decision maker, Gatekeeper, Talk time, Voicemail, Meetings set, Held, Qualified — Connected, Held and
+       Qualified with their rate after the count); Dispositions, with "No disposition data yet" when there are no calls.
+       Live puts Dispositions in a narrow column beside By rep; here it sits below, so the ten columns keep their width.
+       Not seen during discovery (the period was empty, and Dispositions was below the fold), so assumed: Dispositions is
+       calls by outcome with a share bar; meetings count as set on the day they were booked, and as held, no show or
+       qualified on the day they took place; Sales accepted is qualified meetings that sales took on; the Total row.
+       State 1 is live: switch period. -->
+  <section class="state" aria-labelledby="state-week">
+    <h2 class="state__label" id="state-week">State 1 · This week: it's Monday, so the calls are this morning's; meetings set and held this week; live — switch period</h2>
+    <div class="app app--console app--crm" id="app-1">
+      <header class="app__header" data-crm-header></header>
+      <nav class="rail" aria-label="CRM sections" data-rail="biz-dev"></nav>
+      <div class="console">
+        <div class="console__inner">
+          <div class="console__head">
+            <div>
+              <h1 class="console__title">Biz Dev panel</h1>
+              <p class="console__subtitle">PhoneBurner call activity by rep.</p>
+            </div>
+          </div>
+
+          <div class="view-bar">
+            <div class="segmented segmented--inline" role="group" aria-label="Period" data-period-switch>
+              <button type="button" class="segment" aria-pressed="false" data-value="today">Today</button>
+              <button type="button" class="segment" aria-pressed="false" data-value="week">This week</button>
+              <button type="button" class="segment" aria-pressed="false" data-value="month">This month</button>
+            </div>
+            <span class="view-bar__note" data-render="range"></span>
+          </div>
+
+          <div class="stat-groups" aria-live="polite">
+            <div class="section-title"><h2>Call activity</h2></div>
+            <div class="stats" style="--cols: 4" data-render="activity"></div>
+            <div class="section-title"><h2>Call quality</h2></div>
+            <div class="stats" style="--cols: 4" data-render="quality"></div>
+            <div class="section-title"><h2>Meetings</h2></div>
+            <div class="stats" style="--cols: 5" data-render="meetings"></div>
+          </div>
+
+          <section class="records" aria-labelledby="rep-title">
+            <div class="card-head">
+              <div>
+                <h2 class="card-head__title" id="rep-title">By rep</h2>
+                <p class="card-head__desc" data-render="rep-desc"></p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table data-table--fit">
+                <thead><tr>
+                  <th scope="col">Rep</th>
+                  <th scope="col" class="cell--right" style="width: 80px">Calls</th>
+                  <th scope="col" class="cell--right" style="width: 104px">Connected</th>
+                  <th scope="col" class="cell--right" style="width: 128px">Decision maker</th>
+                  <th scope="col" class="cell--right" style="width: 108px">Gatekeeper</th>
+                  <th scope="col" class="cell--right" style="width: 104px">Talk time</th>
+                  <th scope="col" class="cell--right" style="width: 96px">Voicemail</th>
+                  <th scope="col" class="cell--right" style="width: 116px">Meetings set</th>
+                  <th scope="col" class="cell--right" style="width: 108px">Held</th>
+                  <th scope="col" class="cell--right" style="width: 112px">Qualified</th>
+                </tr></thead>
+                <tbody data-render="reps"></tbody>
+                <tfoot data-render="reps-total"></tfoot>
+              </table>
+            </div>
+          </section>
+
+          <section class="records" aria-labelledby="disp-title">
+            <div class="card-head">
+              <div>
+                <h2 class="card-head__title" id="disp-title">Dispositions</h2>
+                <p class="card-head__desc" data-render="disp-desc"></p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table data-table--fit data-table--pipe">
+                <thead><tr><th scope="col">Outcome</th><th scope="col" class="cell--right" style="width: 88px">Calls</th><th scope="col" style="width: 360px">Share of calls</th></tr></thead>
+                <tbody data-render="disp"></tbody>
+                <tfoot data-render="disp-total"></tfoot>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="sheet-scrim" hidden></div>
+    </div>
+  </section>
+
+  <section class="state" aria-labelledby="state-month">
+    <h2 class="state__label" id="state-month">State 2 · This month: the same calls, conversations and emails as the November goals</h2>
+    <div data-clone="app-1" data-period="month"></div>
+  </section>
+
+</main>
+<script>window.HARBOR_STATIC = true;</script>
+<script src="../common/content.js"></script>
+<script src="data.js"></script>
+<script src="crm.js"></script>
+<script>
+(function () {
+  var C = CRM, D = C.data, esc = C.esc;
+  var LOWER = { today: 'today', week: 'this week', month: 'this month' };
+  var REPS = Object.keys(D.bizdev.month);
+  var OUTS = ['dm', 'gk', 'vm', 'na'];   /* the order of the first four numbers in D.bizdev */
+  var DOW = (new Date(D.today + 'T12:00').getDay() + 6) % 7;   /* days since Monday */
+
+  /* the same periods as Meetings: today, Monday to Sunday, the calendar month */
+  function inPeriod(iso, p) {
+    var n = C.days(iso);
+    return (p === 'today' && n === 0) || (p === 'week' && n >= -DOW && n <= 6 - DOW) || (p === 'month' && iso.slice(0, 7) === D.today.slice(0, 7));
+  }
+  function range(p) {
+    if (p === 'today') return C.date(D.today);
+    if (p === 'week') return C.date(shift(-DOW)) + ' to ' + C.date(shift(6 - DOW));
+    var d = new Date(D.today + 'T12:00');
+    return C.date(D.today.slice(0, 8) + '01') + ' to ' + C.date(iso(new Date(d.getFullYear(), d.getMonth() + 1, 0)));
+  }
+  function iso(x) { return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); }
+  function shift(n) { var x = new Date(D.today + 'T12:00'); x.setDate(x.getDate() + n); return iso(x); }
+
+  function talk(m) { return m < 60 ? m + 'm' : Math.floor(m / 60) + 'h ' + (m % 60) + 'm'; }
+  function rate(a, b) { return b ? Math.round(a / b * 100) + '%' : '—'; }
+  function dash(v) { return v === '—' ? '<span class="dash">—</span>' : v; }
+  function stat(label, value, meta) { return '<div class="stat"><span class="stat__label">' + label + '</span><span class="stat__value">' + dash(value) + '</span><span class="stat__meta">' + (meta || '') + '</span></div>'; }
+
+  /* ---------- one rep's figures for a period: calls from PhoneBurner, meetings from the Meetings list ---------- */
+  function figures(rep, p) {
+    var c = D.bizdev[p][rep], n = { dm: c[0], gk: c[1], vm: c[2], na: c[3], talk: c[4], emails: c[5], set: 0, held: 0, noshow: 0, qualified: 0, accepted: 0 };
+    n.calls = n.dm + n.gk + n.vm + n.na; n.connected = n.dm + n.gk;
+    D.meetings.forEach(function (m) {
+      if (m.rep !== rep) return;
+      if (inPeriod(m.set, p)) n.set++;
+      if (!inPeriod(m.at.slice(0, 10), p)) return;
+      if (m.outcome === 'held' || m.outcome === 'qualified') n.held++;
+      if (m.outcome === 'qualified') n.qualified++;
+      if (m.outcome === 'noshow') n.noshow++;
+      if (m.accepted) n.accepted++;
+    });
+    return n;
+  }
+  function sum(list) {
+    var t = {};
+    list.forEach(function (n) { for (var k in n) t[k] = (t[k] || 0) + n[k]; });
+    return t;
+  }
+
+  /* as live: Connected, Held and Qualified carry their rate after the count, the same rates as the cards above */
+  function cells(n) {
+    function td(v, r) { return '<td class="cell--right num">' + v + (r ? '<span class="num__rate">' + dash(r) + '</span>' : '') + '</td>'; }
+    return td(n.calls) + td(n.connected, rate(n.connected, n.calls)) + td(n.dm) + td(n.gk) + td(talk(n.talk)) +
+      td(n.vm) + td(n.set) + td(n.held, rate(n.held, n.held + n.noshow)) + td(n.qualified, rate(n.qualified, n.held));
+  }
+
+  function draw(frame) {
+    var p = frame._period;
+    var rows = REPS.map(function (r) { return figures(r, p); }), t = sum(rows);
+    function put(name, html) { frame.querySelector('[data-render="' + name + '"]').innerHTML = html; }
+    put('range', range(p));
+    put('activity',
+      stat('Total calls', C.count(t.calls)) +
+      stat('Connected', t.connected, rate(t.connected, t.calls) + ' connection rate') +
+      stat('Talk time', talk(t.talk)) +
+      stat('Voicemails', t.vm));
+    put('quality',
+      stat('Decision maker conversations', t.dm, rate(t.dm, t.connected) + ' of connected') +
+      stat('Gatekeeper', t.gk, rate(t.gk, t.connected) + ' of connected') +
+      stat('Emails sent', t.emails) +
+      stat('Conversation to meeting', rate(t.set, t.dm), 'Meetings set per decision maker conversation'));
+    put('meetings',
+      stat('Scheduled', t.set, 'Set in this period') +
+      stat('Held', t.held, rate(t.held, t.held + t.noshow) + ' attendance') +
+      stat('No shows', t.noshow) +
+      stat('Qualified', t.qualified, rate(t.qualified, t.held) + ' qualify rate') +
+      stat('Sales accepted', t.accepted, rate(t.accepted, t.qualified) + ' acceptance'));
+    put('rep-desc', 'Calls and meetings ' + LOWER[p] + ', all reps who call');
+    put('reps', REPS.map(function (r, i) {
+      var who = C.rep(r);
+      return '<tr><td><span class="name-cell"><span>' + esc(who.name) + '</span><span class="who__dept">' + esc(D.roles[who.role]) + '</span></span></td>' + cells(rows[i]) + '</tr>';
+    }).join(''));
+    put('reps-total', '<tr><th scope="row">Total</th>' + cells(t) + '</tr>');
+    put('disp-desc', 'How calls ended ' + LOWER[p] + ', all reps');
+    /* as live: no calls in the period, no rows of zeros */
+    put('disp', t.calls ? OUTS.map(function (k) {
+      return '<tr><td>' + esc(D.outcomes[k]) + '</td><td class="cell--right num">' + t[k] + '</td>' +
+        '<td title="' + t[k] + ' of ' + t.calls + ' calls">' + C.meterCell(C.pct(t[k], t.calls)) + '</td></tr>';
+    }).join('') : '<tr class="is-empty-row"><td colspan="3" class="cell--muted">No disposition data yet.</td></tr>');
+    put('disp-total', t.calls ? '<tr><th scope="row">Total</th><td class="cell--right num">' + C.count(t.calls) + '</td><td></td></tr>' : '');
+    frame.querySelectorAll('[data-period-switch] .segment').forEach(function (b) { var on = b.dataset.value === p; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', on); });
+  }
+
+  document.addEventListener('crm:segment', function (e) {
+    if (!e.target.hasAttribute('data-period-switch')) return;
+    var frame = e.target.closest('.app'); frame._period = e.detail.value; draw(frame);
+  });
+
+  C.boot();
+
+  document.querySelectorAll('.app').forEach(function (f) { f._period = f.dataset.period || 'week'; draw(f); });
+})();
+</script>
+</body>
+</html>
